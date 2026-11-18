@@ -1,0 +1,46 @@
+name: Build Calm Launcher APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ calm-setup ]
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build APK (./build.sh)
+        run: |
+          chmod +x build.sh tools/aapt2
+          ./build.sh
+
+      - name: Find APK
+        id: apk
+        run: echo "path=$(ls build/*.apk | head -n1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calm-launcher-apk
+          path: build/*.apk
+          if-no-files-found: error
+
+      - name: Publish Release (only on v* tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/*.apk
+          generate_release_notes: true

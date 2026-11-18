@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MG4 Launcher</string>
+    <string name="app_name">Calm Launcher</string>
 
     <style name="LauncherTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
