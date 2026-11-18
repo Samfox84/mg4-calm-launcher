@@ -122,6 +122,7 @@ public final class Cam360 {
     }
 
     private static Target def(boolean orig) {
-        return orig ? new Target(ORIGINAL, ORIG_PKG, ORIG_CLS, "") : new Target(HIDDEN, null, null, "");
+        // Calm Launcher: il tasto 360 resta sempre visibile (prova la 360 originale anche se non rilevata).
+        return new Target(ORIGINAL, ORIG_PKG, ORIG_CLS, "");
     }
 }

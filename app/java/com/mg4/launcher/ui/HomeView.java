@@ -122,6 +122,8 @@ public final class HomeView extends LinearLayout {
     private String favSignature = "";
     private Bars.Progress mProgress;
     private ImageView playIcon, miniPlayIcon;
+    // Calm Launcher: comandi brano nascosti in Radio (non si puo' mettere in pausa o saltare la radio)
+    private View transPrev, transPlay, transNext, transMiniPlay, transMiniNext;
     private TextView[] bandChips;
     // 1.0.2 (issue #25): banda FM/DAB come sotto-opzione della Radio, subito sotto la riga delle sorgenti
     private LinearLayout bandBox, mediaCol;
@@ -188,7 +190,7 @@ public final class HomeView extends LinearLayout {
         String side = prefs.driveSide();
         rhd = Prefs.DRIVE_RIGHT.equals(side) || (Prefs.DRIVE_AUTO.equals(side) && carRhd);
         sysIndicator = CarFeatures.hasSystemLightIndicator(c) || carRhd;
-        big = prefs.bigBar();
+        big = prefs.bigBar() || prefs.calmLayout();
 
         LinearLayout top = Ui.row(c);
         top.setGravity(Gravity.FILL_VERTICAL);
@@ -1127,12 +1129,15 @@ public final class HomeView extends LinearLayout {
         // (prima il tasto play usciva tagliato sopra e sotto)
         float cf = Math.min(Ui.K, 1.15f) / Ui.K;
         int prevSz = Math.round(64 * cf), playSz = Math.round(84 * cf);
-        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_prev, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.previous), v -> media.skip(false)));
+        transPrev = Ui.iconButton(c, t, R.drawable.ic_prev, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.previous), v -> media.skip(false));
+        ctr.addView(transPrev);
         FrameLayout play = Ui.iconButton(c, t, R.drawable.ic_pause, t.panel, t.text, playSz, Math.round(36 * cf), 42 * cf, L.s(R.string.play_pause), v -> media.playPause());
+        transPlay = play;
         playIcon = (ImageView) play.getChildAt(0);
         int gap = dp(Ui.K > 1 ? 14 : 20);
         ctr.addView(play, Ui.margins(Ui.lp(tp(playSz), tp(playSz)), gap, 0, gap, 0));
-        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.next), v -> media.skip(true)));
+        transNext = Ui.iconButton(c, t, R.drawable.ic_next, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.next), v -> media.skip(true));
+        ctr.addView(transNext);
         bandRow = Ui.row(c);
         bandRow.setBackground(Ui.round(t.chip, dp(18)));
         bandRow.setPadding(dp(6), dp(6), dp(6), dp(6));
@@ -1596,6 +1601,13 @@ public final class HomeView extends LinearLayout {
         }
         playIcon.setImageResource(m.playing ? R.drawable.ic_pause : R.drawable.ic_play);
         miniPlayIcon.setImageResource(m.playing ? R.drawable.ic_pause : R.drawable.ic_play);
+        // Calm Launcher: in Radio niente pausa/salta brano (si usano le bande FM/DAB e l'elenco stazioni)
+        int transVis = radio ? GONE : VISIBLE;
+        if (transPrev != null) transPrev.setVisibility(transVis);
+        if (transPlay != null) transPlay.setVisibility(transVis);
+        if (transNext != null) transNext.setVisibility(transVis);
+        if (transMiniPlay != null) transMiniPlay.setVisibility(transVis);
+        if (transMiniNext != null) transMiniNext.setVisibility(transVis);
         miniTitle.setText(m.title);
         miniSub.setText(sourceLabel(m.source) + (m.subtitle.isEmpty() ? "" : " · " + m.subtitle));
         if (radio && m.logo != null || !radio && m.art != null) {
@@ -1637,6 +1649,11 @@ public final class HomeView extends LinearLayout {
     private boolean animHave;
 
     /** Schermo spento o launcher in secondo piano: animazione ferma e decoder rilasciati. */
+    /** Calm Launcher: in layout calmo l'animazione di ricarica resta ferma (meno movimento). */
+    private boolean chargeAnimOn() {
+        return prefs.chargeAnim() && !prefs.calmLayout();
+    }
+
     public void pauseChargeAnim() {
         if (chargeAnim != null) chargeAnim.pause();
     }
@@ -1653,17 +1670,17 @@ public final class HomeView extends LinearLayout {
             animHave = com.mg4.launcher.svc.ChargePack.complete(getContext(), color);
         }
         boolean have = animHave;
-        String why = !prefs.chargeAnim() ? "spenta nelle impostazioni" : ready ? "in READY: ferma" : moving ? "in movimento: ferma"
+        String why = !chargeAnimOn() ? "spenta nelle impostazioni" : ready ? "in READY: ferma" : moving ? "in movimento: ferma"
                 : !have ? "pacchetto non disponibile" : "";
         // al massimo una volta al minuto (ensure controlla poi il limite di 12 ore tra due download)
         long nowMs = SystemClock.uptimeMillis();
-        if (!have && plugged && prefs.chargeAnim() && nowMs - animEnsureAt > 60_000) {
+        if (!have && plugged && chargeAnimOn() && nowMs - animEnsureAt > 60_000) {
             animEnsureAt = nowMs;
             com.mg4.launcher.svc.ChargePack.ensure(getContext(), color, false);
         }
         Context c = getContext();
         chargeAnim.update((day, phase) -> com.mg4.launcher.svc.ChargePack.clip(c, color, day, phase), t.day, plugged, done, why);
-        String txt = (prefs.chargeAnim() ? "attiva" : "spenta") + " · pacchetto " + color + " "
+        String txt = (chargeAnimOn() ? "attiva" : "spenta") + " · pacchetto " + color + " "
                 + (have ? "presente" : com.mg4.launcher.svc.ChargePack.busy() ? "in download" : "assente") + " · "
                 + ChargeAnimView.phaseTxt + " · cavo " + (plugged ? "inserito" : "non inserito") + (done ? " · carica finita" : "")
                 + " · stato ricarica " + s.chargingStatus + " · presa " + s.plugProp + " · accensione " + s.ignition;
@@ -1851,7 +1868,8 @@ public final class HomeView extends LinearLayout {
             fanIc.setAlpha(0.35f);
         }
         fanBox.setOnLongClickListener(v -> {
-            vehicle.setHvacPower(vehicle.last().hvacPower != 1);
+            // Calm Launcher: A/C integrato nel comando ventola (tieni premuto). Accensione clima: dall'app Clima.
+            vehicle.toggleAc();
             return true;
         });
         fanGroup.addView(fanBox, new LayoutParams(-2, arrow));
@@ -1876,7 +1894,7 @@ public final class HomeView extends LinearLayout {
             comfortGroup.setVisibility(GONE);   // compare quando l'auto dice di avere almeno un comando
             bar.addView(comfortGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(8), 0, 0, 0));
         } else {
-            bar.addView(acBtn, Ui.margins(new LayoutParams(btn, btn), dp(10), 0, 0, 0));
+            // Calm Launcher: tasto A/C a se' tolto; A/C ora e' la pressione lunga sul comando ventola
             bar.addView(autoBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
             bar.addView(recircBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
             // in un gruppo unico, così con la guida a destra il sedile sinistro resta a sinistra
@@ -1916,9 +1934,11 @@ public final class HomeView extends LinearLayout {
         mini.setClickable(true);
         mini.setOnClickListener(v -> selectTab(TAB_MEDIA, true));
         FrameLayout mp = Ui.iconButton(c, t, R.drawable.ic_pause, t.text, 0, big ? 76 : 52, big ? 36 : 26, 26, L.s(R.string.play_pause), v -> media.playPause());
+        transMiniPlay = mp;
         miniPlayIcon = (ImageView) mp.getChildAt(0);
         mini.addView(mp);
-        mini.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, big ? 76 : 52, big ? 34 : 24, 26, L.s(R.string.next), v -> media.skip(true)));
+        transMiniNext = Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, big ? 76 : 52, big ? 34 : 24, 26, L.s(R.string.next), v -> media.skip(true));
+        mini.addView(transMiniNext);
         // 1.0.3 (punto 7): al posto del mini-player si possono avere i preferiti del telefono o scorciatoie alle app
         String tileMode = prefs.tileMode();
         if (showMini && !Prefs.TILE_MEDIA.equals(tileMode)) {

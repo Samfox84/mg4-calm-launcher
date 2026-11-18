@@ -23,6 +23,8 @@ public final class Prefs {
     /** I cerchi della foto dell'auto (di serie): non si ridisegnano. */
     public static final int WHEEL_PHOTO = 1;
     public static final String THEME_AUTO = "auto", THEME_NIGHT = "notte", THEME_DAY = "giorno";
+    // Calm Launcher: modalita' calme AuDHD (colori morbidi); la scelta Calm Light/Dark fissa anche giorno/notte.
+    public static final String THEME_CALM_DAY = "calmGiorno", THEME_CALM_NIGHT = "calmNotte";
 
     private final SharedPreferences sp;
 
@@ -60,6 +62,21 @@ public final class Prefs {
 
     public void setThemeMode(String m) {
         sp.edit().putString("theme", m).apply();
+    }
+
+    /** True se e' attiva una modalita' calma (Calm Light o Calm Dark). */
+    public boolean isCalm() {
+        String m = themeMode();
+        return THEME_CALM_DAY.equals(m) || THEME_CALM_NIGHT.equals(m);
+    }
+
+    /** Layout calmo AuDHD: barra grande + meno animazioni. Vale solo con un tema Calm. */
+    public boolean calmLayout() {
+        return sp.getBoolean("calmLayout", false);
+    }
+
+    public void setCalmLayout(boolean b) {
+        sp.edit().putBoolean("calmLayout", b).apply();
     }
 
     // --- app installate nascoste dalla griglia ---
