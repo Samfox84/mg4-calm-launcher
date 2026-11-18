@@ -79,6 +79,15 @@ public final class Prefs {
         sp.edit().putBoolean("calmLayout", b).apply();
     }
 
+    /** Suoni soft dell'interfaccia (pacchetto Pacely). */
+    public boolean calmSounds() {
+        return sp.getBoolean("calmSounds", false);
+    }
+
+    public void setCalmSounds(boolean b) {
+        sp.edit().putBoolean("calmSounds", b).apply();
+    }
+
     // --- app installate nascoste dalla griglia ---
 
     public Set<String> hiddenApps() {

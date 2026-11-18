@@ -976,6 +976,12 @@ public final class SettingsView extends FrameLayout {
                     host.settingsChanged(true);
                 }), false), top(20));
 
+        col.addView(row(c, "Calm sounds", "Soft feedback sounds (Pacely pack) on taps and toggles",
+                toggle(c, prefs.calmSounds(), on -> {
+                    prefs.setCalmSounds(on);
+                    if (on) com.mg4.launcher.svc.Sfx.get(c).play(com.mg4.launcher.svc.Sfx.S.TOGGLE_ON);
+                }), false), top(14));
+
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};
         Flow fa = new Flow(c);

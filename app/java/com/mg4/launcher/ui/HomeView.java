@@ -15,6 +15,7 @@ import com.mg4.launcher.R;
 import com.mg4.launcher.svc.CarFeatures;
 import com.mg4.launcher.svc.MediaClient;
 import com.mg4.launcher.svc.NavClient;
+import com.mg4.launcher.svc.Sfx;
 import com.mg4.launcher.svc.VehicleClient;
 
 import java.text.SimpleDateFormat;
@@ -777,7 +778,10 @@ public final class HomeView extends LinearLayout {
 
     private void selectTab(int which, boolean byUser) {
         tab = which;
-        if (byUser) userPickedTab = true;
+        if (byUser) {
+            userPickedTab = true;
+            sfx(Sfx.S.SWIPE);
+        }
         mapPanel.setVisibility(which == TAB_MAP ? VISIBLE : GONE);
         mediaPanel.setVisibility(which == TAB_MEDIA ? VISIBLE : GONE);
         phonePanel.setVisibility(which == TAB_PHONE ? VISIBLE : GONE);
@@ -1868,8 +1872,7 @@ public final class HomeView extends LinearLayout {
             fanIc.setAlpha(0.35f);
         }
         fanBox.setOnLongClickListener(v -> {
-            // Calm Launcher: A/C integrato nel comando ventola (tieni premuto). Accensione clima: dall'app Clima.
-            vehicle.toggleAc();
+            vehicle.setHvacPower(vehicle.last().hvacPower != 1);
             return true;
         });
         fanGroup.addView(fanBox, new LayoutParams(-2, arrow));
@@ -1878,7 +1881,12 @@ public final class HomeView extends LinearLayout {
 
         // A/C, AUTO e ricircolo (lo sbrinamento ha il tasto fisico); riscaldamento: sedile sinistro, volante, sedile destro
         // 1.0.0 (punto 10): icone ufficiali MG4 Clima 1.4.0, colore+sfondo secondo lo stato (non solo il testo)
-        acBtn = climaBtn(c, R.drawable.clima_ac, bs(44, 64), L.s(R.string.ac_desc), v -> vehicle.toggleAc());
+        acBtn = climaBtn(c, R.drawable.clima_ac, arrowIcon, L.s(R.string.ac_desc), v -> {
+            vehicle.toggleAc();
+            sfx(Sfx.S.TOGGLE_ON);
+        });
+        // Calm Launcher: chip A/C dentro il pill della ventola (dopo la freccia sinistra)
+        fanGroup.addView(acBtn, 1, new LayoutParams(arrow, arrow));
         autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> vehicle.toggleAuto());
         recircBtn = climaBtn(c, R.drawable.clima_ricircolo_interno, bs(32, BIG_ICON), L.s(R.string.recirc_desc), v -> vehicle.toggleRecirc());
         recircBtn.setVisibility(GONE);   // compare quando l'auto dice di supportarlo
@@ -2805,6 +2813,11 @@ public final class HomeView extends LinearLayout {
         return v + "°";
     }
 
+    /** Calm Launcher: suono soft se i Calm sounds sono attivi. */
+    private void sfx(Sfx.S s) {
+        if (prefs.calmSounds()) Sfx.get(getContext()).play(s);
+    }
+
     private void changeTemp(int delta) {
         if (acTemp <= 0) acTemp = vehicle.last().acTemp;
         if (acTemp <= 0) return;
@@ -2812,6 +2825,7 @@ public final class HomeView extends LinearLayout {
         localTempUntil = SystemClock.uptimeMillis() + 4000;
         tempTv.setText(tempLabel(acTemp));
         vehicle.setDriverTemp(acTemp);
+        sfx(Sfx.S.TAP);
     }
 
     private static String fanLabel(int v) {
@@ -2835,5 +2849,6 @@ public final class HomeView extends LinearLayout {
         localFanUntil = SystemClock.uptimeMillis() + 4000;
         fanTv.setText(fanLabel(fanLevel));
         vehicle.setFanLevel(fanLevel);
+        sfx(Sfx.S.TAP);
     }
 }
