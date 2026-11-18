@@ -1885,12 +1885,10 @@ public final class HomeView extends LinearLayout {
 
         // A/C, AUTO e ricircolo (lo sbrinamento ha il tasto fisico); riscaldamento: sedile sinistro, volante, sedile destro
         // 1.0.0 (punto 10): icone ufficiali MG4 Clima 1.4.0, colore+sfondo secondo lo stato (non solo il testo)
-        acBtn = climaBtn(c, R.drawable.clima_ac, arrowIcon, L.s(R.string.ac_desc), v -> {
+        acBtn = climaBtn(c, R.drawable.clima_ac, bs(44, 64), L.s(R.string.ac_desc), v -> {
             vehicle.toggleAc();
             sfx(Sfx.S.TOGGLE_ON);
         });
-        // Calm Launcher: chip A/C dentro il pill della ventola (dopo la freccia sinistra)
-        fanGroup.addView(acBtn, 1, new LayoutParams(arrow, arrow));
         autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> {
             vehicle.toggleAuto();
             sfx(Sfx.S.TOGGLE_ON);
@@ -1909,7 +1907,7 @@ public final class HomeView extends LinearLayout {
             comfortGroup.setVisibility(GONE);   // compare quando l'auto dice di avere almeno un comando
             bar.addView(comfortGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(8), 0, 0, 0));
         } else {
-            // Calm Launcher: tasto A/C a se' tolto; A/C ora e' la pressione lunga sul comando ventola
+            bar.addView(acBtn, Ui.margins(new LayoutParams(btn, btn), dp(10), 0, 0, 0));
             bar.addView(autoBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
             bar.addView(recircBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
             // in un gruppo unico, così con la guida a destra il sedile sinistro resta a sinistra
@@ -1921,8 +1919,13 @@ public final class HomeView extends LinearLayout {
         }
         // guida (0.9.5): LKA, OPD, assistente e pedale in un gruppo; nascosto se l'auto non ha nessuno dei comandi
         guidaGroup = guidaButton(c);
-        guidaGroup.setVisibility(GONE);
-        bar.addView(guidaGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(8), 0, 0, 0));
+        guidaGroup.setVisibility(GONE);   // Calm Launcher: non piu' sulla barra, sostituito dal tasto CarPlay
+        // Calm Launcher: tasto CarPlay dedicato al posto del gruppo "guida" - apre DiPlay (ricevitore CarPlay wireless)
+        int cp = bs(64, BIG_SHORTCUT);
+        View carplayBtn = barIcon(c, R.drawable.ic_projection, t.text, 0, cp, bs(44, BIG_ICON + 16),
+                big ? 22 : 18 * Ui.K, "CarPlay (DiPlay)", v -> openCarPlay());
+        if (!canOpenCarPlay()) carplayBtn.setAlpha(0.35f);
+        bar.addView(carplayBtn, Ui.margins(new LayoutParams(cp, cp), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
@@ -2823,6 +2826,31 @@ public final class HomeView extends LinearLayout {
     /** Calm Launcher: suono soft se i Calm sounds sono attivi. */
     private void sfx(Sfx.S s) {
         if (prefs.calmSounds()) Sfx.get(getContext()).play(s);
+    }
+
+    // Calm Launcher: DiPlay (ricevitore CarPlay wireless) di kennyvv/DiPlay-MG4-Plus
+    private static final String DIPLAY_PKG = "com.shihab.diplay";
+    private static final String DIPLAY_CLS = "com.shilapi.xcertplay.DiPlayActivity";
+
+    private boolean canOpenCarPlay() {
+        return host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)
+                || getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG) != null;
+    }
+
+    /** Apre DiPlay se installato (CarPlay wireless), altrimenti il CarPlay / Android Auto di serie. */
+    private void openCarPlay() {
+        sfx(Sfx.S.OPEN);
+        if (host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)) {
+            host.launch(DIPLAY_PKG, DIPLAY_CLS);
+            return;
+        }
+        android.content.Intent i = getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG);
+        if (i != null) {
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+            return;
+        }
+        media.openProjection();
     }
 
     private void changeTemp(int delta) {
