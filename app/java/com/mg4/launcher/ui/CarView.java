@@ -56,6 +56,12 @@ public final class CarView extends View {
     /** Fari accesi (anabbaglianti o posizione) disegnati sull'auto. */
     private boolean lights;
     private final Paint beamPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // Calm Launcher: strisce a terra quando l'auto e' in marcia (motion sottile). NaN = velocita' sconosciuta.
+    private float speed = Float.NaN;
+    private boolean motion;
+    private float phase;
+    private long lastNanos;
+    private final Paint streak = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public CarView(Context c) {
         super(c);
@@ -111,6 +117,17 @@ public final class CarView extends View {
         invalidate();
     }
 
+    /** Calm Launcher: velocita' (km/h) e permesso di animare (spento in layout calmo). Avvia/ferma il motion a terra. */
+    public void setDriving(float kmh, boolean motionAllowed) {
+        speed = kmh;
+        boolean want = motionAllowed && !Float.isNaN(kmh) && Math.abs(kmh) >= 3f;
+        if (want != motion) {
+            motion = want;
+            lastNanos = 0;
+            invalidate();
+        }
+    }
+
     // ---- geometria: serve anche all'animazione di ricarica (stesso riquadro, stessi centri ruota) --
 
     /** Scala del riquadro in una vista w×h (stessa formula di onDraw). */
@@ -157,6 +174,41 @@ public final class CarView extends View {
         if (blackRoof && roof != null) c.drawBitmap(roof, null, dst, roofLayer);
         drawWheels(c, s, left, top);
         if (lights) drawLights(c, s, left, top);
+
+        if (motion) {
+            long now = System.nanoTime();
+            if (lastNanos != 0) {
+                float v = Math.min(Math.abs(speed), 120f);
+                phase += ((now - lastNanos) / 1e9f) * (40f + v * 6f);   // px/s, cresce con la velocita'
+            }
+            lastNanos = now;
+            drawMotion(c, left, top, dw, dh);
+            postInvalidateOnAnimation();
+        } else {
+            lastNanos = 0;
+        }
+    }
+
+    /** Strisce traslucide a terra che scorrono verso il retro (muso a sinistra = marcia avanti), molto sobrie. */
+    private void drawMotion(Canvas c, float left, float top, float dw, float dh) {
+        float x0 = left + dw * 0.06f, x1 = left + dw * 0.94f, span = x1 - x0;
+        int n = 5;
+        float spacing = span / n;
+        streak.setStrokeCap(Paint.Cap.ROUND);
+        streak.setColor(glow);
+        for (int row = 0; row < 2; row++) {
+            float y = top + dh - dh * (row == 0 ? 0.015f : -0.035f);
+            float len = span * (row == 0 ? 0.16f : 0.12f);
+            float off = (phase * (row == 0 ? 1f : 0.7f)) % spacing;
+            streak.setStrokeWidth(dh * (row == 0 ? 0.018f : 0.014f));
+            for (int i = -1; i <= n + 1; i++) {
+                float sx = x0 + i * spacing + off;
+                float mid = (sx - x0) / span;                 // 0..1 lungo la larghezza
+                float fade = (float) Math.sin(Math.PI * Math.max(0f, Math.min(1f, mid)));  // sfuma ai bordi
+                streak.setAlpha((int) ((row == 0 ? 130 : 70) * fade));
+                c.drawLine(sx, y, sx + len, y, streak);
+            }
+        }
     }
 
     /** Fari e fanali accesi dal render di notte, più un fascio morbido davanti al faro (muso a sinistra). */

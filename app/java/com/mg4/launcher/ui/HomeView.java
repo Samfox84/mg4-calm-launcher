@@ -149,6 +149,7 @@ public final class HomeView extends LinearLayout {
 
     private int acTemp = -1;
     private int fanLevel = -1, fanMin = 1, fanMax = 11;
+    private boolean chargeWasDone;   // Calm Launcher: per suonare una sola volta a ricarica finita
     private long localTempUntil, localFanUntil;
     private TextView fanTv, outTv, inTv;
     private VehicleClient.State lastInsideState;
@@ -569,6 +570,7 @@ public final class HomeView extends LinearLayout {
         if (inShow && !outOk) outIcon.setVisibility(VISIBLE);
         // 1.0.2 (issue SWI69 #2): fari accesi sull'auto disegnata (se lo stato si legge)
         car.setLights(s.lights == 1);
+        car.setDriving(s.speedKmh, !prefs.calmLayout());
         updateChargeAnim(s);
         showTpms(s.tireBar, s.distUnit);
         if (s.fanLevel >= 0 && SystemClock.uptimeMillis() > localFanUntil) {
@@ -1666,6 +1668,8 @@ public final class HomeView extends LinearLayout {
         if (chargeAnim == null) return;
         String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
         boolean plugged = VehicleClient.cablePlugged(s), done = VehicleClient.chargeDone(s);
+        if (done && !chargeWasDone && plugged) sfx(Sfx.S.DONE);
+        chargeWasDone = done;
         boolean ready = s.ignition == 2, moving = !Float.isNaN(s.speedKmh) && Math.abs(s.speedKmh) >= 1f;
         // il controllo dei file si rifà solo quando il pacchetto o il colore cambiano (niente disco a ogni lettura)
         if (animGen != com.mg4.launcher.svc.ChargePack.generation || !color.equals(animColor)) {
@@ -1887,7 +1891,10 @@ public final class HomeView extends LinearLayout {
         });
         // Calm Launcher: chip A/C dentro il pill della ventola (dopo la freccia sinistra)
         fanGroup.addView(acBtn, 1, new LayoutParams(arrow, arrow));
-        autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> vehicle.toggleAuto());
+        autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> {
+            vehicle.toggleAuto();
+            sfx(Sfx.S.TOGGLE_ON);
+        });
         recircBtn = climaBtn(c, R.drawable.clima_ricircolo_interno, bs(32, BIG_ICON), L.s(R.string.recirc_desc), v -> vehicle.toggleRecirc());
         recircBtn.setVisibility(GONE);   // compare quando l'auto dice di supportarlo
         seatLeftBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, false, L.s(R.string.seat_left), v -> vehicle.pressSeatLeft());
@@ -2200,7 +2207,7 @@ public final class HomeView extends LinearLayout {
      */
     private View shortcut(Context c, int icon, String desc, String pkg, String cls) {
         int size = bs(64, BIG_SHORTCUT);
-        View.OnClickListener l = v -> host.launch(pkg, cls);
+        View.OnClickListener l = v -> { sfx(Sfx.S.OPEN); host.launch(pkg, cls); };
         View f;
         if (icon == 0) {
             TextView tv = Ui.text(c, "360°", bt(22, 30), t.text, Ui.MEDIUM);
