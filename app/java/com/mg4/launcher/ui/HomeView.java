@@ -2724,7 +2724,29 @@ public final class HomeView extends LinearLayout {
         drawDriveGlow(canvas);
     }
 
-    /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, niente per Normale/Neve/Personalizzato. */
+    /** Calm Launcher: "Siri" - una luce della tinta della modalita' che scorre intorno al bordo. */
+    private void drawSiriGlow(android.graphics.Canvas c, int w, int h, int base) {
+        float ang = (System.nanoTime() % 4_000_000_000L) / 4_000_000_000f * 360f;
+        int rgb = base & 0x00FFFFFF;
+        int[] cols = {0x22000000 | rgb, 0x22000000 | rgb, 0xD0000000 | rgb, 0x22000000 | rgb, 0x22000000 | rgb};
+        float[] pos = {0f, 0.20f, 0.28f, 0.36f, 1f};
+        android.graphics.SweepGradient sg = new android.graphics.SweepGradient(w / 2f, h / 2f, cols, pos);
+        android.graphics.Matrix mtx = new android.graphics.Matrix();
+        mtx.setRotate(ang, w / 2f, h / 2f);
+        sg.setLocalMatrix(mtx);
+        float inset = dp(7), rr = dp(10);
+        glowPaint.setStyle(android.graphics.Paint.Style.STROKE);
+        glowPaint.setShader(sg);
+        glowPaint.setStrokeWidth(dp(14));
+        c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        glowPaint.setStrokeWidth(dp(28));
+        glowPaint.setAlpha(70);
+        c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        glowPaint.setShader(null);
+        glowPaint.setAlpha(255);
+    }
+
+    /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, Neve blu, Personalizzato bianco. */
     private void drawDriveGlow(android.graphics.Canvas c) {
         int gm = prefs.glowMode();
         if (gm == 0 || driveMode == null) return;
@@ -2734,6 +2756,8 @@ public final class HomeView extends LinearLayout {
         else if ("SNOW".equals(driveMode)) base = 0xFF4C8DFF;
         else if ("CUSTOM".equals(driveMode)) base = 0xFFEDEFF2;
         else return;
+        int w0 = getWidth(), h0 = getHeight();
+        if (gm == 3) { drawSiriGlow(c, w0, h0, base); postInvalidateOnAnimation(); return; }
         float a = 1f;
         if (gm == 2) {
             float phase = (System.nanoTime() % 3_000_000_000L) / 3_000_000_000f;

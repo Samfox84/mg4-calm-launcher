@@ -154,6 +154,20 @@ public final class CarProps {
         }
     }
 
+    /** Calm Launcher: scrittura diretta di una proprieta' int (es. modalita' di guida). true se riuscita. */
+    public boolean setInt(int prop, int value) {
+        try {
+            Object p = pm();
+            if (p == null) return false;
+            Method m = p.getClass().getMethod("setIntProperty", int.class, int.class, int.class);
+            m.invoke(p, prop, area(prop), value);
+            return true;
+        } catch (Throwable e) {
+            error("scrittura " + prop, e);
+            return false;
+        }
+    }
+
     /** Come getInt, ma senza scrivere errori nella diagnostica (proprietà che potrebbero non esistere). */
     public int getIntQuiet(int prop) {
         try {

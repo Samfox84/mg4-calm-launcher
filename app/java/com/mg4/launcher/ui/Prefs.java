@@ -78,7 +78,7 @@ public final class Prefs {
 
     /** Calm Launcher: alone colorato sul bordo per la modalita' di guida. 0 spento, 1 fisso, 2 animato. */
     public int glowMode() {
-        return Math.max(0, Math.min(2, sp.getInt("driveGlow", 1)));
+        return Math.max(0, Math.min(3, sp.getInt("driveGlow", 1)));
     }
 
     public void setGlowMode(int i) {
