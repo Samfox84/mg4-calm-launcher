@@ -23,6 +23,7 @@ public final class Prefs {
     /** I cerchi della foto dell'auto (di serie): non si ridisegnano. */
     public static final int WHEEL_PHOTO = 1;
     public static final String THEME_AUTO = "auto", THEME_NIGHT = "notte", THEME_DAY = "giorno";
+    public static final String THEME_CALM_NIGHT = "calmNotte";   // Calm Launcher: tema Calm Dark
 
     private final SharedPreferences sp;
 
@@ -62,6 +63,19 @@ public final class Prefs {
         sp.edit().putString("theme", m).apply();
     }
 
+    public boolean isCalm() {
+        return THEME_CALM_NIGHT.equals(themeMode());
+    }
+
+    /** Calm Launcher: suoni soft su tutti i tasti (pacchetto Pacely). Acceso di default. */
+    public boolean calmSounds() {
+        return sp.getBoolean("calmSounds", true);
+    }
+
+    public void setCalmSounds(boolean b) {
+        sp.edit().putBoolean("calmSounds", b).apply();
+    }
+
     // --- app installate nascoste dalla griglia ---
 
     public Set<String> hiddenApps() {
@@ -76,7 +90,7 @@ public final class Prefs {
     }
 
     // --- aggiornamenti da GitHub ---
-    public static final String DEFAULT_REPO = "ernestomicco2026-cell/Mg4-Launcher-SWI68";
+    public static final String DEFAULT_REPO = "Samfox84/mg4-calm-launcher";
     /** Nomi precedenti del repository (rinominato): si passa da soli al nuovo. */
     private static final String[] OLD_REPOS = {"ernestomicco2026-cell/mg4-launcher", "ernestomicco2026-cell/Mg4-Launcher-SW168"};
 
@@ -169,7 +183,7 @@ public final class Prefs {
     public static final float[] UI_SCALES = {1f, 1.15f, 1.3f};
 
     public int uiScale() {
-        return Math.max(0, Math.min(2, sp.getInt("dimensioneComandi", 0)));
+        return Math.max(0, Math.min(2, sp.getInt("dimensioneComandi", 1)));
     }
 
     public void setUiScale(int i) {
@@ -180,7 +194,7 @@ public final class Prefs {
     public static final float[] APPS_SCALES = {1f, 1.25f, 1.5f};
 
     public int appsScale() {
-        return Math.max(0, Math.min(2, sp.getInt("dimensioneApp", 0)));
+        return Math.max(0, Math.min(2, sp.getInt("dimensioneApp", 1)));
     }
 
     public void setAppsScale(int i) {
@@ -325,7 +339,7 @@ public final class Prefs {
 
     /** Barra in basso grande (150 px, pulsanti 120 px); senza mini player. */
     public boolean bigBar() {
-        return sp.getBoolean("barraGrande", false);
+        return sp.getBoolean("barraGrande", true);
     }
 
     public void setBigBar(boolean b) {

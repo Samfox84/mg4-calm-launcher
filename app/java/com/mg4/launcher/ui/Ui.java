@@ -95,7 +95,8 @@ public final class Ui {
         f.addView(iv, new FrameLayout.LayoutParams(dp(c, iconDp), dp(c, iconDp), Gravity.CENTER));
         f.setLayoutParams(new LinearLayout.LayoutParams(dp(c, sizeDp), dp(c, sizeDp)));
         f.setClickable(true);
-        f.setOnClickListener(click);
+        final View.OnClickListener cl = click;
+        f.setOnClickListener(cl == null ? null : v -> { com.mg4.launcher.svc.Sfx.click(); cl.onClick(v); });
         return f;
     }
 

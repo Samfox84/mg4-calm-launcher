@@ -1001,7 +1001,7 @@ public final class SettingsView extends FrameLayout {
     private void buildLook(Context c, LinearLayout col) {
         col.addView(label(c, L.s(R.string.set_theme)));
         String mode = prefs.themeMode();
-        String[][] modes = {{Prefs.THEME_AUTO, L.s(R.string.theme_auto)}, {Prefs.THEME_NIGHT, L.s(R.string.theme_night)}, {Prefs.THEME_DAY, L.s(R.string.theme_day)}};
+        String[][] modes = {{Prefs.THEME_AUTO, L.s(R.string.theme_auto)}, {Prefs.THEME_NIGHT, L.s(R.string.theme_night)}, {Prefs.THEME_DAY, L.s(R.string.theme_day)}, {Prefs.THEME_CALM_NIGHT, "Calm Dark"}};
         Flow f = new Flow(c);
         for (String[] m : modes) {
             f.addView(choice(c, m[1], m[0].equals(mode), v -> {
@@ -1012,6 +1012,12 @@ public final class SettingsView extends FrameLayout {
             }));
         }
         col.addView(f, topFull(14));
+
+        col.addView(row(c, "Calm sounds", "Suoni soft su tutti i tasti (pacchetto Pacely)",
+                toggle(c, prefs.calmSounds(), on -> {
+                    prefs.setCalmSounds(on);
+                    com.mg4.launcher.svc.Sfx.setEnabled(on);
+                }), false), top(20));
 
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};

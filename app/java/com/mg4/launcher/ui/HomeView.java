@@ -15,6 +15,7 @@ import com.mg4.launcher.R;
 import com.mg4.launcher.svc.CarFeatures;
 import com.mg4.launcher.svc.MediaClient;
 import com.mg4.launcher.svc.NavClient;
+import com.mg4.launcher.svc.Sfx;
 import com.mg4.launcher.svc.VehicleClient;
 
 import java.text.SimpleDateFormat;
@@ -195,6 +196,8 @@ public final class HomeView extends LinearLayout {
         rhd = Prefs.DRIVE_RIGHT.equals(side) || (Prefs.DRIVE_AUTO.equals(side) && carRhd);
         sysIndicator = CarFeatures.hasSystemLightIndicator(c) || carRhd;
         big = prefs.bigBar();
+        Sfx.init(c);
+        Sfx.setEnabled(prefs.calmSounds());
         carShown = prefs.carPanel();
 
         LinearLayout top = Ui.row(c);
@@ -2111,7 +2114,8 @@ public final class HomeView extends LinearLayout {
         f.addView(iv, new FrameLayout.LayoutParams(icon, icon, Gravity.CENTER));
         f.setLayoutParams(new LayoutParams(size, size));
         f.setClickable(true);
-        f.setOnClickListener(l);
+        final View.OnClickListener bl = l;
+        f.setOnClickListener(bl == null ? null : v -> { Sfx.click(); bl.onClick(v); });
         return f;
     }
 
@@ -2199,8 +2203,10 @@ public final class HomeView extends LinearLayout {
         }
         // guida (0.9.5): LKA, OPD, assistente e pedale in un gruppo; nascosto se l'auto non ha nessuno dei comandi
         guidaGroup = guidaButton(c);
-        guidaGroup.setVisibility(GONE);
-        bar.addView(guidaGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(8), 0, 0, 0));
+        guidaGroup.setVisibility(GONE);   // Calm Launcher: non piu' sulla barra, sostituito dal tasto CarPlay
+        FrameLayout carplayBtn = barIcon(c, R.drawable.ic_projection, t.text, 0, btn, icon, rad, "CarPlay (DiPlay)", v -> openCarPlay());
+        if (!canOpenCarPlay()) carplayBtn.setAlpha(0.35f);
+        bar.addView(carplayBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
@@ -2520,6 +2526,22 @@ public final class HomeView extends LinearLayout {
 
     private static final int HEAT = 0xFFFF7A3D;
     private static final int CLIMA = 0, COMFORT = 1, GUIDA = 2;
+
+    // Calm Launcher: DiPlay (ricevitore CarPlay wireless)
+    private static final String DIPLAY_PKG = "com.shihab.diplay";
+    private static final String DIPLAY_CLS = "com.shilapi.xcertplay.DiPlayActivity";
+
+    private boolean canOpenCarPlay() {
+        return host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)
+                || getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG) != null;
+    }
+
+    private void openCarPlay() {
+        if (host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)) { host.launch(DIPLAY_PKG, DIPLAY_CLS); return; }
+        android.content.Intent i = getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG);
+        if (i != null) { i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK); getContext().startActivity(i); return; }
+        media.openProjection();
+    }
 
     private int groupWidth() {
         return bs(76, BIG_BTN);
