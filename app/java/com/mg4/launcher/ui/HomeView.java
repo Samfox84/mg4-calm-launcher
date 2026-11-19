@@ -2731,6 +2731,8 @@ public final class HomeView extends LinearLayout {
         int base;
         if ("SPORT".equals(driveMode)) base = 0xFFE5484D;
         else if ("ECO".equals(driveMode)) base = 0xFF35B37E;
+        else if ("SNOW".equals(driveMode)) base = 0xFF4C8DFF;
+        else if ("CUSTOM".equals(driveMode)) base = 0xFFEDEFF2;
         else return;
         float a = 1f;
         if (gm == 2) {
@@ -3168,6 +3170,7 @@ public final class HomeView extends LinearLayout {
         private void addDriveTile(Context c, String mode, String label) {
             addTile(c, "mode_" + mode, label, 0, label, v -> {
                 com.mg4.launcher.svc.DriveModeClient.set(getContext(), mode);
+                if ("CUSTOM".equals(mode)) com.mg4.launcher.svc.DriveModeClient.setRegen(getContext(), "ONE_PEDAL");
                 curMode = mode;
                 refreshDrive();
             });

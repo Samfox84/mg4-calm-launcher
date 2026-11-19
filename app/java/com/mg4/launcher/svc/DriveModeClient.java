@@ -34,10 +34,19 @@ public final class DriveModeClient {
 
     /** Imposta la modalita' (ECO/NORMAL/SPORT/SNOW/CUSTOM) via MG4 Control. L'auto rifiuta in marcia. */
     public static void set(Context c, String mode) {
+        send(c, "drive_mode", mode);
+    }
+
+    /** Imposta la rigenerazione: OFF|LOW|MEDIUM|HIGH|ADAPTIVE|ONE_PEDAL (per "Custom = one pedal"). */
+    public static void setRegen(Context c, String level) {
+        send(c, "regen", level);
+    }
+
+    private static void send(Context c, String key, String value) {
         try {
             Intent i = new Intent("com.mg4.control.action.SET").setPackage(PKG);
-            i.putExtra("key", "drive_mode");
-            i.putExtra("value", mode);
+            i.putExtra("key", key);
+            i.putExtra("value", value);
             c.sendBroadcast(i);
         } catch (Exception ignored) {
         }
