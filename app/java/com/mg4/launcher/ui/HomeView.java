@@ -185,6 +185,7 @@ public final class HomeView extends LinearLayout {
     private float frameAvgMs;
     private int autoGrace;
     private MusicBrowser music;   // Calm Launcher: libreria Navidrome/Subsonic nel launcher
+    private static final int LIBRARY = -100;   // sorgente "Library" (non e' una sorgente dell'auto)
     /** 1.0.5: riquadro auto mostrato (altrimenti widget a scelta nel pannello sinistro). */
     private final boolean carShown;
 
@@ -1530,6 +1531,7 @@ public final class HomeView extends LinearLayout {
     }
 
     private static String sourceLabel(int src) {
+        if (src == LIBRARY) return "Library";
         switch (src) {
             case MediaClient.SRC_RADIO: return L.s(R.string.src_radio);
             case MediaClient.SRC_USB: return "USB";
@@ -1575,6 +1577,15 @@ public final class HomeView extends LinearLayout {
                 });
                 srcRow.addView(b, Ui.margins(Ui.lp(-2, -1), i == 0 ? 0 : dp(8), 0, 0, 0));
             }
+            TextView lib = Ui.text(c, "Library", ts(19.5f), t.sub, Ui.MEDIUM);
+            lib.setGravity(Gravity.CENTER_VERTICAL);
+            lib.setPadding(tp(20), 0, tp(24), 0);
+            lib.setCompoundDrawablePadding(dp(11));
+            lib.setClickable(true);
+            lib.setTag(LIBRARY);
+            lib.setContentDescription("Music library");
+            lib.setOnClickListener(v -> openMusic());
+            srcRow.addView(lib, Ui.margins(Ui.lp(-2, -1), dp(8), 0, 0, 0));
         }
         int shown = SystemClock.uptimeMillis() < pendingSourceUntil ? pendingSource : m.source;
         styleSources(shown);
@@ -1835,6 +1846,7 @@ public final class HomeView extends LinearLayout {
     }
 
     private static int sourceIcon(int src) {
+        if (src == LIBRARY) return R.drawable.ic_music;
         switch (src) {
             case MediaClient.SRC_USB: return R.drawable.ic_usb;
             case MediaClient.SRC_BT: return R.drawable.ic_bluetooth;
@@ -2222,8 +2234,6 @@ public final class HomeView extends LinearLayout {
         FrameLayout windowBtn = barIcon(c, R.drawable.ic_window, t.text, 0, btn, icon, rad, "Windows: tap up, hold down", v -> com.mg4.launcher.svc.WindowControl.closeAll(getContext()));
         windowBtn.setOnLongClickListener(v -> { com.mg4.launcher.svc.WindowControl.openAll(getContext()); return true; });
         bar.addView(windowBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
-        FrameLayout musicBtn = barIcon(c, R.drawable.ic_music, t.text, 0, btn, icon, rad, "Music library", v -> openMusic());
-        bar.addView(musicBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
