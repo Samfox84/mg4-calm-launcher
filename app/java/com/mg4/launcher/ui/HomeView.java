@@ -184,6 +184,7 @@ public final class HomeView extends LinearLayout {
     private long lastFrameNanos;
     private float frameAvgMs;
     private int autoGrace;
+    private MusicBrowser music;   // Calm Launcher: libreria Navidrome/Subsonic nel launcher
     /** 1.0.5: riquadro auto mostrato (altrimenti widget a scelta nel pannello sinistro). */
     private final boolean carShown;
 
@@ -2221,6 +2222,8 @@ public final class HomeView extends LinearLayout {
         FrameLayout windowBtn = barIcon(c, R.drawable.ic_window, t.text, 0, btn, icon, rad, "Windows: tap up, hold down", v -> com.mg4.launcher.svc.WindowControl.closeAll(getContext()));
         windowBtn.setOnLongClickListener(v -> { com.mg4.launcher.svc.WindowControl.openAll(getContext()); return true; });
         bar.addView(windowBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
+        FrameLayout musicBtn = barIcon(c, R.drawable.ic_music, t.text, 0, btn, icon, rad, "Music library", v -> openMusic());
+        bar.addView(musicBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
@@ -2557,6 +2560,159 @@ public final class HomeView extends LinearLayout {
         media.openProjection();
     }
 
+    private void openMusic() {
+        if (music != null) music.close();
+        music = new MusicBrowser();
+        music.open();
+    }
+
+    /** Calm Launcher: sfoglia e riproduce la libreria di un client Subsonic (Ultrasonic/DSub) dentro il launcher,
+     *  tramite l'interfaccia MediaBrowser di Android Auto. Riproduzione e controlli restano nel riquadro media. */
+    private final class MusicBrowser {
+        private final FrameLayout catcher;
+        private final LinearLayout listCol;
+        private final TextView titleTv;
+        private android.media.browse.MediaBrowser browser;
+        private android.media.session.MediaController controller;
+        private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
+        private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
+
+        MusicBrowser() {
+            Context c = getContext();
+            catcher = new FrameLayout(c);
+            catcher.setBackgroundColor(t.day ? 0x80000000 : 0x99000000);
+            catcher.setClickable(true);
+            catcher.setOnClickListener(v -> close());
+
+            LinearLayout card = Ui.column(c);
+            card.setClickable(true);
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(t.panel);
+            bg.setCornerRadius(dp(24));
+            bg.setStroke(dp(1), t.track);
+            card.setBackground(bg);
+            card.setPadding(dp(28), dp(22), dp(28), dp(24));
+
+            LinearLayout head = Ui.row(c);
+            head.setGravity(Gravity.CENTER_VERTICAL);
+            FrameLayout backBtn = barIcon(c, R.drawable.ic_chev_left, t.text, t.chip, dp(56), dp(30), dp(14), "Back", v -> back());
+            head.addView(backBtn, new LayoutParams(dp(56), dp(56)));
+            titleTv = Ui.text(c, "Library", big ? 24 : 20, t.text, Ui.MEDIUM);
+            head.addView(titleTv, Ui.margins(Ui.lpWeight(0, -2, 1), dp(16), 0, dp(16), 0));
+            head.addView(Ui.text(c, L.s(R.string.tap_outside_close), 15, t.sub, Ui.REGULAR), new LayoutParams(-2, -2));
+            card.addView(head, new LayoutParams(-1, -2));
+
+            android.widget.ScrollView sv = new android.widget.ScrollView(c);
+            listCol = Ui.column(c);
+            sv.addView(listCol, new LayoutParams(-1, -2));
+            card.addView(sv, Ui.margins(new LayoutParams(dp(640), dp(big ? 520 : 440)), 0, dp(14), 0, 0));
+
+            catcher.addView(card, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
+        }
+
+        void open() {
+            host.overlay().addView(catcher, new FrameLayout.LayoutParams(-1, -1));
+            message("Loading...");
+            connect();
+        }
+
+        private void connect() {
+            Context c = getContext();
+            android.content.ComponentName comp = findService(c);
+            if (comp == null) {
+                message("Install Ultrasonic (or DSub) and sign in to your Navidrome server first.");
+                return;
+            }
+            browser = new android.media.browse.MediaBrowser(c, comp,
+                new android.media.browse.MediaBrowser.ConnectionCallback() {
+                    @Override public void onConnected() {
+                        try { controller = new android.media.session.MediaController(c, browser.getSessionToken()); } catch (Exception ignored) {}
+                        String rootId = browser.getRoot();
+                        stack.clear(); stack.push(rootId); names.put(rootId, "Library");
+                        load(rootId);
+                    }
+                    @Override public void onConnectionFailed() {
+                        message("Couldn't open the library - the music app didn't allow browsing from here.");
+                    }
+                }, null);
+            browser.connect();
+        }
+
+        private android.content.ComponentName findService(Context c) {
+            String[] pkgs = {"org.moire.ultrasonic", "github.daneren2005.dsub", "github.daneren2005.dsub.lite"};
+            android.content.pm.PackageManager pm = c.getPackageManager();
+            for (String pkg : pkgs) {
+                try {
+                    android.content.Intent it = new android.content.Intent("android.media.browse.MediaBrowserService").setPackage(pkg);
+                    java.util.List<android.content.pm.ResolveInfo> ris = pm.queryIntentServices(it, 0);
+                    if (ris != null && !ris.isEmpty()) {
+                        android.content.pm.ServiceInfo si = ris.get(0).serviceInfo;
+                        return new android.content.ComponentName(si.packageName, si.name);
+                    }
+                } catch (Exception ignored) {}
+            }
+            return null;
+        }
+
+        private void load(String parentId) {
+            titleTv.setText(names.containsKey(parentId) ? names.get(parentId) : "");
+            message("Loading...");
+            try { browser.unsubscribe(parentId); } catch (Exception ignored) {}
+            browser.subscribe(parentId, new android.media.browse.MediaBrowser.SubscriptionCallback() {
+                @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
+                    listCol.removeAllViews();
+                    if (children.isEmpty()) { message("(nothing here)"); return; }
+                    for (android.media.browse.MediaBrowser.MediaItem mi : children) addRow(mi);
+                }
+                @Override public void onError(String pid) { message("Couldn't load this folder."); }
+            });
+        }
+
+        private void addRow(android.media.browse.MediaBrowser.MediaItem mi) {
+            Context c = getContext();
+            final String id = mi.getMediaId();
+            CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
+            final boolean browsable = mi.isBrowsable();
+            String label = (tt == null ? id : tt.toString());
+            TextView row = Ui.text(c, (browsable ? "" : "\u266A  ") + label, big ? 24 : 20, t.text, Ui.REGULAR);
+            row.setPadding(dp(14), dp(16), dp(14), dp(16));
+            row.setClickable(true);
+            row.setBackground(Ui.pressable(c, 0, dp(12), t));
+            row.setOnClickListener(v -> {
+                Sfx.click();
+                if (browsable) {
+                    stack.push(id);
+                    names.put(id, tt == null ? "" : tt.toString());
+                    load(id);
+                } else if (controller != null && id != null) {
+                    controller.getTransportControls().playFromMediaId(id, null);
+                    close();
+                }
+            });
+            listCol.addView(row, new LayoutParams(-1, -2));
+        }
+
+        private void back() {
+            if (stack.size() <= 1) { close(); return; }
+            stack.pop();
+            load(stack.peek());
+        }
+
+        private void message(String m) {
+            listCol.removeAllViews();
+            TextView tv = Ui.text(getContext(), m, big ? 22 : 18, t.sub, Ui.REGULAR);
+            tv.setPadding(dp(14), dp(20), dp(14), dp(20));
+            listCol.addView(tv, new LayoutParams(-1, -2));
+        }
+
+        void close() {
+            try { if (browser != null) browser.disconnect(); } catch (Exception ignored) {}
+            browser = null;
+            if (catcher.getParent() != null) ((ViewGroup) catcher.getParent()).removeView(catcher);
+            if (music == this) music = null;
+        }
+    }
+
     private int groupWidth() {
         return bs(76, BIG_BTN);
     }
@@ -2804,6 +2960,7 @@ public final class HomeView extends LinearLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         stopGlow();
+        if (music != null) music.close();
         if (popup != null) popup.close();
         if (tileIsPhone || sideFavBox != null) {
             tileIsPhone = false;
