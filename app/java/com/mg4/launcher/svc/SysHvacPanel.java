@@ -151,7 +151,7 @@ public final class SysHvacPanel {
                 && !(e.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && pkg != null && SYSUI.contentEquals(pkg))) {
             return;
         }
-        if (!CLIMA_PKG.equals(lastApp)) return;   // il pannello si chiude solo sopra MG4 Clima
+        if (!CLIMA_PKG.equals(lastApp) && !s.getPackageName().equals(lastApp)) return;   // chiudi sopra MG4 Clima o il Calm Launcher stesso
         boolean shown = false;
         try {
             List<AccessibilityWindowInfo> ws = s.getWindows();

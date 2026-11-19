@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.16
+- **Niente popup clima di sistema**: il pannello clima nativo MG non scende più quando cambi A/C, temperatura o ventola dal launcher.
+
 #### 1.0.5-calm.15
 - **Più suoni calmi**: sulle schede Mappa/Media/CarPlay e sui tasti clima (A/C, AUTO, ricircolo, volante, pannello clima).
 - **CarPlay (tasto)**: ora apre l'app CarPlay come la sua icona (trovata per nome: MG4CPlay/DiPlay), niente schermo nero.
@@ -957,6 +960,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.16
+- **No system climate popup**: the MG native climate panel no longer drops down when you change A/C, temperature or fan from the launcher.
 
 #### 1.0.5-calm.15
 - **More calm sounds**: on the Map/Media/CarPlay tabs and the climate buttons (A/C, AUTO, recirc, wheel, climate panel).

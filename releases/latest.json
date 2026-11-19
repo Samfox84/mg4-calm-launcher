@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.15",
-  "apk": "releases/MG4Launcher-1.0.5-calm.15.apk",
+  "version": "1.0.5-calm.16",
+  "apk": "releases/MG4Launcher-1.0.5-calm.16.apk",
   "size": 1182442,
-  "notes": "CarPlay button now opens the CarPlay app the same way its icon does (no black screen); drive-mode menu closes right after you pick; softer, more floating Siri ring with truer colours; more calm button sounds on the Map/Media/CarPlay tabs and the climate buttons; Map is the default view; window buttons removed from the bottom bar."
+  "notes": "Stops the MG native climate popup from dropping down over the launcher when you change A/C, temperature or fan. Plus everything from calm.15 (CarPlay button fix, drive-mode menu auto-close, softer Siri ring, more calm sounds)."
 }
