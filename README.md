@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.17
+- **Anello "Siri"**: entra e esce in dissolvenza quando scegli una modalità (e sfuma tra una modalità e l'altra), niente comparsa secca; tinta più forte così Sport/Eco/Neve/Personalizzato sono colori ben distinti.
+
 #### 1.0.5-calm.16
 - **Niente popup clima di sistema**: il pannello clima nativo MG non scende più quando cambi A/C, temperatura o ventola dal launcher.
 
@@ -960,6 +963,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.17
+- **"Siri" ring**: fades in and out when you pick a drive mode (and cross-fades between modes) instead of popping; stronger tint so Sport/Eco/Snow/Custom are clearly distinct colours.
 
 #### 1.0.5-calm.16
 - **No system climate popup**: the MG native climate panel no longer drops down when you change A/C, temperature or fan from the launcher.

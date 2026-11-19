@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.16",
-  "apk": "releases/MG4Launcher-1.0.5-calm.16.apk",
+  "version": "1.0.5-calm.17",
+  "apk": "releases/MG4Launcher-1.0.5-calm.17.apk",
   "size": 1182442,
-  "notes": "Stops the MG native climate popup from dropping down over the launcher when you change A/C, temperature or fan. Plus everything from calm.15 (CarPlay button fix, drive-mode menu auto-close, softer Siri ring, more calm sounds)."
+  "notes": "Siri ring now fades in and out smoothly when you pick a drive mode (and fades out-then-in when you switch modes), instead of popping. Stronger tint so Sport/Eco/Snow/Custom are clearly different colours."
 }

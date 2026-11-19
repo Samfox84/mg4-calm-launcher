@@ -2929,14 +2929,14 @@ public final class HomeView extends LinearLayout {
     private android.graphics.BlurMaskFilter siriBlurWide, siriBlurSoft;
     /** Calm Launcher: anello "Siri" come l'app Pacely (ThinkingGlow) - colori che scorrono (giro 6s, respiro 4s),
      *  due strati sfocati senza bordo netto cosi' galleggia; palette appena tinta verso il colore della modalita'. */
-    private void drawSiriGlow(android.graphics.Canvas c, int w, int h, int base) {
+    private void drawSiriGlow(android.graphics.Canvas c, int w, int h, int base, float fade) {
         double t = System.nanoTime() / 1_000_000_000.0;
         float ang = (float) ((t / 6.0) % 1.0) * 360f;                           // un giro ogni 6 secondi
         float breathe = (float) (0.60 + 0.22 * Math.sin(t * 2 * Math.PI / 4));  // respiro morbido di 4 secondi
         // palette di Pacely (menta, blu, viola, rosa, ambra), solo leggermente tinta verso la modalita'
         int[] pal = {0xFF73CBA8, 0xFF7CB8F0, 0xFFB89AE8, 0xFFEE8FA6, 0xFFF6C453, 0xFF73CBA8};
         int[] cols = new int[pal.length];
-        for (int i = 0; i < pal.length; i++) cols[i] = blendTowards(pal[i], base, 0.30f);
+        for (int i = 0; i < pal.length; i++) cols[i] = blendTowards(pal[i], base, 0.60f);  // più tinta: modi ben distinti
         float[] pos = {0f, 0.2f, 0.4f, 0.6f, 0.8f, 1f};
         android.graphics.SweepGradient sg = new android.graphics.SweepGradient(w / 2f, h / 2f, cols, pos);
         android.graphics.Matrix mtx = new android.graphics.Matrix();
@@ -2952,12 +2952,12 @@ public final class HomeView extends LinearLayout {
         // alone largo che galleggia oltre il bordo
         glowPaint.setMaskFilter(siriBlurWide);
         glowPaint.setStrokeWidth(dp(28));
-        glowPaint.setAlpha((int) (110 * breathe));
+        glowPaint.setAlpha((int) (110 * breathe * fade));
         c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
         // anello morbido (sfocato anche questo: nessun blocco netto)
         glowPaint.setMaskFilter(siriBlurSoft);
         glowPaint.setStrokeWidth(dp(10));
-        glowPaint.setAlpha((int) (210 * breathe));
+        glowPaint.setAlpha((int) (210 * breathe * fade));
         c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
         glowPaint.setMaskFilter(null);
         glowPaint.setShader(null);
@@ -2975,23 +2975,48 @@ public final class HomeView extends LinearLayout {
     }
 
     /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, Neve blu, Personalizzato bianco. */
+    private float glowFade = 0f;      // 0..1 dissolvenza dell'alone
+    private String shownMode = null;  // modo attualmente mostrato (per il cambio colore)
+
+    private static int glowBase(String m) {
+        if ("SPORT".equals(m)) return 0xFFE5484D;
+        if ("ECO".equals(m)) return 0xFF35B37E;
+        if ("SNOW".equals(m)) return 0xFF4C8DFF;
+        if ("CUSTOM".equals(m)) return 0xFFEDEFF2;
+        return 0;
+    }
+
     private void drawDriveGlow(android.graphics.Canvas c) {
         int gm = prefs.glowMode();
-        if (gm == 0 || driveMode == null) return;
-        int base;
-        if ("SPORT".equals(driveMode)) base = 0xFFE5484D;
-        else if ("ECO".equals(driveMode)) base = 0xFF35B37E;
-        else if ("SNOW".equals(driveMode)) base = 0xFF4C8DFF;
-        else if ("CUSTOM".equals(driveMode)) base = 0xFFEDEFF2;
-        else return;
+        String desired = gm == 0 ? null : driveMode;
+        if (glowBase(desired) == 0) desired = null;           // modo sconosciuto o spento = nessun alone
+
+        // dissolvenza: se cambia modo scende a 0, scambia colore, poi risale; se si spegne resta a 0
+        float step = 0.06f;
+        if (!java.util.Objects.equals(shownMode, desired)) {
+            glowFade -= step;
+            if (glowFade <= 0f) { glowFade = 0f; shownMode = desired; }
+        } else {
+            glowFade += (shownMode == null ? -step : step);
+            if (glowFade > 1f) glowFade = 1f;
+            if (glowFade < 0f) glowFade = 0f;
+        }
+        if (shownMode == null && glowFade <= 0f) return;      // niente da disegnare
+
+        int base = glowBase(shownMode);
+        float fade = glowFade * glowFade * (3 - 2 * glowFade);  // smoothstep: entra/esce morbido
         int w0 = getWidth(), h0 = getHeight();
         if (gm == 4) gm = autoWatch();
-        if (gm == 3) { drawSiriGlow(c, w0, h0, base); postInvalidateOnAnimation(); return; }
-        float a = 1f;
+        boolean fading = glowFade > 0f && glowFade < 1f;
+
+        if (gm == 3) { drawSiriGlow(c, w0, h0, base, fade); postInvalidateOnAnimation(); return; }
+        float a = fade;
         if (gm == 2) {
             float phase = (System.nanoTime() % 3_000_000_000L) / 3_000_000_000f;
-            a = 0.55f + 0.45f * (float) (0.5 * (1 + Math.sin(2 * Math.PI * phase)));
+            a *= 0.55f + 0.45f * (float) (0.5 * (1 + Math.sin(2 * Math.PI * phase)));
             postInvalidateOnAnimation();
+        } else if (fading) {
+            postInvalidateOnAnimation();                      // continua finché la dissolvenza è in corso
         }
         int w = getWidth(), h = getHeight();
         float thick = dp(26);
