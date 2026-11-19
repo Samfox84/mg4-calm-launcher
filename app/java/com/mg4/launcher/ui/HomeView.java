@@ -165,6 +165,7 @@ public final class HomeView extends LinearLayout {
     private LinearLayout guidaDots;
     private int recircIcon;
     private View barView;
+    private View carPanelView;   // Calm Launcher: ancora del picker modalita' guida
     private GroupPopup popup;
     private ImageView outIcon;
 
@@ -260,7 +261,7 @@ public final class HomeView extends LinearLayout {
         p.setBackground(Ui.pressable(c, t.panel, 24, t));
         p.setPadding(dp(32), dp(28), dp(32), dp(24));
         p.setClickable(true);
-        p.setOnClickListener(v -> host.openEnergy("ChargeManagementFragment"));
+        p.setOnClickListener(v -> openGroup(DRIVE));   // Calm Launcher: apre il picker modalita' guida
         p.setOnLongClickListener(v -> {
             host.openSettings();
             return true;
@@ -365,6 +366,7 @@ public final class HomeView extends LinearLayout {
             p.addView(chargeRow, new LayoutParams(-1, -2));
             styleChargeButtons(new VehicleClient.State());
         }
+        carPanelView = p;
         return p;
     }
 
@@ -2530,7 +2532,7 @@ public final class HomeView extends LinearLayout {
     // =========================================================================================
 
     private static final int HEAT = 0xFFFF7A3D;
-    private static final int CLIMA = 0, COMFORT = 1, GUIDA = 2;
+    private static final int CLIMA = 0, COMFORT = 1, GUIDA = 2, DRIVE = 3;
 
     // Calm Launcher: DiPlay (ricevitore CarPlay wireless)
     private static final String DIPLAY_PKG = "com.shihab.diplay";
@@ -2934,7 +2936,8 @@ public final class HomeView extends LinearLayout {
     private final class GroupPopup {
         private static final long AUTO_CLOSE_MS = 6000;
         /** clima: caselle bianche quando accese (Clima e Guida); altrimenti arancioni (Comfort). */
-        final boolean clima, guida;
+        final boolean clima, guida, drive;
+        private String curMode;
         final Dimmer catcher;
         final LinearLayout card, tiles;
         final View arrow;
@@ -2944,6 +2947,7 @@ public final class HomeView extends LinearLayout {
         GroupPopup(int kind) {
             this.clima = kind != COMFORT;
             this.guida = kind == GUIDA;
+            this.drive = kind == DRIVE;
             Context c = getContext();
             catcher = new Dimmer(c);
             catcher.ring = clima ? t.text : HEAT;
@@ -2960,7 +2964,7 @@ public final class HomeView extends LinearLayout {
             card.setPadding(dp(32), dp(24), dp(32), dp(30));
             LinearLayout head = Ui.row(c);
             head.setGravity(Gravity.CENTER_VERTICAL);
-            TextView title = Ui.text(c, L.s(guida ? R.string.group_guida : clima ? R.string.group_clima : R.string.group_comfort).toUpperCase(L.locale()), 16, t.sub, Ui.MEDIUM);
+            TextView title = Ui.text(c, (drive ? "DRIVE MODE" : L.s(guida ? R.string.group_guida : clima ? R.string.group_clima : R.string.group_comfort).toUpperCase(L.locale())), 16, t.sub, Ui.MEDIUM);
             title.setLetterSpacing(0.12f);
             head.addView(title, Ui.lpWeight(0, -2, 1));
             head.addView(Ui.text(c, L.s(R.string.tap_outside_close), 15, t.sub, Ui.REGULAR), Ui.margins(new LayoutParams(-2, -2), dp(40), 0, 0, 0));
@@ -2993,6 +2997,15 @@ public final class HomeView extends LinearLayout {
 
         private void buildTiles(Context c) {
             VehicleClient.State s = vehicle.last();
+            if (drive) {
+                curMode = com.mg4.launcher.svc.DriveModeClient.read(c);
+                addDriveTile(c, "ECO", "Eco");
+                addDriveTile(c, "NORMAL", "Normal");
+                addDriveTile(c, "SPORT", "Sport");
+                addDriveTile(c, "SNOW", "Snow");
+                addDriveTile(c, "CUSTOM", "Custom");
+                return;
+            }
             if (guida) {
                 if (s.lka >= 0) addTile(c, "lka", "LKA", 0, L.s(R.string.tile_lka), v -> vehicle.toggleLka());
                 if (s.opd >= 0) addTile(c, "opd", "OPD", 0, "One Pedal", v -> {
@@ -3075,6 +3088,7 @@ public final class HomeView extends LinearLayout {
         }
 
         void refresh(VehicleClient.State s) {
+            if (drive) { refreshDrive(); return; }
             for (FrameLayout v : tileViews) {
                 Object[] tag = (Object[]) v.getTag();
                 String id = (String) tag[0];
@@ -3151,9 +3165,38 @@ public final class HomeView extends LinearLayout {
             }
         }
 
+        private void addDriveTile(Context c, String mode, String label) {
+            addTile(c, "mode_" + mode, label, 0, label, v -> {
+                com.mg4.launcher.svc.DriveModeClient.set(getContext(), mode);
+                curMode = mode;
+                refreshDrive();
+            });
+        }
+
+        private void refreshDrive() {
+            float rad = dp(big ? 24 : 20 * Ui.K);
+            for (FrameLayout v : tileViews) {
+                Object[] tag = (Object[]) v.getTag();
+                String id = (String) tag[0];
+                boolean on = curMode != null && id.equals("mode_" + curMode);
+                TextView nm = (TextView) tag[2], st = (TextView) tag[3];
+                android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+                g.setCornerRadius(rad);
+                g.setColor(on ? t.text : t.chip);
+                int fg = on ? t.panel : t.text;
+                if (tag[1] instanceof TextView) ((TextView) tag[1]).setTextColor(fg);
+                nm.setTextColor(fg);
+                st.setTextColor(fg);
+                st.setText(on ? "\u25CF" : "");
+                v.setAlpha(1f);
+                v.setBackground(new android.graphics.drawable.RippleDrawable(
+                        android.content.res.ColorStateList.valueOf(t.day ? 0x22000000 : 0x33FFFFFF), g, null));
+            }
+        }
+
         /** Riquadro centrato sopra il pulsante del gruppo (dentro lo schermo), punta sul pulsante, buco nello scuro. */
         private void place() {
-            View anchor = guida ? guidaGroup : clima ? climaGroup : comfortGroup;
+            View anchor = drive ? carPanelView : guida ? guidaGroup : clima ? climaGroup : comfortGroup;
             if (anchor == null || barView == null || card.getWidth() == 0) return;
             int[] a = new int[2], root = new int[2], bar = new int[2];
             anchor.getLocationOnScreen(a);
