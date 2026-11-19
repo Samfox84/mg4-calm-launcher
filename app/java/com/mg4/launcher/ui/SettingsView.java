@@ -1020,7 +1020,7 @@ public final class SettingsView extends FrameLayout {
                 }), false), top(20));
 
         col.addView(label(c, "Drive-mode glow (needs MG4 Control)"), top(28));
-        String[] glowLabels = {"Off", "Static", "Pulse", "Siri"};
+        String[] glowLabels = {"Off", "Static", "Pulse", "Siri", "Auto"};
         Flow fg = new Flow(c);
         for (int gi = 0; gi < glowLabels.length; gi++) {
             final int idx = gi;

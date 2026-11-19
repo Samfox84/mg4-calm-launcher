@@ -180,6 +180,10 @@ public final class HomeView extends LinearLayout {
     private Thread glowPoller;
     private volatile boolean glowRun;
     private final android.graphics.Paint glowPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+    private int autoLevel = 3;          // modo Auto: 3 Siri, 2 Pulse, 1 Static (scende se l'animazione rallenta)
+    private long lastFrameNanos;
+    private float frameAvgMs;
+    private int autoGrace;
     /** 1.0.5: riquadro auto mostrato (altrimenti widget a scelta nel pannello sinistro). */
     private final boolean carShown;
 
@@ -2214,6 +2218,9 @@ public final class HomeView extends LinearLayout {
         FrameLayout carplayBtn = barIcon(c, R.drawable.ic_projection, t.text, 0, btn, icon, rad, "CarPlay (DiPlay)", v -> openCarPlay());
         if (!canOpenCarPlay()) carplayBtn.setAlpha(0.35f);
         bar.addView(carplayBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
+        FrameLayout windowBtn = barIcon(c, R.drawable.ic_window, t.text, 0, btn, icon, rad, "Windows: tap up, hold down", v -> com.mg4.launcher.svc.WindowControl.closeAll(getContext()));
+        windowBtn.setOnLongClickListener(v -> { com.mg4.launcher.svc.WindowControl.openAll(getContext()); return true; });
+        bar.addView(windowBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
@@ -2724,6 +2731,19 @@ public final class HomeView extends LinearLayout {
         drawDriveGlow(canvas);
     }
 
+    /** Calm Launcher: modo Auto - misura la fluidita' e scende (Siri -> Pulse -> Static) se l'animazione rallenta. */
+    private int autoWatch() {
+        long now = System.nanoTime();
+        if (lastFrameNanos != 0) {
+            float dt = (now - lastFrameNanos) / 1_000_000f;
+            frameAvgMs = frameAvgMs == 0 ? dt : frameAvgMs * 0.88f + dt * 0.12f;
+        }
+        lastFrameNanos = now;
+        if (autoGrace < 30) autoGrace++;
+        else if (frameAvgMs > 30f && autoLevel > 1) { autoLevel--; autoGrace = 0; frameAvgMs = 0; }
+        return autoLevel;
+    }
+
     /** Calm Launcher: "Siri" - una luce della tinta della modalita' che scorre intorno al bordo. */
     private void drawSiriGlow(android.graphics.Canvas c, int w, int h, int base) {
         float ang = (System.nanoTime() % 4_000_000_000L) / 4_000_000_000f * 360f;
@@ -2757,6 +2777,7 @@ public final class HomeView extends LinearLayout {
         else if ("CUSTOM".equals(driveMode)) base = 0xFFEDEFF2;
         else return;
         int w0 = getWidth(), h0 = getHeight();
+        if (gm == 4) gm = autoWatch();
         if (gm == 3) { drawSiriGlow(c, w0, h0, base); postInvalidateOnAnimation(); return; }
         float a = 1f;
         if (gm == 2) {

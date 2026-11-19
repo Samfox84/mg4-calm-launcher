@@ -154,6 +154,20 @@ public final class CarProps {
         }
     }
 
+    /** Calm Launcher: scrittura diretta di una proprieta' float con area esplicita (es. vetri). */
+    public boolean setFloat(int prop, int areaId, float value) {
+        try {
+            Object p = pm();
+            if (p == null) return false;
+            Method m = p.getClass().getMethod("setFloatProperty", int.class, int.class, float.class);
+            m.invoke(p, prop, areaId, value);
+            return true;
+        } catch (Throwable e) {
+            error("scrittura float " + prop, e);
+            return false;
+        }
+    }
+
     /** Calm Launcher: scrittura diretta di una proprieta' int (es. modalita' di guida). true se riuscita. */
     public boolean setInt(int prop, int value) {
         try {
