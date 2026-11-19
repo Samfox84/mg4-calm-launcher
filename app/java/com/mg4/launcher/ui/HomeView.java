@@ -2607,7 +2607,7 @@ public final class HomeView extends LinearLayout {
             head.setGravity(Gravity.CENTER_VERTICAL);
             FrameLayout backBtn = barIcon(c, R.drawable.ic_chev_left, t.text, t.chip, dp(56), dp(30), dp(14), "Back", v -> back());
             head.addView(backBtn, new LayoutParams(dp(56), dp(56)));
-            titleTv = Ui.text(c, "Library", big ? 24 : 20, t.text, Ui.MEDIUM);
+            titleTv = Ui.oneLine(Ui.text(c, "Library", big ? 24 : 20, t.text, Ui.MEDIUM));
             head.addView(titleTv, Ui.margins(Ui.lpWeight(0, -2, 1), dp(16), 0, dp(16), 0));
             head.addView(Ui.text(c, L.s(R.string.tap_outside_close), 15, t.sub, Ui.REGULAR), new LayoutParams(-2, -2));
             card.addView(head, new LayoutParams(-1, -2));
@@ -2684,7 +2684,7 @@ public final class HomeView extends LinearLayout {
             CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
             final boolean browsable = mi.isBrowsable();
             String label = (tt == null ? id : tt.toString());
-            TextView row = Ui.text(c, (browsable ? "" : "\u266A  ") + label, big ? 24 : 20, t.text, Ui.REGULAR);
+            TextView row = Ui.oneLine(Ui.text(c, (browsable ? "" : "\u266A  ") + label, big ? 24 : 20, t.text, Ui.REGULAR));
             row.setPadding(dp(14), dp(16), dp(14), dp(16));
             row.setClickable(true);
             row.setBackground(Ui.pressable(c, 0, dp(12), t));
