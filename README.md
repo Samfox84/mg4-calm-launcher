@@ -310,6 +310,16 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.15
+- **Più suoni calmi**: sulle schede Mappa/Media/CarPlay e sui tasti clima (A/C, AUTO, ricircolo, volante, pannello clima).
+- **CarPlay (tasto)**: ora apre l'app CarPlay come la sua icona (trovata per nome: MG4CPlay/DiPlay), niente schermo nero.
+- **Modalità di guida**: il menù si chiude subito dopo la scelta.
+- **Anello "Siri"**: più morbido e "galleggiante", colori più fedeli (meno tinta).
+- **CarPlay nella barra Mappa/Media**: è la terza scheda fissa (apre l'app CarPlay). Tolto il pulsante doppio dalla barra in basso.
+- **Mappa come vista predefinita**: la Home parte sulla mappa; il Media compare solo premendo la scheda Media.
+- **Tolti i pulsanti finestrini** dalla barra in basso (non funzionavano, facevano confusione).
+- **Anello "Siri"**: ripreso dall'app Pacely (ThinkingGlow) - stessi colori che scorrono (giro di 6s, respiro di 4s), tinti verso il colore della modalità di guida.
+
 #### 1.0.5
 - **Animazione di ricarica**: ora parte davvero quando si attacca il cavo con lo schermo acceso (prima scambiava il
   quadro acceso per READY).
@@ -947,6 +957,16 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.15
+- **More calm sounds**: on the Map/Media/CarPlay tabs and the climate buttons (A/C, AUTO, recirc, wheel, climate panel).
+- **CarPlay button**: now opens the CarPlay app the same way its icon does (found by name: MG4CPlay/DiPlay), no black screen.
+- **Drive mode**: the picker closes straight after you choose.
+- **"Siri" ring**: softer and more floating, truer colours (less tint).
+- **CarPlay on the Map/Media switch**: it is the fixed third tab (opens the CarPlay app). Removed the duplicate button from the bottom bar.
+- **Map is the default view**: Home starts on the map; Media only appears when the Media tab is pressed.
+- **Removed the window buttons** from the bottom bar (they did nothing and added clutter).
+- **"Siri" ring**: taken from the Pacely app (ThinkingGlow) - the same flowing colours (6s turn, 4s breath), tinted toward the drive-mode colour.
 
 #### 1.0.5
 - **Charging animation**: it now really starts when the cable is plugged in with the screen on (it used to mistake

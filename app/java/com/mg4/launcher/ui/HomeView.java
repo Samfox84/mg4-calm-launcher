@@ -95,7 +95,7 @@ public final class HomeView extends LinearLayout {
     private ImageView connBt, connWifi;
     private TextView connNet;
     private Bars.Signal connBars;
-    private int tab = TAB_MEDIA;
+    private int tab = TAB_MAP;
     private boolean userPickedTab;
     private boolean wasNavigating;
 
@@ -228,7 +228,7 @@ public final class HomeView extends LinearLayout {
         addView(buildBottomBar(c), Ui.margins(new LayoutParams(LayoutParams.MATCH_PARENT, big ? dp(BIG_BAR) : tp(100)), 0, dp(14), 0, 0));
 
         applyCarLook();
-        selectTab(TAB_MEDIA, false);
+        selectTab(TAB_MAP, false);
     }
 
     private int dp(float v) {
@@ -895,7 +895,11 @@ public final class HomeView extends LinearLayout {
         // 0.9.6: un solo tocco apre CarPlay / Android Auto (prima il primo tocco mostrava solo la scheda)
         // 1.0.4 (punto E5): CarPlay / Android Auto non sono più una scheda: compaiono nella barra in basso a destra
         // con l'icona originale. La terza scheda resta solo per l'app scelta nelle impostazioni (issue #23).
-        tabPhone.setVisibility(GONE);
+        // Calm Launcher: "CarPlay" e' la terza scheda fissa; apre CarPlay (DiPlay) senza cambiare pannello.
+        tabPhone.setText("CarPlay");
+        tabPhone.setContentDescription("CarPlay");
+        tabPhone.setOnClickListener(v -> { Sfx.play(Sfx.S.OPEN); openCarPlay(); });
+        tabPhone.setVisibility(VISIBLE);
         // 1.0.2 (issue #23): il pulsante in alto a destra si sceglie nelle impostazioni (CarPlay/AA come prima, un'app, nessuno)
         String top = prefs.topButton();
         topMode = Prefs.TOP_NONE.equals(top) ? 2 : top.startsWith(Prefs.TOP_APP) ? 1 : 2;
@@ -984,7 +988,7 @@ public final class HomeView extends LinearLayout {
         tv.setPadding(tp(22), 0, tp(22), 0);
         tv.setMinHeight(tp(TABS_H - 12));
         tv.setClickable(true);
-        tv.setOnClickListener(v -> selectTab(which, true));
+        tv.setOnClickListener(v -> { Sfx.play(Sfx.S.TOGGLE_ON); selectTab(which, true); });
         parent.addView(tv, Ui.margins(Ui.lp(-2, tp(TABS_H - 12)), which == 0 ? 0 : dp(6), 0, 0, 0));
         return tv;
     }
@@ -2183,8 +2187,8 @@ public final class HomeView extends LinearLayout {
         boolean sysPanel = !hvacApp && com.mg4.launcher.svc.SysHvacPanel.supported(c);
         com.mg4.launcher.svc.Diag.put("clima.tastoApre", hvacApp ? "app Clima (o MG4 Clima se installata)"
                 : sysPanel ? "pannello clima di sistema (app clima assente)" : "niente: app clima e pannello assenti, tasto spento");
-        if (hvacApp) fanBox.setOnClickListener(v -> host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"));
-        else if (sysPanel) fanBox.setOnClickListener(v -> com.mg4.launcher.svc.SysHvacPanel.open(getContext()));
+        if (hvacApp) fanBox.setOnClickListener(v -> { Sfx.play(Sfx.S.OPEN); host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"); });
+        else if (sysPanel) fanBox.setOnClickListener(v -> { Sfx.play(Sfx.S.OPEN); com.mg4.launcher.svc.SysHvacPanel.open(getContext()); });
         else {
             fanBox.setClickable(false);
             fanIc.setAlpha(0.35f);
@@ -2228,12 +2232,6 @@ public final class HomeView extends LinearLayout {
         // guida (0.9.5): LKA, OPD, assistente e pedale in un gruppo; nascosto se l'auto non ha nessuno dei comandi
         guidaGroup = guidaButton(c);
         guidaGroup.setVisibility(GONE);   // Calm Launcher: non piu' sulla barra, sostituito dal tasto CarPlay
-        FrameLayout carplayBtn = barIcon(c, R.drawable.ic_projection, t.text, 0, btn, icon, rad, "CarPlay (DiPlay)", v -> openCarPlay());
-        if (!canOpenCarPlay()) carplayBtn.setAlpha(0.35f);
-        bar.addView(carplayBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
-        FrameLayout windowBtn = barIcon(c, R.drawable.ic_window, t.text, 0, btn, icon, rad, "Windows: tap up, hold down", v -> com.mg4.launcher.svc.WindowControl.closeAll(getContext()));
-        windowBtn.setOnLongClickListener(v -> { com.mg4.launcher.svc.WindowControl.openAll(getContext()); return true; });
-        bar.addView(windowBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
         bar.addView(new View(c), new LayoutParams(dp(8), 1));
 
         // mini-player compatto (unico elemento elastico). Con i comandi molto grandi o la barra grande lascia il posto ai
@@ -2477,7 +2475,7 @@ public final class HomeView extends LinearLayout {
         iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
         f.addView(iv, new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER));
         f.setClickable(true);
-        f.setOnClickListener(l);
+        f.setOnClickListener(v -> { Sfx.play(Sfx.S.TOGGLE_ON); l.onClick(v); });
         styleClima(f, 3);
         return f;
     }
@@ -2559,13 +2557,30 @@ public final class HomeView extends LinearLayout {
     private static final String DIPLAY_CLS = "com.shilapi.xcertplay.DiPlayActivity";
 
     private boolean canOpenCarPlay() {
-        return host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)
-                || getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG) != null;
+        return carPlayIntent() != null;
+    }
+
+    /** Avvia l'app CarPlay esattamente come toccando la sua icona (intent di avvio), trovandola per nome:
+     *  cosi' non dipende dal nome-pacchetto (MG4CPlay, DiPlay...) e non apre un'activity interna che resta nera. */
+    private android.content.Intent carPlayIntent() {
+        android.content.pm.PackageManager pm = getContext().getPackageManager();
+        android.content.Intent i = pm.getLaunchIntentForPackage(DIPLAY_PKG);   // pacchetto noto
+        if (i != null) return i;
+        android.content.Intent main = new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                .addCategory(android.content.Intent.CATEGORY_LAUNCHER);        // altrimenti per etichetta
+        for (android.content.pm.ResolveInfo ri : pm.queryIntentActivities(main, 0)) {
+            if (ri == null || ri.activityInfo == null) continue;
+            String pkg = ri.activityInfo.packageName;
+            if (pkg.equals(getContext().getPackageName())) continue;
+            String tag = (pkg + " " + ri.loadLabel(pm)).toLowerCase(java.util.Locale.ROOT);
+            if (tag.contains("cplay") || tag.contains("carplay") || tag.contains("diplay"))
+                return pm.getLaunchIntentForPackage(pkg);
+        }
+        return null;
     }
 
     private void openCarPlay() {
-        if (host.canLaunch(DIPLAY_PKG, DIPLAY_CLS)) { host.launch(DIPLAY_PKG, DIPLAY_CLS); return; }
-        android.content.Intent i = getContext().getPackageManager().getLaunchIntentForPackage(DIPLAY_PKG);
+        android.content.Intent i = carPlayIntent();
         if (i != null) { i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK); getContext().startActivity(i); return; }
         media.openProjection();
     }
@@ -2911,25 +2926,52 @@ public final class HomeView extends LinearLayout {
     }
 
     /** Calm Launcher: "Siri" - una luce della tinta della modalita' che scorre intorno al bordo. */
+    private android.graphics.BlurMaskFilter siriBlurWide, siriBlurSoft;
+    /** Calm Launcher: anello "Siri" come l'app Pacely (ThinkingGlow) - colori che scorrono (giro 6s, respiro 4s),
+     *  due strati sfocati senza bordo netto cosi' galleggia; palette appena tinta verso il colore della modalita'. */
     private void drawSiriGlow(android.graphics.Canvas c, int w, int h, int base) {
-        float ang = (System.nanoTime() % 4_000_000_000L) / 4_000_000_000f * 360f;
-        int rgb = base & 0x00FFFFFF;
-        int[] cols = {0x22000000 | rgb, 0x22000000 | rgb, 0xD0000000 | rgb, 0x22000000 | rgb, 0x22000000 | rgb};
-        float[] pos = {0f, 0.20f, 0.28f, 0.36f, 1f};
+        double t = System.nanoTime() / 1_000_000_000.0;
+        float ang = (float) ((t / 6.0) % 1.0) * 360f;                           // un giro ogni 6 secondi
+        float breathe = (float) (0.60 + 0.22 * Math.sin(t * 2 * Math.PI / 4));  // respiro morbido di 4 secondi
+        // palette di Pacely (menta, blu, viola, rosa, ambra), solo leggermente tinta verso la modalita'
+        int[] pal = {0xFF73CBA8, 0xFF7CB8F0, 0xFFB89AE8, 0xFFEE8FA6, 0xFFF6C453, 0xFF73CBA8};
+        int[] cols = new int[pal.length];
+        for (int i = 0; i < pal.length; i++) cols[i] = blendTowards(pal[i], base, 0.30f);
+        float[] pos = {0f, 0.2f, 0.4f, 0.6f, 0.8f, 1f};
         android.graphics.SweepGradient sg = new android.graphics.SweepGradient(w / 2f, h / 2f, cols, pos);
         android.graphics.Matrix mtx = new android.graphics.Matrix();
         mtx.setRotate(ang, w / 2f, h / 2f);
         sg.setLocalMatrix(mtx);
-        float inset = dp(7), rr = dp(10);
+        if (siriBlurWide == null) {
+            siriBlurWide = new android.graphics.BlurMaskFilter(dp(20), android.graphics.BlurMaskFilter.Blur.NORMAL);
+            siriBlurSoft = new android.graphics.BlurMaskFilter(dp(7),  android.graphics.BlurMaskFilter.Blur.NORMAL);
+        }
+        float inset = dp(10), rr = dp(14);
         glowPaint.setStyle(android.graphics.Paint.Style.STROKE);
         glowPaint.setShader(sg);
-        glowPaint.setStrokeWidth(dp(14));
-        c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        // alone largo che galleggia oltre il bordo
+        glowPaint.setMaskFilter(siriBlurWide);
         glowPaint.setStrokeWidth(dp(28));
-        glowPaint.setAlpha(70);
+        glowPaint.setAlpha((int) (110 * breathe));
         c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        // anello morbido (sfocato anche questo: nessun blocco netto)
+        glowPaint.setMaskFilter(siriBlurSoft);
+        glowPaint.setStrokeWidth(dp(10));
+        glowPaint.setAlpha((int) (210 * breathe));
+        c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        glowPaint.setMaskFilter(null);
         glowPaint.setShader(null);
         glowPaint.setAlpha(255);
+    }
+
+    /** fonde il colore c verso base per la frazione k (0..1), opaco. */
+    private static int blendTowards(int c, int base, float k) {
+        int cr = (c >>> 16) & 0xFF, cg = (c >>> 8) & 0xFF, cb = c & 0xFF;
+        int br = (base >>> 16) & 0xFF, bg = (base >>> 8) & 0xFF, bb = base & 0xFF;
+        int r = Math.round(cr + (br - cr) * k);
+        int g = Math.round(cg + (bg - cg) * k);
+        int b = Math.round(cb + (bb - cb) * k);
+        return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
     /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, Neve blu, Personalizzato bianco. */
@@ -3385,6 +3427,7 @@ public final class HomeView extends LinearLayout {
                 if ("CUSTOM".equals(mode)) com.mg4.launcher.svc.DriveModeClient.setRegen(getContext(), "ONE_PEDAL");
                 curMode = mode;
                 refreshDrive();
+                close();   // Calm Launcher: chiude subito dopo la scelta (niente attesa)
             });
         }
 
