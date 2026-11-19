@@ -174,6 +174,11 @@ public final class HomeView extends LinearLayout {
     private final boolean rhd, sysIndicator;
     /** Barra in basso grande (opzione): misure fisse in px, indipendenti da "Dimensione comandi". */
     private final boolean big;
+    // Calm Launcher: alone bordo per la modalita' di guida (letta da MG4 Control)
+    private volatile String driveMode;
+    private Thread glowPoller;
+    private volatile boolean glowRun;
+    private final android.graphics.Paint glowPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
     /** 1.0.5: riquadro auto mostrato (altrimenti widget a scelta nel pannello sinistro). */
     private final boolean carShown;
 
@@ -2685,8 +2690,71 @@ public final class HomeView extends LinearLayout {
     }
 
     @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        startGlow();
+    }
+
+    private void startGlow() {
+        if (glowRun || prefs.glowMode() == 0) return;
+        glowRun = true;
+        glowPoller = new Thread(() -> {
+            while (glowRun) {
+                final String m = com.mg4.launcher.svc.DriveModeClient.read(getContext());
+                post(() -> {
+                    if (!java.util.Objects.equals(m, driveMode)) { driveMode = m; invalidate(); }
+                });
+                try { Thread.sleep(2000); } catch (InterruptedException e) { break; }
+            }
+        }, "calm-drive-glow");
+        glowPoller.setDaemon(true);
+        glowPoller.start();
+    }
+
+    private void stopGlow() {
+        glowRun = false;
+        if (glowPoller != null) { glowPoller.interrupt(); glowPoller = null; }
+    }
+
+    @Override
+    protected void dispatchDraw(android.graphics.Canvas canvas) {
+        super.dispatchDraw(canvas);
+        drawDriveGlow(canvas);
+    }
+
+    /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, niente per Normale/Neve/Personalizzato. */
+    private void drawDriveGlow(android.graphics.Canvas c) {
+        int gm = prefs.glowMode();
+        if (gm == 0 || driveMode == null) return;
+        int base;
+        if ("SPORT".equals(driveMode)) base = 0xFFE5484D;
+        else if ("ECO".equals(driveMode)) base = 0xFF35B37E;
+        else return;
+        float a = 1f;
+        if (gm == 2) {
+            float phase = (System.nanoTime() % 3_000_000_000L) / 3_000_000_000f;
+            a = 0.55f + 0.45f * (float) (0.5 * (1 + Math.sin(2 * Math.PI * phase)));
+            postInvalidateOnAnimation();
+        }
+        int w = getWidth(), h = getHeight();
+        float thick = dp(26);
+        int steps = 14;
+        glowPaint.setStyle(android.graphics.Paint.Style.STROKE);
+        float rr = dp(10);
+        for (int i = 0; i < steps; i++) {
+            float inset = thick * i / steps + dp(1);
+            float frac = 1f - (float) i / steps;
+            glowPaint.setStrokeWidth(thick / steps + dp(2));
+            int alpha = (int) (95 * frac * frac * a);
+            glowPaint.setColor((base & 0x00FFFFFF) | (alpha << 24));
+            c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
+        }
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        stopGlow();
         if (popup != null) popup.close();
         if (tileIsPhone || sideFavBox != null) {
             tileIsPhone = false;

@@ -1019,6 +1019,19 @@ public final class SettingsView extends FrameLayout {
                     com.mg4.launcher.svc.Sfx.setEnabled(on);
                 }), false), top(20));
 
+        col.addView(label(c, "Drive-mode glow (needs MG4 Control)"), top(28));
+        String[] glowLabels = {"Off", "Static", "Animated"};
+        Flow fg = new Flow(c);
+        for (int gi = 0; gi < glowLabels.length; gi++) {
+            final int idx = gi;
+            fg.addView(choice(c, glowLabels[gi], prefs.glowMode() == gi, v -> {
+                if (prefs.glowMode() == idx) return;
+                prefs.setGlowMode(idx);
+                host.settingsChanged(true);
+            }));
+        }
+        col.addView(fg, topFull(14));
+
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};
         Flow fa = new Flow(c);
