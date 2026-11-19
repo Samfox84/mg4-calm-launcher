@@ -302,9 +302,9 @@ public final class Prefs {
         sp.edit().putString("widgetSinistra", s).apply();
     }
 
-    /** 1.0.5 (sperimentale): navigatore in finestra nel pannello mappe (predefinito: spento = Indicazioni). */
+    /** 1.0.5 (sperimentale): navigatore in finestra nel pannello mappe. Calm Launcher: acceso di default (si autodisattiva se il navigatore manca o Android rifiuta). */
     public boolean mapPanelWindow() {
-        return sp.getBoolean("pannelloMappeFinestra", false);
+        return sp.getBoolean("pannelloMappeFinestra", true);
     }
 
     public void setMapPanelWindow(boolean b) {
