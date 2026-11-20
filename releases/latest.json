@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.19",
-  "apk": "releases/MG4Launcher-1.0.5-calm.19.apk",
+  "version": "1.0.5-calm.20",
+  "apk": "releases/MG4Launcher-1.0.5-calm.20.apk",
   "size": 1186538,
-  "notes": "Automatic diagnostic logs are now on: the launcher sends a log to your private GitHub logs repo on launch and every 30 minutes. This is the build that lets me see what's restarting the radio."
+  "notes": "New: a calm analogue standby clock (date + battery) that fades in when the home screen sits idle, with a timer and a Preview button in Settings; plus an optional gentle night auto-dim with a Test button. Diagnostic logs still on."
 }
