@@ -1892,15 +1892,7 @@ public final class HomeView extends LinearLayout {
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         // rubato ai comandi (prima in "Molto grande" il tasto play risultava tagliato)
         mSub.setVisibility(m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
-        if (musicActive()) {
-            android.media.MediaMetadata md = musicCtl.getMetadata();
-            String tt = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_TITLE) : null;
-            String ar = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST) : null;
-            if (tt != null && !tt.isEmpty()) mTitle.setText(tt);
-            if (ar != null && !ar.isEmpty()) { mSub.setText(ar); mSub.setVisibility(VISIBLE); }
-            radio = false;
-            styleSources(LIBRARY);
-        }
+        if (musicActive()) { radio = false; styleSources(LIBRARY); }
         boolean logo = radio && m.logo != null;
         artLogo.setVisibility(logo ? VISIBLE : GONE);
         if (logo) artLogo.setImageBitmap(m.logo);
@@ -1972,6 +1964,33 @@ public final class HomeView extends LinearLayout {
         } else {
             miniArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
             miniArt.setImageResource(sourceIcon(m.source));
+        }
+
+        if (musicActive()) {
+            android.media.MediaMetadata md = musicCtl.getMetadata();
+            android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
+            boolean playing = ps != null && ps.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+            String tt = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_TITLE) : null;
+            String ar = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST) : null;
+            if (tt == null || tt.isEmpty()) tt = "Library";
+            if (ar == null) ar = "";
+            mTitle.setText(tt);
+            mSub.setText(ar); mSub.setVisibility(ar.isEmpty() ? GONE : VISIBLE);
+            if (mMeta != null) mMeta.setText("NAVIDROME");
+            int picon = playing ? R.drawable.ic_pause : R.drawable.ic_play;
+            playIcon.setImageResource(picon);
+            miniPlayIcon.setImageResource(picon);
+            miniTitle.setText(tt);
+            miniSub.setText(ar.isEmpty() ? "Library" : "Library \u00b7 " + ar);
+            miniArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
+            miniArt.setImageResource(R.drawable.ic_music);
+            if (sideMediaTitle != null) {
+                sideMediaTitle.setText(tt);
+                sideMediaSub.setText(ar.isEmpty() ? "Library" : "Library \u00b7 " + ar);
+                sideMediaPlay.setImageResource(picon);
+                sideMediaArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
+                sideMediaArt.setImageResource(R.drawable.ic_music);
+            }
         }
 
         // CarPlay / Android Auto: la scheda compare solo con il telefono collegato

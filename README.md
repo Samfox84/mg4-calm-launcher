@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.23
+- **Libreria ovunque**: titolo, artista e icona play/pausa della libreria Navidrome ora si riflettono anche nella barra in basso e nel widget laterale, non solo nel riquadro media.
+
 #### 1.0.5-calm.22
 - **Logo**: schermata d'avvio con il logo "Calm Launcher" al posto del testo.
 - **Sorgente online nascosta**: la scheda musica online/Amazon è nascosta (interruttore nelle Impostazioni per rimostrarla).
@@ -981,6 +984,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.23
+- **Library everywhere**: the Navidrome title, artist and play/pause icon now show in the bottom bar and side widget too, not just the media panel.
 
 #### 1.0.5-calm.22
 - **Logo**: boot screen now shows the "Calm Launcher" logo instead of plain text.
