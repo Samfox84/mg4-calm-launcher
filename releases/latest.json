@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.25",
-  "apk": "releases/MG4Launcher-1.0.5-calm.25.apk",
+  "version": "1.0.5-calm.26",
+  "apk": "releases/MG4Launcher-1.0.5-calm.26.apk",
   "size": 1248056,
-  "notes": "Rebuilt with the corrected logs token. Update, drive a moment, then Settings - System - Save log: the log should finally upload (no more 404)."
+  "notes": "Steering-wheel button now controls Navidrome when it's playing: press to play/pause, and skip forward/back. (Found in the logs that the wheel presses do reach the launcher.)"
 }
