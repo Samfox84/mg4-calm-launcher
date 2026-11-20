@@ -1312,7 +1312,7 @@ public final class SettingsView extends FrameLayout {
         if (!LogUploader.configured()) lr.getChildAt(1).setEnabled(false);
         logUploadSub = (TextView) ((ViewGroup) lr.getChildAt(0)).getChildAt(1);
         card.addView(lr);
-        logSaveBtn = button(c, L.s(R.string.btn_save), v -> saveLog());
+        logSaveBtn = button(c, "Send now", v -> saveLog());
         LinearLayout sr = row(c, L.s(R.string.save_log), L.s(R.string.save_log_sub), logSaveBtn, false);
         logSaveSub = (TextView) ((ViewGroup) sr.getChildAt(0)).getChildAt(1);
         card.addView(sr);
@@ -1402,8 +1402,11 @@ public final class SettingsView extends FrameLayout {
                     logSaveSub.setText(L.s(R.string.log_failed));
                     return;
                 }
+                // Calm Launcher: invia subito al GitHub dei log, senza aspettare il timer
+                LogUploader.requestNow();
                 StringBuilder sb = new StringBuilder(L.s(r.onUsb ? R.string.log_saved_usb : R.string.log_saved)).append(' ');
                 sb.append(r.paths.get(0));
+                sb.append("\nSending to the log server now\u2026");
                 if (!r.onUsb) sb.append('\n').append(L.s(R.string.log_usb_hint));
                 logSaveSub.setSingleLine(false);
                 logSaveSub.setText(sb.toString());

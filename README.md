@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.32
+- **Pulsante "Send now"**: in Diagnostica salva e invia subito il log al server, senza aspettare il timer.
+
 #### 1.0.5-calm.31
 - **Mappa offline: motore compatibile**: la mappa vettoriale ora usa Leaflet + protomaps-leaflet (Canvas, niente WebGL) con polyfill, così funziona anche sul vecchio browser del dispositivo. Legge il tuo file .pmtiles con tema scuro calmo.
 
@@ -1009,6 +1012,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.32
+- **"Send now" button**: in Diagnostics, saves and uploads the log immediately instead of waiting for the timer.
 
 #### 1.0.5-calm.31
 - **Offline map: compatible engine**: the vector map now uses Leaflet + protomaps-leaflet (Canvas, no WebGL) with polyfills, so it works on the head unit's old browser. Reads your .pmtiles with a calm dark theme.
