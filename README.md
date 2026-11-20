@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.25
+- **Invio log**: ricompilato con il token corretto, così i log automatici funzionano.
+
 #### 1.0.5-calm.24
 - **Ritorno alla radio**: toccando Radio/USB/Bluetooth la libreria si ferma e il riquadro torna alla sorgente dell'auto.
 - **Copertina**: il riquadro media mostra la copertina del brano Navidrome (se l'app la fornisce).
@@ -988,6 +991,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.25
+- **Log upload**: rebuilt with the corrected token so automatic logs work.
 
 #### 1.0.5-calm.24
 - **Back to radio**: tapping Radio/USB/Bluetooth stops the library and the box returns to the car source.
