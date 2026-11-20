@@ -2528,20 +2528,22 @@ public final class HomeView extends LinearLayout {
 
     /** Colore icona/testo per stato: 0 spento, 1 acceso (blu), 2 caldo (riscaldamenti, arancio), 3 non disponibile. */
     private int climaFg(int state) {
+        boolean d = t.day;   // Calm Launcher: segue il tema del launcher, non la modalita' giorno/notte del sistema
         switch (state) {
-            case 1: return getContext().getColor(R.color.clima_acceso);
-            case 2: return getContext().getColor(R.color.clima_caldo);
-            case 3: return getContext().getColor(R.color.clima_non_disponibile);
-            default: return getContext().getColor(R.color.clima_spento);
+            case 1: return d ? 0xFF0B6BCB : 0xFF4FB3FF;
+            case 2: return d ? 0xFFE1621F : 0xFFFF7A3D;
+            case 3: return d ? 0x66555C66 : 0x669AA5B5;
+            default: return d ? 0xFF555C66 : 0xFF9AA5B5;
         }
     }
 
     /** Colore di sfondo per stato (vedi climaFg). */
     private int climaBg(int state) {
+        boolean d = t.day;
         switch (state) {
-            case 1: return getContext().getColor(R.color.clima_acceso_sfondo);
-            case 2: return getContext().getColor(R.color.clima_caldo_sfondo);
-            default: return getContext().getColor(R.color.clima_spento_sfondo);
+            case 1: return d ? 0xFFDCEBFA : 0xFF13324D;
+            case 2: return d ? 0xFFFFF1EA : 0xFF2E241F;
+            default: return d ? 0xFFF1F3F5 : 0xFF1A202B;
         }
     }
 
@@ -2678,6 +2680,9 @@ public final class HomeView extends LinearLayout {
         private final TextView titleTv;
         private final android.widget.EditText searchBox;
         private final java.util.List<android.media.browse.MediaBrowser.MediaItem> currentItems = new java.util.ArrayList<>();
+        private final java.util.List<android.media.browse.MediaBrowser.MediaItem> rootCategories = new java.util.ArrayList<>();
+        private String rootId;
+        private int searchToken;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2716,7 +2721,7 @@ public final class HomeView extends LinearLayout {
             searchBox.setPadding(dp(18), dp(12), dp(18), dp(12));
             searchBox.addTextChangedListener(new android.text.TextWatcher() {
                 public void beforeTextChanged(CharSequence s, int a, int b, int cc) {}
-                public void onTextChanged(CharSequence s, int a, int b, int cc) { renderList(s.toString()); }
+                public void onTextChanged(CharSequence s, int a, int b, int cc) { String q = s.toString().trim(); if (q.isEmpty()) renderList(""); else globalSearch(q); }
                 public void afterTextChanged(android.text.Editable s) {}
             });
             card.addView(searchBox, Ui.margins(new LayoutParams(dp(640), -2), 0, dp(14), 0, 0));
@@ -2788,6 +2793,7 @@ public final class HomeView extends LinearLayout {
 
         private void load(String parentId) {
             titleTv.setText(names.containsKey(parentId) ? names.get(parentId) : "");
+            if (stack.size() <= 1) rootId = parentId;
             if (searchBox != null) searchBox.setText("");
             message("Loading...");
             try { musicBrowser.unsubscribe(parentId); } catch (Exception ignored) {}
@@ -2795,11 +2801,57 @@ public final class HomeView extends LinearLayout {
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                     currentItems.clear();
                     currentItems.addAll(children);
+                    if (pid != null && pid.equals(rootId)) { rootCategories.clear(); rootCategories.addAll(children); }
                     if (children.isEmpty()) { message("(nothing here)"); return; }
-                    renderList(searchBox.getText().toString());
+                    String q = searchBox.getText().toString().trim();
+                    if (q.isEmpty()) renderList(""); else globalSearch(q);
                 }
                 @Override public void onError(String pid) { message("Couldn't load this folder."); }
             });
+        }
+
+        private String labelOf(android.media.browse.MediaBrowser.MediaItem mi) {
+            CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
+            return tt != null ? tt.toString() : (mi.getMediaId() == null ? "" : mi.getMediaId());
+        }
+
+        /** Cerca in tutte le categorie (Album, Artisti, Brani, Playlist) e mostra i risultati raggruppati. */
+        private void globalSearch(final String query) {
+            final int token = ++searchToken;
+            final String q = query.toLowerCase(java.util.Locale.ROOT);
+            if (rootCategories.isEmpty()) { message("Searching\u2026"); return; }
+            final java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections = new java.util.LinkedHashMap<>();
+            message("Searching\u2026");
+            for (final android.media.browse.MediaBrowser.MediaItem cat : rootCategories) {
+                if (!cat.isBrowsable() || cat.getMediaId() == null) continue;
+                final String catName = labelOf(cat);
+                try { musicBrowser.unsubscribe(cat.getMediaId()); } catch (Exception ignored) {}
+                musicBrowser.subscribe(cat.getMediaId(), new android.media.browse.MediaBrowser.SubscriptionCallback() {
+                    @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
+                        if (token != searchToken) return;
+                        java.util.List<android.media.browse.MediaBrowser.MediaItem> hits = new java.util.ArrayList<>();
+                        for (android.media.browse.MediaBrowser.MediaItem mi : children) {
+                            if (labelOf(mi).toLowerCase(java.util.Locale.ROOT).contains(q)) { hits.add(mi); if (hits.size() >= 40) break; }
+                        }
+                        if (hits.isEmpty()) sections.remove(catName); else sections.put(catName, hits);
+                        renderSearch(sections, token);
+                    }
+                    @Override public void onError(String pid) {}
+                });
+            }
+        }
+
+        private void renderSearch(java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections, int token) {
+            if (token != searchToken) return;
+            listCol.removeAllViews();
+            if (sections.isEmpty()) { message("No matches"); return; }
+            for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : sections.entrySet()) {
+                TextView hdr = Ui.text(getContext(), e.getKey().toUpperCase(L.locale()), 13, t.sub, Ui.MEDIUM);
+                hdr.setLetterSpacing(0.08f);
+                hdr.setPadding(dp(14), dp(16), dp(14), dp(6));
+                listCol.addView(hdr);
+                for (android.media.browse.MediaBrowser.MediaItem mi : e.getValue()) addRow(mi);
+            }
         }
 
         private void renderList(String filter) {
