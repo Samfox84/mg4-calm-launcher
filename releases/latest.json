@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.34",
-  "apk": "releases/MG4Launcher-1.0.5-calm.34.apk",
+  "version": "1.0.5-calm.35",
+  "apk": "releases/MG4Launcher-1.0.5-calm.35.apk",
   "size": 1355365,
-  "notes": "Offline map: the map page and your .pmtiles are now both served from the local mini-server over http, so the old browser no longer blocks the data fetch (that was the 'Failed to fetch' in the last log). This should finally draw your streets."
+  "notes": "Offline map now recalculates its size so it fills the whole panel instead of drawing one corner tile. The data and engine were already working in calm.34 - this is just the sizing."
 }
