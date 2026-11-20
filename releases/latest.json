@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.45",
-  "apk": "releases/MG4Launcher-1.0.5-calm.45.apk",
+  "version": "1.0.5-calm.46",
+  "apk": "releases/MG4Launcher-1.0.5-calm.46.apk",
   "size": 1359461,
-  "notes": "Full Navidrome cache: indexes every album and all songs with a progress bar, then search filters the whole library instantly. Plus stability fixes - map WebView/server released on home rebuild (no leaks), mini-server connection timeouts, and no duplicate songs if you reopen the library mid-index."
+  "notes": "Second deep-test pass fixes: an unresponsive album no longer stalls the song cache (6s timeout then skip), and the navigation overlays stay hidden over the live map even after a state update. Builds on the full cache + progress bar and all earlier fixes."
 }
