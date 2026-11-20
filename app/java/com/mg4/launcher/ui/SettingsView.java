@@ -1032,6 +1032,32 @@ public final class SettingsView extends FrameLayout {
         }
         col.addView(fg, topFull(14));
 
+        col.addView(label(c, "Glow brightness"), top(20));
+        String[] glowInten = {"Soft", "Medium", "Bright"};
+        Flow fgi = new Flow(c);
+        for (int ii = 0; ii < glowInten.length; ii++) {
+            final int idx = ii;
+            fgi.addView(choice(c, glowInten[ii], prefs.glowIntensity() == ii, v -> {
+                if (prefs.glowIntensity() == idx) return;
+                prefs.setGlowIntensity(idx);
+                host.settingsChanged(true);
+            }));
+        }
+        col.addView(fgi, topFull(14));
+
+        col.addView(label(c, "Glow fade speed"), top(20));
+        String[] glowSpd = {"Slow", "Medium", "Fast"};
+        Flow fgs = new Flow(c);
+        for (int si = 0; si < glowSpd.length; si++) {
+            final int idx = si;
+            fgs.addView(choice(c, glowSpd[si], prefs.glowFadeSpeed() == si, v -> {
+                if (prefs.glowFadeSpeed() == idx) return;
+                prefs.setGlowFadeSpeed(idx);
+                host.settingsChanged(true);
+            }));
+        }
+        col.addView(fgs, topFull(14));
+
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};
         Flow fa = new Flow(c);

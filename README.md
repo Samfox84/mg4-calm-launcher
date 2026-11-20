@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.18
+- **Nome modalità**: Sport/Eco/Neve/Personalizzato appare in dissolvenza al centro per ~2s quando cambi modalità.
+- **Controlli alone**: luminosità (Soft/Medium/Bright) e velocità dissolvenza (Slow/Medium/Fast) nelle Impostazioni.
+
 #### 1.0.5-calm.17
 - **Anello "Siri"**: entra e esce in dissolvenza quando scegli una modalità (e sfuma tra una modalità e l'altra), niente comparsa secca; tinta più forte così Sport/Eco/Neve/Personalizzato sono colori ben distinti.
 
@@ -963,6 +967,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.18
+- **Mode name**: Sport/Eco/Snow/Custom fades in at the centre for ~2s when you switch drive mode.
+- **Glow controls**: brightness (Soft/Medium/Bright) and fade speed (Slow/Medium/Fast) in Settings.
 
 #### 1.0.5-calm.17
 - **"Siri" ring**: fades in and out when you pick a drive mode (and cross-fades between modes) instead of popping; stronger tint so Sport/Eco/Snow/Custom are clearly distinct colours.

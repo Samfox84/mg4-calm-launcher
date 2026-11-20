@@ -2976,7 +2976,11 @@ public final class HomeView extends LinearLayout {
 
     /** Calm Launcher: alone sul bordo - Sport rosso, Eco verde, Neve blu, Personalizzato bianco. */
     private float glowFade = 0f;      // 0..1 dissolvenza dell'alone
-    private String shownMode = null;  // modo attualmente mostrato (per il cambio colore)
+    private String shownMode = null;  // modo mostrato ora (per il cambio colore)
+    private long modeLabelUntil = 0L; // fin quando mostrare il nome della modalita'
+    private android.graphics.Paint labelPaint;
+    private static final float[] GLOW_AMP  = {0.60f, 1.00f, 1.45f};   // luminosita'
+    private static final float[] GLOW_STEP = {0.03f, 0.06f, 0.12f};   // velocita' dissolvenza
 
     private static int glowBase(String m) {
         if ("SPORT".equals(m)) return 0xFFE5484D;
@@ -2989,49 +2993,78 @@ public final class HomeView extends LinearLayout {
     private void drawDriveGlow(android.graphics.Canvas c) {
         int gm = prefs.glowMode();
         String desired = gm == 0 ? null : driveMode;
-        if (glowBase(desired) == 0) desired = null;           // modo sconosciuto o spento = nessun alone
+        if (glowBase(desired) == 0) desired = null;
 
-        // dissolvenza: se cambia modo scende a 0, scambia colore, poi risale; se si spegne resta a 0
-        float step = 0.06f;
+        float step = GLOW_STEP[prefs.glowFadeSpeed()];
         if (!java.util.Objects.equals(shownMode, desired)) {
             glowFade -= step;
-            if (glowFade <= 0f) { glowFade = 0f; shownMode = desired; }
+            if (glowFade <= 0f) {
+                glowFade = 0f; shownMode = desired;
+                if (shownMode != null) modeLabelUntil = System.nanoTime() + 2_200_000_000L;  // mostra il nome ~2.2s
+            }
         } else {
             glowFade += (shownMode == null ? -step : step);
             if (glowFade > 1f) glowFade = 1f;
             if (glowFade < 0f) glowFade = 0f;
         }
-        if (shownMode == null && glowFade <= 0f) return;      // niente da disegnare
+        boolean label = System.nanoTime() < modeLabelUntil && shownMode != null;
+        if (shownMode == null && glowFade <= 0f && !label) return;
 
         int base = glowBase(shownMode);
-        float fade = glowFade * glowFade * (3 - 2 * glowFade);  // smoothstep: entra/esce morbido
+        float fade = glowFade * glowFade * (3 - 2 * glowFade);   // smoothstep
+        float amp = GLOW_AMP[prefs.glowIntensity()];
         int w0 = getWidth(), h0 = getHeight();
-        if (gm == 4) gm = autoWatch();
-        boolean fading = glowFade > 0f && glowFade < 1f;
+        int gmEff = gm == 4 ? autoWatch() : gm;
+        boolean animating = glowFade > 0f && glowFade < 1f;
 
-        if (gm == 3) { drawSiriGlow(c, w0, h0, base, fade); postInvalidateOnAnimation(); return; }
-        float a = fade;
-        if (gm == 2) {
-            float phase = (System.nanoTime() % 3_000_000_000L) / 3_000_000_000f;
-            a *= 0.55f + 0.45f * (float) (0.5 * (1 + Math.sin(2 * Math.PI * phase)));
-            postInvalidateOnAnimation();
-        } else if (fading) {
-            postInvalidateOnAnimation();                      // continua finché la dissolvenza è in corso
+        if (gmEff == 3) {
+            drawSiriGlow(c, w0, h0, base, fade * amp);
+        } else {
+            float a = fade;
+            if (gmEff == 2) {
+                float phase = (System.nanoTime() % 3_000_000_000L) / 3_000_000_000f;
+                a *= 0.55f + 0.45f * (float) (0.5 * (1 + Math.sin(2 * Math.PI * phase)));
+            }
+            float thick = dp(26), rr = dp(10);
+            int steps = 14;
+            glowPaint.setStyle(android.graphics.Paint.Style.STROKE);
+            for (int i = 0; i < steps; i++) {
+                float inset = thick * i / steps + dp(1);
+                float frac = 1f - (float) i / steps;
+                glowPaint.setStrokeWidth(thick / steps + dp(2));
+                int al = Math.min(255, (int) (95 * frac * frac * a * amp));
+                glowPaint.setColor((base & 0x00FFFFFF) | (al << 24));
+                c.drawRoundRect(inset, inset, w0 - inset, h0 - inset, rr, rr, glowPaint);
+            }
         }
-        int w = getWidth(), h = getHeight();
-        float thick = dp(26);
-        int steps = 14;
-        glowPaint.setStyle(android.graphics.Paint.Style.STROKE);
-        float rr = dp(10);
-        for (int i = 0; i < steps; i++) {
-            float inset = thick * i / steps + dp(1);
-            float frac = 1f - (float) i / steps;
-            glowPaint.setStrokeWidth(thick / steps + dp(2));
-            int alpha = (int) (95 * frac * frac * a);
-            glowPaint.setColor((base & 0x00FFFFFF) | (alpha << 24));
-            c.drawRoundRect(inset, inset, w - inset, h - inset, rr, rr, glowPaint);
-        }
+
+        if (label) drawModeLabel(c, w0, h0, base);
+        if (gmEff == 2 || gmEff == 3 || animating || label) postInvalidateOnAnimation();
     }
+
+    /** Nome della modalita' al centro, in dissolvenza, per ~2.2s dopo il cambio. */
+    private void drawModeLabel(android.graphics.Canvas c, int w, int h, int base) {
+        long left = modeLabelUntil - System.nanoTime();
+        float age = 2_200_000_000f - left;
+        float in = Math.min(1f, age / 300_000_000f);     // entra in 0.3s
+        float out = Math.min(1f, left / 600_000_000f);   // esce in 0.6s
+        float la = Math.max(0f, Math.min(in, out));
+        if (labelPaint == null) {
+            labelPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            labelPaint.setTextAlign(android.graphics.Paint.Align.CENTER);
+            labelPaint.setFakeBoldText(true);
+        }
+        String name = "SPORT".equals(shownMode) ? "Sport"
+                : "ECO".equals(shownMode) ? "Eco"
+                : "SNOW".equals(shownMode) ? "Snow"
+                : "CUSTOM".equals(shownMode) ? "Custom" : "";
+        labelPaint.setTextSize(dp(24));
+        labelPaint.setColor(((int) (0x70 * la) << 24));                       // ombra
+        c.drawText(name, w / 2f + dp(1.5f), h / 2f + dp(1.5f), labelPaint);
+        labelPaint.setColor((base & 0x00FFFFFF) | ((int) (255 * la) << 24));  // testo nel colore della modalita'
+        c.drawText(name, w / 2f, h / 2f, labelPaint);
+    }
+
 
     @Override
     protected void onDetachedFromWindow() {

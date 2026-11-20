@@ -81,6 +81,11 @@ public final class Prefs {
         return Math.max(0, Math.min(4, sp.getInt("driveGlow", 1)));
     }
 
+    public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante
+    public void setGlowIntensity(int i) { sp.edit().putInt("glowIntensity", Math.max(0, Math.min(2, i))).apply(); }
+    public int glowFadeSpeed() { return Math.max(0, Math.min(2, sp.getInt("glowFadeSpeed", 1))); }         // 0 lento, 1 medio, 2 veloce
+    public void setGlowFadeSpeed(int i) { sp.edit().putInt("glowFadeSpeed", Math.max(0, Math.min(2, i))).apply(); }
+
     public void setGlowMode(int i) {
         sp.edit().putInt("driveGlow", i).apply();
     }
