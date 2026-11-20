@@ -516,6 +516,13 @@ public final class SettingsView extends FrameLayout {
                         host.settingsChanged(true);
                     }), false));
         }
+        // Calm Launcher: mappa dal vivo "dove siamo" (sperimentale) - solo posizione, non navigazione
+        card.addView(row(c, "Live map (experimental)",
+                "Shows your position on a calm live map in the map panel. Position only, not turn-by-turn. Uses the car's mobile data for the map tiles.",
+                toggle(c, prefs.liveMap(), on -> {
+                    prefs.setLiveMap(on);
+                    host.settingsChanged(true);
+                }), false));
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);

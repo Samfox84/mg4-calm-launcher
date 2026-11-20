@@ -1043,9 +1043,14 @@ public final class HomeView extends LinearLayout {
 
     private View buildMapPanel(Context c) {
         FrameLayout f = new FrameLayout(c);
-        Bars.MapDecor decor = new Bars.MapDecor(c);
-        decor.setColors(t.map, t.road, t.roadMinor);
-        f.addView(decor, new FrameLayout.LayoutParams(-1, -1));
+        if (prefs.liveMap()) {
+            // Calm Launcher: mappa reale dal vivo "dove siamo" (AuDHD), si ricentra mentre si guida
+            f.addView(new LiveMap(c), new FrameLayout.LayoutParams(-1, -1));
+        } else {
+            Bars.MapDecor decor = new Bars.MapDecor(c);
+            decor.setColors(t.map, t.road, t.roadMinor);
+            f.addView(decor, new FrameLayout.LayoutParams(-1, -1));
+        }
 
         // velo sfumato da sinistra: il testo resta leggibile sopra la mappa decorativa
         View veil = new View(c);
@@ -1145,7 +1150,7 @@ public final class HomeView extends LinearLayout {
         cl.setMargins(dp(20 + inset), 0, dp(20), Math.round(dp(70) * Ui.K));
         f.addView(navCard, cl);
         // 1.0.5 (sperimentale): navigatore MG in finestra sopra tutto il pannello, solo da guardare
-        if (prefs.mapPanelWindow() && NavWindow.available(c, prefs)) {
+        if (!prefs.liveMap() && prefs.mapPanelWindow() && NavWindow.available(c, prefs)) {
             NavWindow[] nw = new NavWindow[1];
             nw[0] = new NavWindow(c, prefs, new NavWindow.Listener() {
                 @Override
