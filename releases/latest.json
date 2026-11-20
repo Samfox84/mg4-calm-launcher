@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.38",
-  "apk": "releases/MG4Launcher-1.0.5-calm.38.apk",
+  "version": "1.0.5-calm.39",
+  "apk": "releases/MG4Launcher-1.0.5-calm.39.apk",
   "size": 1355365,
-  "notes": "Map now logs everything: each step (page start, layer created, first tile, container size, tile count) and every console message/error. Open the live map once, Send now, and the log will show exactly what that box is."
+  "notes": "Found the real wall: Android 9 blocks plain http by default, so the WebView silently refused to load the map page from the local server - that's why calm.38's log showed no map activity at all. Now cleartext is allowed for 127.0.0.1 only. This should finally let the map run."
 }
