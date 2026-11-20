@@ -149,6 +149,12 @@ else:
     print("    Compilo lo stesso, ma questo APK NON invierà i log.")
 PY
 
+# Calm Launcher: controllo JS della pagina mappa (errori a runtime che javac non vede)
+if [ -f app/assets/map/map-vector.html ]; then
+  echo "==> controllo JS mappa"
+  sh tools/mapjscheck.sh app/assets/map/map-vector.html || { echo "ERRORE: JS della mappa non valido"; exit 1; }
+fi
+
 echo "==> java (javac, bytecode 8)"
 find "$SRC" "$OUT/gen" -name '*.java' > "$OUT/sources.txt"
 # API Java 8 dal JDK (lambda), API Android da android.jar

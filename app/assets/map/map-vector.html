@@ -34,6 +34,7 @@
 <div id="recenter">Recenter</div>
 <script>
   window.onerror=function(m,src,ln){ try{console.error('map: onerror '+m+' @'+src+':'+ln);}catch(e){} };
+  function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
   console.log('map: page start, origin='+location.origin);
   if(q('dim')==='1'){ var nd=document.getElementById('nightdim'); if(nd) nd.style.display='block'; }
   var purl=location.origin+'/map.pmtiles';

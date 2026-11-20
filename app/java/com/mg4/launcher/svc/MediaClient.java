@@ -1490,6 +1490,10 @@ public final class MediaClient {
     private volatile String pendingPowerOn;
 
     private void resumeAfterPowerOn(String why) {
+        if (!ctx.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getBoolean("resumeMedia", true)) {
+            Diag.put("media.avvio", "ripresa disattivata nelle impostazioni (" + why + ")");
+            return;
+        }
         State s = last;
         int saved = ctx.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getInt(K_LAST_SRC, 0);
         String head = "sorgente salvata " + (saved == 0 ? "nessuna" : sourceName(saved)) + " (" + why + ")";

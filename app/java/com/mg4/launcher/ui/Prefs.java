@@ -90,6 +90,8 @@ public final class Prefs {
     public int standbyMins() { return Math.max(0, Math.min(2, sp.getInt("standbyMins", 1))); }   // 0=2min 1=5min 2=10min
     public void setStandbyMins(int i) { sp.edit().putInt("standbyMins", Math.max(0, Math.min(2, i))).apply(); }
     public boolean nightDim() { return sp.getBoolean("nightDim", false); }
+    public boolean resumeMedia() { return sp.getBoolean("resumeMedia", true); }           // riprende l'ultima sorgente all'avvio
+    public void setResumeMedia(boolean b) { sp.edit().putBoolean("resumeMedia", b).apply(); }
     public boolean liveMap() { return sp.getBoolean("liveMap", false); }                 // mappa dal vivo "dove siamo" (sperimentale)
     public void setLiveMap(boolean b) { sp.edit().putBoolean("liveMap", b).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }

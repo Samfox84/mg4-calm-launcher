@@ -2879,6 +2879,7 @@ public final class HomeView extends LinearLayout {
 
         /** Indicizza tutta la libreria una volta (Album, Artisti, Brani, Playlist) per cercare all'istante. */
         private void startIndex() {
+            com.mg4.launcher.svc.Diag.put("lib.index", "avvio: categorie=" + rootCategories.size() + " indicizzato=" + everIndexed);
             if (indexing || everIndexed || rootCategories.isEmpty()) return;
             indexing = true;
             final int[] pending = { 0 };
@@ -2903,6 +2904,8 @@ public final class HomeView extends LinearLayout {
             pending[0]--;
             if (pending[0] <= 0) {
                 indexing = false; indexed = true;
+                int tot = 0; for (java.util.List<android.media.browse.MediaBrowser.MediaItem> v : catalogue.values()) tot += v.size();
+                com.mg4.launcher.svc.Diag.put("lib.index", "categorie ok: " + catalogue.size() + " sezioni, " + tot + " voci");
                 if (pendingQuery != null) { String q = pendingQuery; pendingQuery = null; globalSearch(q); }
                 startSongs();   // in background, con barra di avanzamento
             }
@@ -2977,7 +2980,7 @@ public final class HomeView extends LinearLayout {
         /** Cerca nella libreria indicizzata e mostra i risultati raggruppati (istantaneo). */
         private void globalSearch(final String query) {
             final String q = query.toLowerCase(java.util.Locale.ROOT);
-            if (!indexed) { pendingQuery = query; if (!indexing) startIndex(); message("Indexing library\u2026"); return; }
+            if (!indexed) { pendingQuery = query; if (!indexing) startIndex(); com.mg4.launcher.svc.Diag.put("lib.cerca", "in attesa indice per: " + query); message("Indexing library\u2026"); return; }
             java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections = new java.util.LinkedHashMap<>();
             for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : catalogue.entrySet()) {
                 java.util.List<android.media.browse.MediaBrowser.MediaItem> hits = new java.util.ArrayList<>();

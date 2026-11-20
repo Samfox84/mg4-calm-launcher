@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.48
+- **Mappa riparata**: un errore JavaScript (q non definito, introdotto con la riduzione notturna) bloccava tutta la pagina mappa su "ricerca posizione". Corretto.
+- **Riprendi all'avvio (interruttore)**: nuova opzione per NON far ripartire l'ultima sorgente (radio) all'accensione.
+- **Controlli su tutti i tipi di file**: nuovo `tools/checkall.sh` (Java, JavaScript, XML, shell, JSON, YAML) e controllo JS della mappa integrato nel build.
+- Diagnostica aggiunta alla ricerca libreria.
+
 #### 1.0.5-calm.47
 - **Copertine nella libreria**: miniature degli album nei risultati di ricerca e nello sfoglia (cache con limite di memoria).
 - **Zoom in base alla velocita'**: la mappa si allarga un po' quando vai veloce e torna stretta da fermo.
@@ -1063,6 +1069,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.48
+- **Map fixed**: a JavaScript error (q not defined, introduced with night-dim) crashed the whole map page, leaving it stuck on "finding position". Fixed.
+- **Resume on start (toggle)**: new option to NOT restart the last source (radio) when the car powers on.
+- **Checks on every file type**: new `tools/checkall.sh` (Java, JavaScript, XML, shell, JSON, YAML) and a map-JS smoke test wired into the build.
+- Added diagnostics to the library search.
 
 #### 1.0.5-calm.47
 - **Library album art**: album thumbnails in the search results and when browsing (memory-bounded cache).
