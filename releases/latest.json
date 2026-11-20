@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.29",
-  "apk": "releases/MG4Launcher-1.0.5-calm.29.apk",
-  "size": 1305995,
-  "notes": "Live map now also checks whether the head unit can run offline VECTOR maps (WebGL) and logs the result, so we can build offline coverage for the whole south of England. Open the live map once and Save log."
+  "version": "1.0.5-calm.30",
+  "apk": "releases/MG4Launcher-1.0.5-calm.30.apk",
+  "size": 1880331,
+  "notes": "Offline vector maps: drop a .pmtiles file for your area into the head unit's Download (or a CalmMap) folder and the live map runs fully offline - calm dark streets, street names, and the current street shown at the top, no data signal needed. The online fallback is now keyless (no more 'API key' message)."
 }
