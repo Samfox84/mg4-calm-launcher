@@ -1,6 +1,6 @@
 {
   "version": "1.0.5-calm.56",
   "apk": "releases/MG4Launcher-1.0.5-calm.56.apk",
-  "size": ,
+  "size": 1375845,
   "notes": "Direct Navidrome/Subsonic music server: new Settings page for address/user/password, downloads your whole library once and caches it on the car for instant offline search. Own streamer with media session (title/artist + wheel keys). New automated Subsonic tests on every build."
 }
