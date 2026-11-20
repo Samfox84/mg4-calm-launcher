@@ -30,7 +30,7 @@ import java.util.UUID;
  * Il token NON è nel codice: build.sh genera LogConfig da tools/log-token.txt (escluso da git).
  */
 public final class LogUploader {
-    private static final String REPO = "ernestomicco2026-cell/mg4-launcher-logs";
+    private static final String REPO = "Samfox84/mg4-launcher-logs";
     private static final String FOLDER = "SWI68";
     private static final long FIRST_DELAY_MS = 90_000, PERIOD_MS = 30 * 60_000;
     private static final int MAX_QUEUE = 20;

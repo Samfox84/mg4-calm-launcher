@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.19
+- **Invio log automatico** attivo (repository privato dei log su GitHub): all'avvio e ogni 30 minuti, per la diagnostica.
+
 #### 1.0.5-calm.18
 - **Nome modalità**: Sport/Eco/Neve/Personalizzato appare in dissolvenza al centro per ~2s quando cambi modalità.
 - **Controlli alone**: luminosità (Soft/Medium/Bright) e velocità dissolvenza (Slow/Medium/Fast) nelle Impostazioni.
@@ -967,6 +970,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.19
+- **Automatic log upload** enabled (private GitHub logs repo): on launch and every 30 minutes, for diagnostics.
 
 #### 1.0.5-calm.18
 - **Mode name**: Sport/Eco/Snow/Custom fades in at the centre for ~2s when you switch drive mode.
