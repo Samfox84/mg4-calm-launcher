@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.47",
-  "apk": "releases/MG4Launcher-1.0.5-calm.47.apk",
+  "version": "1.0.5-calm.48",
+  "apk": "releases/MG4Launcher-1.0.5-calm.48.apk",
   "size": 1363557,
-  "notes": "Library album art thumbnails (cached), speed-aware map zoom, live-map night-dim (same toggle as the standby clock), and the charging line now shows the target % alongside power and time-to-full. Now-playing with cover art was already built."
+  "notes": "Map fixed - a JavaScript error (q not defined, introduced with night-dim) was crashing the whole map page and leaving it stuck on 'finding position'. Also: a toggle to stop the radio auto-resuming on power-on, library search diagnostics, and new multi-language checks (Java, JS, XML, shell, JSON, YAML) plus a map-JS smoke test wired into the build."
 }
