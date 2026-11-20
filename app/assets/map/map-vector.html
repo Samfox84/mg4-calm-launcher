@@ -10,44 +10,60 @@
 <style>
   html,body,#map{height:100%;margin:0;background:#0E1114;}
   .leaflet-container{background:#0E1114;}
-  .leaflet-control-zoom,.leaflet-control-attribution{display:none !important;}
-  #me{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;
-      background:#7CB8F0;box-shadow:0 0 0 6px rgba(124,184,240,.18),0 0 14px rgba(124,184,240,.5);
-      z-index:500;pointer-events:none;}
+  .leaflet-control-attribution{display:none !important;}
+  /* dark, calm zoom buttons */
+  .leaflet-bar a{background:#1B2024;color:#E7ECF0;border-bottom-color:#2A3036;width:44px;height:44px;line-height:44px;font-size:24px;}
+  .leaflet-bar a:hover{background:#242C33;}
+  .me-dot{width:18px;height:18px;border-radius:50%;background:#4F9BF0;border:2px solid #cfe4ff;
+          box-shadow:0 0 0 0 rgba(79,155,240,.55);animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,155,240,.55)}70%{box-shadow:0 0 0 20px rgba(79,155,240,0)}100%{box-shadow:0 0 0 0 rgba(79,155,240,0)}}
+  #recenter{position:absolute;right:14px;bottom:110px;z-index:600;display:none;
+            background:#1B2024;color:#E7ECF0;border:1px solid #2A3036;border-radius:24px;
+            padding:10px 16px;font:600 16px sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.4);}
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div id="me"></div>
+<div id="recenter">Recenter</div>
 <script>
-  window.onerror=function(m,src,ln,col,err){ try{console.error('map: window.onerror '+m+' @'+src+':'+ln);}catch(e){} };
+  window.onerror=function(m,src,ln){ try{console.error('map: onerror '+m+' @'+src+':'+ln);}catch(e){} };
   function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
   console.log('map: page start, origin='+location.origin);
   var purl=location.origin+'/map.pmtiles';
   try{
-    var map=L.map('map',{zoomControl:false,attributionControl:false,dragging:false,touchZoom:false,
-        doubleClickZoom:false,scrollWheelZoom:false,keyboard:false,boxZoom:false,inertia:false}).setView([52.5,-2.5],15);
+    var map=L.map('map',{zoomControl:false,attributionControl:false,
+        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:0.5}).setView([52.5,-2.5],16);
+    L.control.zoom({position:'bottomright'}).addTo(map);
     console.log('map: creating layer url='+purl);
     var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en'});
-    var reported=false;
-    function ok(){ if(!reported){ reported=true; try{AndroidMap.status('engine-ok');}catch(e){} } }
-    if (layer.on){ layer.on('load', ok); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tile');}catch(e){} }); }
+    var tileN=0, reported=false;
+    function ok(){ if(!reported){reported=true; try{AndroidMap.status('engine-ok');}catch(e){}} }
+    if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; if(tileN===1) console.log('map: first tile'); }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
     layer.addTo(map);
     console.log('map: layer added');
-    // Leaflet renders at the size it had on load; recalc once the panel has real dimensions
+
+    // pulsing "you are here" marker
+    var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
+    var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
+
+    var follow=true, haveFix=false;
+    var rebtn=document.getElementById('recenter');
+    function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
+    map.on('dragstart', function(){ setFollow(false); });
+    rebtn.addEventListener('click', function(){ setFollow(true); if(haveFix){ map.setView(me.getLatLng(), map.getZoom(), {animate:true}); } });
+
     function resize(){ try{ map.invalidateSize(true); }catch(e){} }
     window.addEventListener('resize', resize);
-    setTimeout(resize,150); setTimeout(resize,500); setTimeout(resize,1200); setTimeout(resize,2500);
-    var tileN=0;
-    if (layer.on){ layer.on('tileload', function(){ tileN++; if(tileN===1) console.log('map: first tile drawn'); }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
-    setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
-    setTimeout(ok, 3000);           // fallback if 'load' never fires
-    var first=true;
+    setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
+
     window.setPos=function(lat,lon){
-      var ll=[lat,lon]; resize();
-      if(first){ map.setView(ll,15); first=false; try{AndroidMap.status('fix');}catch(e){} }
-      else { map.panTo(ll,{animate:true,duration:0.8}); }
+      var ll=[lat,lon];
+      if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; try{AndroidMap.status('fix');}catch(e){} }
+      me.setLatLng(ll);
+      if(follow){ map.panTo(ll,{animate:true,duration:0.8}); }
+      resize();
     };
+    setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     try{AndroidMap.status('page-ready');}catch(e){}
   }catch(e){ console.error('map: fatal '+(e&&e.stack?e.stack:e)); try{AndroidMap.status('engine-error:'+e);}catch(x){} }
 </script>

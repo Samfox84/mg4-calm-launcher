@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.42
+- **Mappa dal vivo rifinita**: niente piu' barra "Dove vuoi andare" sopra la mappa; punto blu pulsante sulla posizione, la mappa segue l'auto, pulsanti zoom +/-, trascinamento e pulsante "Recenter".
+
 #### 1.0.5-calm.41
 - **Ricerca Navidrome senza limite stretto**: trova tutti i risultati; ne mostra fino a 150 per categoria con un avviso "+N" se sono di piu'.
 
@@ -1041,6 +1044,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.42
+- **Live map polished**: no more "Where to?" bar over the map; pulsing blue dot on your position, map follows the car, +/- zoom buttons, drag to pan, and a "Recenter" button.
 
 #### 1.0.5-calm.41
 - **Navidrome search not tightly capped**: finds all matches; shows up to 150 per category with a "+N more" note if there are more.

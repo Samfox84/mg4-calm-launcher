@@ -1057,7 +1057,7 @@ public final class HomeView extends LinearLayout {
         veil.setBackground(new android.graphics.drawable.GradientDrawable(
                 android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{withAlpha(t.panel, 0xF2), withAlpha(t.panel, 0xC8), withAlpha(t.panel, 0x00)}));
-        f.addView(veil, new FrameLayout.LayoutParams(dp(820), -1));
+        if (!prefs.liveMap()) f.addView(veil, new FrameLayout.LayoutParams(dp(820), -1));
 
         // nessuna guida: titolo, barra di ricerca, Casa / Lavoro, "Apri con"
         navIdle = Ui.column(c);
@@ -1108,6 +1108,7 @@ public final class HomeView extends LinearLayout {
         navIdle.addView(navWithBox, Ui.margins(new LayoutParams(-2, -2), 0, dp(22), 0, 0));
         buildNavWith(c, false);
         f.addView(navIdle, new FrameLayout.LayoutParams(-1, -1));
+        if (prefs.liveMap()) navIdle.setVisibility(GONE);
 
         // guida in corso (1.0.5, proposta di sommistica, PR #31): riquadro al centro in verticale, a sinistra del pannello,
         // largo al massimo 500 dp × dimensione comandi; icona della manovra 76, distanza 30 sp, istruzione 26 sp, via 18 sp
