@@ -185,6 +185,28 @@ public final class HomeView extends LinearLayout {
     private float frameAvgMs;
     private int autoGrace;
     private MusicBrowser music;   // Calm Launcher: libreria Navidrome/Subsonic nel launcher
+    private android.media.browse.MediaBrowser musicBrowser;      // connessione persistente per i comandi
+    private android.media.session.MediaController musicCtl;
+    private android.media.session.MediaController.Callback musicCb;
+
+    /** true se la libreria (Ultrasonic/Navidrome) ha una sessione attiva. */
+    private boolean musicActive() {
+        if (musicCtl == null) return false;
+        android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
+        return ps != null && (ps.getState() == android.media.session.PlaybackState.STATE_PLAYING
+                || ps.getState() == android.media.session.PlaybackState.STATE_PAUSED
+                || ps.getState() == android.media.session.PlaybackState.STATE_BUFFERING);
+    }
+    private void musicTogglePlay() {
+        if (!musicActive()) { media.playPause(); return; }
+        android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
+        if (ps != null && ps.getState() == android.media.session.PlaybackState.STATE_PLAYING) musicCtl.getTransportControls().pause();
+        else musicCtl.getTransportControls().play();
+    }
+    private void musicSkip(boolean fwd) {
+        if (!musicActive()) { media.skip(fwd); return; }
+        if (fwd) musicCtl.getTransportControls().skipToNext(); else musicCtl.getTransportControls().skipToPrevious();
+    }
     private static final int LIBRARY = -100;   // sorgente "Library" (non e' una sorgente dell'auto)
     /** 1.0.5: riquadro auto mostrato (altrimenti widget a scelta nel pannello sinistro). */
     private final boolean carShown;
@@ -490,11 +512,11 @@ public final class HomeView extends LinearLayout {
         col.addView(sideMediaSub, Ui.margins(new LayoutParams(-2, -2), 0, dp(4), 0, 0));
         LinearLayout ctl = Ui.row(c);
         ctl.setGravity(Gravity.CENTER_VERTICAL);
-        ctl.addView(Ui.iconButton(c, t, R.drawable.ic_prev, t.text, 0, 60, 28, 30, L.s(R.string.previous), v -> media.skip(false)));
-        FrameLayout pp = Ui.iconButton(c, t, R.drawable.ic_play, t.panel, t.text, 68, 30, 34, L.s(R.string.play_pause), v -> media.playPause());
+        ctl.addView(Ui.iconButton(c, t, R.drawable.ic_prev, t.text, 0, 60, 28, 30, L.s(R.string.previous), v -> musicSkip(false)));
+        FrameLayout pp = Ui.iconButton(c, t, R.drawable.ic_play, t.panel, t.text, 68, 30, 34, L.s(R.string.play_pause), v -> musicTogglePlay());
         sideMediaPlay = (ImageView) pp.getChildAt(0);
         ctl.addView(pp, Ui.margins(Ui.lp(-2, -2), dp(10), 0, dp(10), 0));
-        ctl.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, 60, 28, 30, L.s(R.string.next), v -> media.skip(true)));
+        ctl.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, 60, 28, 30, L.s(R.string.next), v -> musicSkip(true)));
         col.addView(ctl, Ui.margins(new LayoutParams(-2, -2), -dp(10), dp(14), 0, 0));
         row.addView(col, Ui.margins(Ui.lpWeight(0, -2, 1), dp(24), 0, 0, 0));
         f.addView(row, new FrameLayout.LayoutParams(-1, -1));
@@ -1434,12 +1456,12 @@ public final class HomeView extends LinearLayout {
         // (prima il tasto play usciva tagliato sopra e sotto)
         float cf = Math.min(Ui.K, 1.15f) / Ui.K;
         int prevSz = Math.round(64 * cf), playSz = Math.round(84 * cf);
-        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_prev, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.previous), v -> media.skip(false)));
-        FrameLayout play = Ui.iconButton(c, t, R.drawable.ic_pause, t.panel, t.text, playSz, Math.round(36 * cf), 42 * cf, L.s(R.string.play_pause), v -> media.playPause());
+        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_prev, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.previous), v -> musicSkip(false)));
+        FrameLayout play = Ui.iconButton(c, t, R.drawable.ic_pause, t.panel, t.text, playSz, Math.round(36 * cf), 42 * cf, L.s(R.string.play_pause), v -> musicTogglePlay());
         playIcon = (ImageView) play.getChildAt(0);
         int gap = dp(Ui.K > 1 ? 14 : 20);
         ctr.addView(play, Ui.margins(Ui.lp(tp(playSz), tp(playSz)), gap, 0, gap, 0));
-        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.next), v -> media.skip(true)));
+        ctr.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, t.chip, prevSz, Math.round(28 * cf), 32 * cf, L.s(R.string.next), v -> musicSkip(true)));
         bandRow = Ui.row(c);
         bandRow.setBackground(Ui.round(t.chip, dp(18)));
         bandRow.setPadding(dp(6), dp(6), dp(6), dp(6));
@@ -1869,6 +1891,15 @@ public final class HomeView extends LinearLayout {
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         // rubato ai comandi (prima in "Molto grande" il tasto play risultava tagliato)
         mSub.setVisibility(m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
+        if (musicActive()) {
+            android.media.MediaMetadata md = musicCtl.getMetadata();
+            String tt = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_TITLE) : null;
+            String ar = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST) : null;
+            if (tt != null && !tt.isEmpty()) mTitle.setText(tt);
+            if (ar != null && !ar.isEmpty()) { mSub.setText(ar); mSub.setVisibility(VISIBLE); }
+            radio = false;
+            styleSources(LIBRARY);
+        }
         boolean logo = radio && m.logo != null;
         artLogo.setVisibility(logo ? VISIBLE : GONE);
         if (logo) artLogo.setImageBitmap(m.logo);
@@ -2257,10 +2288,10 @@ public final class HomeView extends LinearLayout {
         mini.addView(mt, Ui.margins(Ui.lpWeight(0, -2, 1), dp(tightMini ? 4 : 12), 0, dp(4), 0));
         mini.setClickable(true);
         mini.setOnClickListener(v -> selectTab(TAB_MEDIA, true));
-        FrameLayout mp = Ui.iconButton(c, t, R.drawable.ic_pause, t.text, 0, big ? 76 : 52, big ? 36 : 26, 26, L.s(R.string.play_pause), v -> media.playPause());
+        FrameLayout mp = Ui.iconButton(c, t, R.drawable.ic_pause, t.text, 0, big ? 76 : 52, big ? 36 : 26, 26, L.s(R.string.play_pause), v -> musicTogglePlay());
         miniPlayIcon = (ImageView) mp.getChildAt(0);
         mini.addView(mp);
-        mini.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, big ? 76 : 52, big ? 34 : 24, 26, L.s(R.string.next), v -> media.skip(true)));
+        mini.addView(Ui.iconButton(c, t, R.drawable.ic_next, t.text, 0, big ? 76 : 52, big ? 34 : 24, 26, L.s(R.string.next), v -> musicSkip(true)));
         // 1.0.3 (punto 7): al posto del mini-player si possono avere i preferiti del telefono o scorciatoie alle app
         String tileMode = prefs.tileMode();
         if (showMini && !Prefs.TILE_MEDIA.equals(tileMode)) {
@@ -2597,8 +2628,6 @@ public final class HomeView extends LinearLayout {
         private final FrameLayout catcher;
         private final LinearLayout listCol;
         private final TextView titleTv;
-        private android.media.browse.MediaBrowser browser;
-        private android.media.session.MediaController controller;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2643,16 +2672,29 @@ public final class HomeView extends LinearLayout {
 
         private void connect() {
             Context c = getContext();
+            if (musicBrowser != null && musicCtl != null) {   // gia' connesso: riusa
+                String rootId = musicBrowser.getRoot();
+                stack.clear(); stack.push(rootId); names.put(rootId, "Library");
+                load(rootId);
+                return;
+            }
             android.content.ComponentName comp = findService(c);
             if (comp == null) {
                 message("Install Ultrasonic (or DSub) and sign in to your Navidrome server first.");
                 return;
             }
-            browser = new android.media.browse.MediaBrowser(c, comp,
+            musicBrowser = new android.media.browse.MediaBrowser(c, comp,
                 new android.media.browse.MediaBrowser.ConnectionCallback() {
                     @Override public void onConnected() {
-                        try { controller = new android.media.session.MediaController(c, browser.getSessionToken()); } catch (Exception ignored) {}
-                        String rootId = browser.getRoot();
+                        try {
+                            musicCtl = new android.media.session.MediaController(c, musicBrowser.getSessionToken());
+                            if (musicCb == null) musicCb = new android.media.session.MediaController.Callback() {
+                                @Override public void onMetadataChanged(android.media.MediaMetadata md) { post(() -> onMedia(media.last())); }
+                                @Override public void onPlaybackStateChanged(android.media.session.PlaybackState st) { post(() -> onMedia(media.last())); }
+                            };
+                            musicCtl.registerCallback(musicCb, new android.os.Handler(android.os.Looper.getMainLooper()));
+                        } catch (Exception ignored) {}
+                        String rootId = musicBrowser.getRoot();
                         stack.clear(); stack.push(rootId); names.put(rootId, "Library");
                         load(rootId);
                     }
@@ -2660,7 +2702,7 @@ public final class HomeView extends LinearLayout {
                         message("Couldn't open the library - the music app didn't allow browsing from here.");
                     }
                 }, null);
-            browser.connect();
+            musicBrowser.connect();
         }
 
         private android.content.ComponentName findService(Context c) {
@@ -2682,8 +2724,8 @@ public final class HomeView extends LinearLayout {
         private void load(String parentId) {
             titleTv.setText(names.containsKey(parentId) ? names.get(parentId) : "");
             message("Loading...");
-            try { browser.unsubscribe(parentId); } catch (Exception ignored) {}
-            browser.subscribe(parentId, new android.media.browse.MediaBrowser.SubscriptionCallback() {
+            try { musicBrowser.unsubscribe(parentId); } catch (Exception ignored) {}
+            musicBrowser.subscribe(parentId, new android.media.browse.MediaBrowser.SubscriptionCallback() {
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                     listCol.removeAllViews();
                     if (children.isEmpty()) { message("(nothing here)"); return; }
@@ -2709,8 +2751,8 @@ public final class HomeView extends LinearLayout {
                     stack.push(id);
                     names.put(id, tt == null ? "" : tt.toString());
                     load(id);
-                } else if (controller != null && id != null) {
-                    controller.getTransportControls().playFromMediaId(id, null);
+                } else if (musicCtl != null && id != null) {
+                    musicCtl.getTransportControls().playFromMediaId(id, null);
                     close();
                 }
             });
@@ -2731,8 +2773,7 @@ public final class HomeView extends LinearLayout {
         }
 
         void close() {
-            try { if (browser != null) browser.disconnect(); } catch (Exception ignored) {}
-            browser = null;
+            // la connessione (musicBrowser/musicCtl) resta viva per i comandi del riquadro media
             if (catcher.getParent() != null) ((ViewGroup) catcher.getParent()).removeView(catcher);
             if (music == this) music = null;
         }
@@ -3196,6 +3237,9 @@ public final class HomeView extends LinearLayout {
         super.onDetachedFromWindow();
         stopGlow();
         stopIdleWatch();
+        try { if (musicCtl != null && musicCb != null) musicCtl.unregisterCallback(musicCb); } catch (Exception ignored) {}
+        try { if (musicBrowser != null) musicBrowser.disconnect(); } catch (Exception ignored) {}
+        musicBrowser = null; musicCtl = null;
         if (music != null) music.close();
         if (popup != null) popup.close();
         if (tileIsPhone || sideFavBox != null) {
