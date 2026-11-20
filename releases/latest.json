@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.48",
-  "apk": "releases/MG4Launcher-1.0.5-calm.48.apk",
+  "version": "1.0.5-calm.49",
+  "apk": "releases/MG4Launcher-1.0.5-calm.49.apk",
   "size": 1363557,
-  "notes": "Map fixed - a JavaScript error (q not defined, introduced with night-dim) was crashing the whole map page and leaving it stuck on 'finding position'. Also: a toggle to stop the radio auto-resuming on power-on, library search diagnostics, and new multi-language checks (Java, JS, XML, shell, JSON, YAML) plus a map-JS smoke test wired into the build."
+  "notes": "Search no longer gets stuck on 'Indexing' if a category is slow (8s timeout per category, then it moves on). Charge animation clears each frame buffer before reuse to avoid dark flashes. Builds on the map fix and resume toggle."
 }
