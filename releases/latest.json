@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.28",
-  "apk": "releases/MG4Launcher-1.0.5-calm.28.apk",
+  "version": "1.0.5-calm.29",
+  "apk": "releases/MG4Launcher-1.0.5-calm.29.apk",
   "size": 1305995,
-  "notes": "Live where-we-are map (experimental): Settings > Appearance/Home > Live map. Shows your position on a calm dark map with street names, recentres as you drive. Position only, not navigation. Also four AuDHD clock faces (Bold/Digital/Minimal/Combo) with a picker + preview."
+  "notes": "Live map now also checks whether the head unit can run offline VECTOR maps (WebGL) and logs the result, so we can build offline coverage for the whole south of England. Open the live map once and Save log."
 }
