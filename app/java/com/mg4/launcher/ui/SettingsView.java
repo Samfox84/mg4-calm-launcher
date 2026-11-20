@@ -1085,6 +1085,10 @@ public final class SettingsView extends FrameLayout {
                 toggle(c, prefs.nightDim(), on -> { prefs.setNightDim(on); host.settingsChanged(false); }), true));
         col.addView(choice(c, "Test dim", false, v -> { host.closeSettings(); host.testNightDim(); }), top(14));
 
+        col.addView(label(c, "Media"), top(28));
+        col.addView(row(c, "Show online music source", "The Amazon / online music tab in the media panel.",
+                toggle(c, prefs.showOnline(), on -> { prefs.setShowOnline(on); host.settingsChanged(false); }), true));
+
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};
         Flow fa = new Flow(c);

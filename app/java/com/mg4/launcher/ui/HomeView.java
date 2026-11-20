@@ -1588,6 +1588,7 @@ public final class HomeView extends LinearLayout {
             boolean compact = false;
             for (int i = 0; i < shownSrc.size(); i++) {
                 final int src = shownSrc.get(i);
+                if (src == MediaClient.SRC_ONLINE && !prefs.showOnline()) continue;   // Amazon/online nascosto
                 TextView b = Ui.text(c, sourceLabel(src), ts(19.5f), t.sub, Ui.MEDIUM);
                 b.setGravity(Gravity.CENTER_VERTICAL);
                 b.setPadding(tp(compact ? 16 : 20), 0, tp(compact ? 18 : 24), 0);

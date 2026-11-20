@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.22
+- **Logo**: schermata d'avvio con il logo "Calm Launcher" al posto del testo.
+- **Sorgente online nascosta**: la scheda musica online/Amazon è nascosta (interruttore nelle Impostazioni per rimostrarla).
+
 #### 1.0.5-calm.21
 - **Libreria nel riquadro media**: ora il brano in riproduzione da Navidrome appare nel riquadro media e i tasti play/avanti/indietro a schermo lo comandano (il tasto al volante comanda ancora il media dell'auto).
 
@@ -977,6 +981,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.22
+- **Logo**: boot screen now shows the "Calm Launcher" logo instead of plain text.
+- **Online source hidden**: the online/Amazon music tab is hidden by default (toggle in Settings to bring it back).
 
 #### 1.0.5-calm.21
 - **Library in the media box**: the track playing from Navidrome now shows in the media box, and the on-screen play/next/previous buttons control it (the steering-wheel button still controls the car's own media).

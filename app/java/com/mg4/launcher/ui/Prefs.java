@@ -81,6 +81,8 @@ public final class Prefs {
         return Math.max(0, Math.min(4, sp.getInt("driveGlow", 1)));
     }
 
+    public boolean showOnline() { return sp.getBoolean("showOnline", false); }      // Amazon/online nascosto di default
+    public void setShowOnline(boolean b) { sp.edit().putBoolean("showOnline", b).apply(); }
     public boolean standbyClock() { return sp.getBoolean("standbyClock", true); }
     public void setStandbyClock(boolean b) { sp.edit().putBoolean("standbyClock", b).apply(); }
     public int standbyMins() { return Math.max(0, Math.min(2, sp.getInt("standbyMins", 1))); }   // 0=2min 1=5min 2=10min

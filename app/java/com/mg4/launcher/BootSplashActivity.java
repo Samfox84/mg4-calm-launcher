@@ -54,13 +54,24 @@ public final class BootSplashActivity extends Activity {
             openHome();
             return;
         }
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.LinearLayout col = new android.widget.LinearLayout(this);
+        col.setOrientation(android.widget.LinearLayout.VERTICAL);
+        col.setGravity(Gravity.CENTER);
+        col.setBackgroundColor(Color.BLACK);
+        android.widget.ImageView logo = new android.widget.ImageView(this);
+        logo.setImageResource(R.drawable.calm_logo);
+        int sz = Math.round(d * 150);
+        col.addView(logo, new android.widget.LinearLayout.LayoutParams(sz, sz));
         TextView tv = new TextView(this);
-        tv.setText("MG4 Launcher");
+        tv.setText("Calm Launcher");
         tv.setTextColor(0x66FFFFFF);
-        tv.setTextSize(28);
+        tv.setTextSize(22);
         tv.setGravity(Gravity.CENTER);
-        tv.setBackgroundColor(Color.BLACK);
-        setContentView(tv);
+        android.widget.LinearLayout.LayoutParams tp = new android.widget.LinearLayout.LayoutParams(-2, -2);
+        tp.topMargin = Math.round(d * 18);
+        col.addView(tv, tp);
+        setContentView(col);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         try {
