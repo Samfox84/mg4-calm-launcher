@@ -312,7 +312,7 @@ public final class HomeView extends LinearLayout {
         head.addView(rangeUnitTv, Ui.margins(Ui.lp(-2, -2), dp(14), 0, 0, dp(8)));
         head.addView(Ui.spacer(c));
         // data (opzione) tra l'autonomia e l'ora, allineata alla base dei numeri
-        dateTv = Ui.oneLine(Ui.text(c, "", 26, t.sub, Ui.REGULAR));
+        dateTv = Ui.oneLine(Ui.text(c, "", 26, t.sub, Ui.LIGHT));
         dateTv.setVisibility(prefs.showDate() ? VISIBLE : GONE);
         head.addView(dateTv, Ui.margins(Ui.lp(-2, -2), dp(12), 0, dp(22), dp(8)));
         // orologio, grande quanto l'autonomia
@@ -328,7 +328,8 @@ public final class HomeView extends LinearLayout {
         battery = new Bars.Progress(c);
         battery.setColors(t.track, t.battery);
         batRow.addView(battery, Ui.lpWeight(0, dp(8), 1));
-        socTv = Ui.text(c, "—", 32, t.text, Ui.MEDIUM);   // 0.8.6-beta: più grande (era 24)
+        socTv = Ui.text(c, "—", 32, t.text, Ui.LIGHT);   // luxury polish: peso sottile come gli altri numeri grandi
+        socTv.setLetterSpacing(-0.02f);
         batRow.addView(socTv, Ui.margins(Ui.lp(-2, -2), dp(16), 0, 0, 0));
         p.addView(batRow, Ui.margins(new LayoutParams(-1, -2), 0, dp(10), 0, 0));
         updateClock();
@@ -472,7 +473,7 @@ public final class HomeView extends LinearLayout {
         LinearLayout idle = Ui.column(c);
         idle.setGravity(Gravity.CENTER_VERTICAL);
         idle.setPadding(dp(32), dp(20), dp(32), dp(20));
-        idle.addView(Ui.text(c, L.s(R.string.where_to), 36, t.text, Ui.MEDIUM));
+        idle.addView(Ui.text(c, L.s(R.string.where_to), 36, t.text, Ui.LIGHT));
         LinearLayout search = Ui.row(c);
         search.setGravity(Gravity.CENTER_VERTICAL);
         search.setPadding(dp(22), 0, dp(22), 0);
@@ -490,7 +491,7 @@ public final class HomeView extends LinearLayout {
         card.setPadding(dp(32), dp(20), dp(32), dp(20));
         card.addView(Ui.icon(c, R.drawable.ic_turn, t.text, 56));
         LinearLayout txt = Ui.column(c);
-        sideNavTitle = Ui.oneLine(Ui.text(c, "", 36, t.text, Ui.MEDIUM));
+        sideNavTitle = Ui.oneLine(Ui.text(c, "", 36, t.text, Ui.LIGHT));
         sideNavSub = Ui.oneLine(Ui.text(c, "", 20, t.sub, Ui.REGULAR));
         txt.addView(sideNavTitle);
         txt.addView(sideNavSub, Ui.margins(new LayoutParams(-2, -2), 0, dp(6), 0, 0));
@@ -514,7 +515,7 @@ public final class HomeView extends LinearLayout {
         art.addView(sideMediaArt, new FrameLayout.LayoutParams(-1, -1));
         row.addView(art, new LayoutParams(dp(150), dp(150)));
         LinearLayout col = Ui.column(c);
-        sideMediaTitle = Ui.oneLine(Ui.text(c, "", 30, t.text, Ui.MEDIUM));
+        sideMediaTitle = Ui.oneLine(Ui.text(c, "", 30, t.text, Ui.LIGHT));
         sideMediaSub = Ui.oneLine(Ui.text(c, "", 20, t.sub, Ui.REGULAR));
         col.addView(sideMediaTitle);
         col.addView(sideMediaSub, Ui.margins(new LayoutParams(-2, -2), 0, dp(4), 0, 0));
@@ -1449,10 +1450,12 @@ public final class HomeView extends LinearLayout {
         LinearLayout info = Ui.column(c);
         main.addView(info, Ui.margins(Ui.lpWeight(0, -2, 1), dp(28), 0, 0, 0));
 
-        mMeta = Ui.oneLine(Ui.text(c, "", 17, t.sub, Ui.MEDIUM));
+        mMeta = Ui.oneLine(Ui.text(c, "", 15, t.sub, Ui.MEDIUM));
+        mMeta.setLetterSpacing(0.16f);
         mMeta.setLetterSpacing(0.06f);
         info.addView(mMeta, new LayoutParams(-1, -2));
-        mTitle = Ui.oneLine(Ui.text(c, "", 40 * Math.min(Ui.K, 1.15f), t.text, Ui.MEDIUM));   // 1.0.4: cresce con la dimensione (fino a "Grande": oltre il tasto play non ci starebbe)
+        mTitle = Ui.oneLine(Ui.text(c, "", 40 * Math.min(Ui.K, 1.15f), t.text, Ui.LIGHT));   // luxury polish: titolo sottile
+        mTitle.setLetterSpacing(-0.01f);
         info.addView(mTitle, Ui.margins(new LayoutParams(-1, -2), 0, dp(4), 0, 0));
         mSub = Ui.oneLine(Ui.text(c, "", 21, t.sub, Ui.REGULAR));
         info.addView(mSub, Ui.margins(new LayoutParams(-1, -2), 0, dp(4), 0, 0));

@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.52
+- **Rifinitura "lusso" (tipografia)**: numeri e titoli piu' sottili e ariosi (batteria, data, titolo brano, "Dove vuoi andare", titoli widget), etichette sorgente con piu' spaziatura. Stesso layout, aspetto piu' pulito e premium.
+
 #### 1.0.5-calm.51
 - **Sync completo della libreria**: ora cammina TUTTI i livelli (categorie, album, artisti, playlist, generi...) e raccoglie ogni brano, deduplicato, con barra di avanzamento e conteggio brani.
 - **Pulsante "Re-sync music library"** nelle impostazioni per forzare una risincronizzazione completa.
@@ -1082,6 +1085,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.52
+- **Luxury polish (typography)**: thinner, airier numbers and titles (battery, date, track title, "Where to?", widget titles) and more letter-spacing on source labels. Same layout, cleaner and more premium feel.
 
 #### 1.0.5-calm.51
 - **Full library sync**: now walks EVERY level (categories, albums, artists, playlists, genres...) and collects every track, de-duplicated, with a progress bar and track count.
