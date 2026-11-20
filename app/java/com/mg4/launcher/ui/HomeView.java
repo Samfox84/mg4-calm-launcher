@@ -2721,6 +2721,8 @@ public final class HomeView extends LinearLayout {
         finally { try { if (in != null) in.close(); } catch (Throwable ignored) {} }
     }
 
+    static volatile boolean forceLibResync;   // impostato dal pulsante "Re-sync" nelle impostazioni
+
     private final class MusicBrowser {
         private final FrameLayout catcher;
         private final LinearLayout listCol;
@@ -2737,6 +2739,12 @@ public final class HomeView extends LinearLayout {
         private TextView indexLabel;
         private final java.util.List<String> songAlbumIds = new java.util.ArrayList<>();
         private int songCursor;
+        private final java.util.ArrayDeque<String> toExpand = new java.util.ArrayDeque<>();
+        private final java.util.HashSet<String> visited = new java.util.HashSet<>();
+        private final java.util.HashSet<String> songIds = new java.util.HashSet<>();
+        private int inFlight, expandedCount;
+        private static final int SYNC_MAX_INFLIGHT = 4;
+        private static final int SYNC_CAP = 20000;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2863,7 +2871,12 @@ public final class HomeView extends LinearLayout {
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                     currentItems.clear();
                     currentItems.addAll(children);
-                    if (pid != null && pid.equals(rootId)) { rootCategories.clear(); rootCategories.addAll(children); startIndex(); }
+                    if (pid != null && pid.equals(rootId)) {
+                        rootCategories.clear(); rootCategories.addAll(children);
+                        if (forceLibResync) { forceLibResync = false; indexed = false; everIndexed = false; songsIndexed = false; songIndexing = false;
+                            catalogue.clear(); visited.clear(); toExpand.clear(); songIds.clear(); }
+                        startIndex();
+                    }
                     if (children.isEmpty()) { message("(nothing here)"); return; }
                     String q = searchBox.getText().toString().trim();
                     if (q.isEmpty()) renderList(""); else globalSearch(q);
@@ -2916,57 +2929,65 @@ public final class HomeView extends LinearLayout {
         }
 
         /** Dopo le categorie: scorre tutti gli album e mette tutti i brani in cache (barra di avanzamento). */
+        /** Sincronizza TUTTA la libreria a ogni livello: cammina l'albero e raccoglie ogni brano (deduplicato). */
         private void startSongs() {
-            if (songsIndexed || songIndexing) return;   // non ripartire se gia' in corso (evita brani doppi)
-            java.util.List<android.media.browse.MediaBrowser.MediaItem> albums = null;
-            for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : catalogue.entrySet()) {
-                if (e.getKey().toLowerCase(java.util.Locale.ROOT).contains("album")) { albums = e.getValue(); break; }
-            }
-            com.mg4.launcher.svc.Diag.put("lib.canzoni", "categorie=" + catalogue.keySet() + " album trovati=" + (albums == null ? "no" : String.valueOf(albums.size())));
-            if (albums == null || albums.isEmpty()) { songsIndexed = true; everIndexed = true; return; }
+            if (songsIndexed || songIndexing) return;
             songIndexing = true;
-            songAlbumIds.clear();
-            for (android.media.browse.MediaBrowser.MediaItem mi : albums)
-                if (mi.isBrowsable() && mi.getMediaId() != null) songAlbumIds.add(mi.getMediaId());
-            catalogue.put("Songs", new java.util.ArrayList<>());   // lista pulita a ogni indicizzazione
-            songCursor = 0;
-            showProgress(0, songAlbumIds.size());
-            processNextAlbum();
+            toExpand.clear(); visited.clear(); songIds.clear();
+            inFlight = 0; expandedCount = 0;
+            catalogue.put("Songs", new java.util.ArrayList<>());
+            for (android.media.browse.MediaBrowser.MediaItem cat : rootCategories)
+                if (cat.isBrowsable() && cat.getMediaId() != null) toExpand.add(cat.getMediaId());
+            com.mg4.launcher.svc.Diag.put("lib.canzoni", "sync profondo avviato: radici=" + toExpand.size());
+            showProgress(0, 1);
+            pumpSync();
         }
 
-        private void processNextAlbum() {
-            if (songCursor >= songAlbumIds.size()) {
-                songsIndexed = true; everIndexed = true; songIndexing = false; hideProgress();
-                java.util.List<android.media.browse.MediaBrowser.MediaItem> sg = catalogue.get("Songs");
-                com.mg4.launcher.svc.Diag.put("lib.canzoni", "fatto: " + (sg == null ? 0 : sg.size()) + " brani da " + songAlbumIds.size() + " album");
-                String q = searchBox.getText().toString().trim();
-                if (!q.isEmpty()) globalSearch(q);
-                return;
-            }
-            showProgress(songCursor, songAlbumIds.size());
-            final String aid = songAlbumIds.get(songCursor);
-            try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
-            final boolean[] done = { false };
-            // un solo avanzamento, sia dal callback sia dal timeout: un album che non risponde non blocca tutto
-            final Runnable advance = new Runnable() {
-                @Override public void run() {
-                    if (done[0]) return; done[0] = true;
-                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
-                    songCursor++;
-                    processNextAlbum();
-                }
-            };
-            musicBrowser.subscribe(aid, new android.media.browse.MediaBrowser.SubscriptionCallback() {
-                @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
-                    if (!done[0]) {
-                        java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
-                        if (songs != null) for (android.media.browse.MediaBrowser.MediaItem mi : children) if (!mi.isBrowsable()) songs.add(mi);
+        private void pumpSync() {
+            while (inFlight < SYNC_MAX_INFLIGHT && !toExpand.isEmpty() && expandedCount < SYNC_CAP) {
+                final String id = toExpand.poll();
+                if (id == null || !visited.add(id)) continue;
+                inFlight++;
+                final boolean[] done = { false };
+                final Runnable fin = new Runnable() {
+                    @Override public void run() {
+                        if (done[0]) return; done[0] = true;
+                        try { musicBrowser.unsubscribe(id); } catch (Exception ignored) {}
+                        inFlight--; expandedCount++;
+                        if (expandedCount % 25 == 0 || toExpand.isEmpty())
+                            showProgress(expandedCount, expandedCount + toExpand.size() + inFlight);
+                        if (toExpand.isEmpty() && inFlight == 0) syncDone(); else pumpSync();
                     }
-                    advance.run();
-                }
-                @Override public void onError(String pid) { advance.run(); }
-            });
-            postDelayed(advance, 6000);   // salta un album che non risponde entro 6 s
+                };
+                musicBrowser.subscribe(id, new android.media.browse.MediaBrowser.SubscriptionCallback() {
+                    @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
+                        if (!done[0]) {
+                            java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
+                            for (android.media.browse.MediaBrowser.MediaItem mi : children) {
+                                String cid = mi.getMediaId();
+                                if (mi.isBrowsable()) {
+                                    if (cid != null && !visited.contains(cid) && expandedCount + toExpand.size() < SYNC_CAP) toExpand.add(cid);
+                                } else if (songs != null && cid != null && songIds.add(cid)) {
+                                    songs.add(mi);
+                                }
+                            }
+                        }
+                        fin.run();
+                    }
+                    @Override public void onError(String pid) { fin.run(); }
+                });
+                postDelayed(fin, 8000);
+            }
+            if (toExpand.isEmpty() && inFlight == 0 && songIndexing && !songsIndexed) syncDone();
+        }
+
+        private void syncDone() {
+            if (songsIndexed) return;
+            songsIndexed = true; everIndexed = true; songIndexing = false; hideProgress();
+            java.util.List<android.media.browse.MediaBrowser.MediaItem> sg = catalogue.get("Songs");
+            com.mg4.launcher.svc.Diag.put("lib.canzoni", "sync completo: " + (sg == null ? 0 : sg.size()) + " brani, " + expandedCount + " nodi");
+            String q = searchBox.getText().toString().trim();
+            if (!q.isEmpty()) globalSearch(q);
         }
 
         private void showProgress(int done, int total) {
@@ -2975,7 +2996,8 @@ public final class HomeView extends LinearLayout {
             indexBar.setMax(Math.max(1, total));
             indexBar.setProgress(done);
             indexLabel.setVisibility(View.VISIBLE);
-            indexLabel.setText("Caching library\u2026 " + done + " / " + total + " albums");
+            java.util.List<android.media.browse.MediaBrowser.MediaItem> sg = catalogue.get("Songs");
+            indexLabel.setText("Syncing whole library\u2026 " + (sg == null ? 0 : sg.size()) + " tracks");
         }
 
         private void hideProgress() {

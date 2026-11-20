@@ -526,6 +526,10 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Resume last source on start",
                 "When the car powers on, start playing whatever was last playing (radio, Bluetooth...). Turn off to start silent.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));
+        card.addView(choice(c, "Re-sync music library", false, v -> {
+            HomeView.forceLibResync = true;
+            host.closeSettings();
+        }), top(14));
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);

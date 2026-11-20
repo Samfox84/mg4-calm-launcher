@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.51
+- **Sync completo della libreria**: ora cammina TUTTI i livelli (categorie, album, artisti, playlist, generi...) e raccoglie ogni brano, deduplicato, con barra di avanzamento e conteggio brani.
+- **Pulsante "Re-sync music library"** nelle impostazioni per forzare una risincronizzazione completa.
+
 #### 1.0.5-calm.50
 - **Punto posizione da fermo**: la posizione viene inviata appena la mappa e' pronta e gli aggiornamenti arrivano anche da fermo, cosi' il punto blu e la via compaiono senza dover guidare.
 - **Pulsanti piu' grandi**: zoom e "Recenter" ingranditi.
@@ -1078,6 +1082,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.51
+- **Full library sync**: now walks EVERY level (categories, albums, artists, playlists, genres...) and collects every track, de-duplicated, with a progress bar and track count.
+- **"Re-sync music library" button** in Settings to force a full re-sync.
 
 #### 1.0.5-calm.50
 - **Position marker when parked**: the position is pushed as soon as the map is ready and updates arrive even when stationary, so the blue dot and street show without needing to drive.
