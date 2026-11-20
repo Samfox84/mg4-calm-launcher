@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.36",
-  "apk": "releases/MG4Launcher-1.0.5-calm.36.apk",
+  "version": "1.0.5-calm.38",
+  "apk": "releases/MG4Launcher-1.0.5-calm.38.apk",
   "size": 1355365,
-  "notes": "Navidrome library now has a search box at the top of the list so you can filter instead of scrolling. 'Send now' label fixed. Also carries the map sizing fix from calm.35 - if you only tested calm.34, this is worth a look at the map."
+  "notes": "Map now logs everything: each step (page start, layer created, first tile, container size, tile count) and every console message/error. Open the live map once, Send now, and the log will show exactly what that box is."
 }
