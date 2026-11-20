@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.41
+- **Ricerca Navidrome senza limite stretto**: trova tutti i risultati; ne mostra fino a 150 per categoria con un avviso "+N" se sono di piu'.
+
 #### 1.0.5-calm.40
 - **Comfort/Clima scuri**: i pulsanti spenti seguono il tema del launcher (niente piu' riquadri chiari in modalita' scura).
 - **Ricerca globale Navidrome**: cerca in tutte le categorie e mostra i risultati raggruppati (Album, Artisti, Brani, Playlist).
@@ -1038,6 +1041,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.41
+- **Navidrome search not tightly capped**: finds all matches; shows up to 150 per category with a "+N more" note if there are more.
 
 #### 1.0.5-calm.40
 - **Dark Comfort/Climate tiles**: off buttons now follow the launcher theme (no more light tiles in dark mode).

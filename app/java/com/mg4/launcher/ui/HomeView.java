@@ -2831,7 +2831,7 @@ public final class HomeView extends LinearLayout {
                         if (token != searchToken) return;
                         java.util.List<android.media.browse.MediaBrowser.MediaItem> hits = new java.util.ArrayList<>();
                         for (android.media.browse.MediaBrowser.MediaItem mi : children) {
-                            if (labelOf(mi).toLowerCase(java.util.Locale.ROOT).contains(q)) { hits.add(mi); if (hits.size() >= 40) break; }
+                            if (labelOf(mi).toLowerCase(java.util.Locale.ROOT).contains(q)) hits.add(mi);
                         }
                         if (hits.isEmpty()) sections.remove(catName); else sections.put(catName, hits);
                         renderSearch(sections, token);
@@ -2850,7 +2850,14 @@ public final class HomeView extends LinearLayout {
                 hdr.setLetterSpacing(0.08f);
                 hdr.setPadding(dp(14), dp(16), dp(14), dp(6));
                 listCol.addView(hdr);
-                for (android.media.browse.MediaBrowser.MediaItem mi : e.getValue()) addRow(mi);
+                java.util.List<android.media.browse.MediaBrowser.MediaItem> items = e.getValue();
+                int cap = 150;
+                for (int i = 0; i < items.size() && i < cap; i++) addRow(items.get(i));
+                if (items.size() > cap) {
+                    TextView more = Ui.text(getContext(), "+ " + (items.size() - cap) + " more \u2013 type more to narrow", big ? 18 : 15, t.sub, Ui.REGULAR);
+                    more.setPadding(dp(14), dp(10), dp(14), dp(10));
+                    listCol.addView(more);
+                }
             }
         }
 
