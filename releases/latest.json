@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.31",
-  "apk": "releases/MG4Launcher-1.0.5-calm.31.apk",
+  "version": "1.0.5-calm.32",
+  "apk": "releases/MG4Launcher-1.0.5-calm.32.apk",
   "size": 1355365,
-  "notes": "Offline map now uses a browser-compatible engine (Leaflet + protomaps-leaflet, Canvas, no WebGL) so it renders on the head unit's old browser. It reads your calm-map.pmtiles with a calm dark theme. Update, open the live map, and it should draw your streets offline."
+  "notes": "Adds a 'Send now' button in Diagnostics that uploads the log immediately. Also includes the browser-compatible offline map engine (Leaflet + protomaps-leaflet) that renders your calm-map.pmtiles on the head unit's old browser."
 }
