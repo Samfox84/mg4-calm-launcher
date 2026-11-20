@@ -61,9 +61,9 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         if (map != null) {
             offline = true;
             try {
-                int port = (server = new TileServer(map)).start();
+                int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("file:///android_asset/map/map-vector.html?port=" + port);
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html");
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());

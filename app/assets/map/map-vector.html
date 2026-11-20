@@ -21,7 +21,7 @@
 <div id="me"></div>
 <script>
   function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
-  var purl='http://127.0.0.1:'+q('port')+'/map.pmtiles';
+  var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,dragging:false,touchZoom:false,
         doubleClickZoom:false,scrollWheelZoom:false,keyboard:false,boxZoom:false,inertia:false}).setView([52.5,-2.5],15);
