@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.39
+- **Mappa offline: traffico locale permesso** - Android 9 bloccava l'http in chiaro verso il mini-server locale (per questo la pagina mappa non partiva affatto). Ora è permesso solo per 127.0.0.1.
+
 #### 1.0.5-calm.38
 - **Mappa: log completo** - ogni passo (pagina, livello, primo riquadro, dimensione) e ogni messaggio/errore della console finiscono nel log.
 
@@ -1031,6 +1034,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.39
+- **Offline map: allow local traffic** - Android 9 was blocking plain http to the local mini-server (which is why the map page never ran at all). Now permitted for 127.0.0.1 only.
 
 #### 1.0.5-calm.38
 - **Map: full logging** - every step (page, layer, first tile, size) and every console message/error now goes to the log.

@@ -15,4 +15,10 @@
             <certificates src="@raw/sectigo_root_e46" />
         </trust-anchors>
     </base-config>
+    <!-- Calm Launcher: la mappa offline è servita da un mini-server locale in http su 127.0.0.1;
+         Android 9 blocca il traffico in chiaro per default, quindi lo permettiamo SOLO per il locale. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
 </network-security-config>
