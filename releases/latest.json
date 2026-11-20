@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.40",
-  "apk": "releases/MG4Launcher-1.0.5-calm.40.apk",
-  "size": 1359461,
-  "notes": "Comfort/Climate off-tiles now follow the dark theme (no more light/pink tiles). Navidrome search is now global and grouped by Albums/Artists/Songs/Playlists. Also includes the map cleartext fix - the map page can finally load."
+  "version": "1.0.5-calm.41",
+  "apk": "releases/MG4Launcher-1.0.5-calm.41.apk",
+  "size": 1355365,
+  "notes": "Navidrome search now finds all matches (no 40 cap); shows up to 150 per category with a '+N more' note if there are more. Plus the dark Comfort/Climate tiles, global grouped search, and the map cleartext fix."
 }
