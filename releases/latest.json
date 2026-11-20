@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.55",
-  "apk": "releases/MG4Launcher-1.0.5-calm.55.apk",
-  "size": 1363557,
-  "notes": "Radio no longer auto-starts (Resume last source now OFF by default). Map edge gradient fixed (old WebView ignored inset:0). New build-time WebView compatibility guard catches silently-dead features. Library search shows 'still loading' instead of 'no matches' mid-sync."
+  "version": "1.0.5-calm.56",
+  "apk": "releases/MG4Launcher-1.0.5-calm.56.apk",
+  "size": ,
+  "notes": "Direct Navidrome/Subsonic music server: new Settings page for address/user/password, downloads your whole library once and caches it on the car for instant offline search. Own streamer with media session (title/artist + wheel keys). New automated Subsonic tests on every build."
 }
