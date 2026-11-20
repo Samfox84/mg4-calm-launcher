@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.27",
-  "apk": "releases/MG4Launcher-1.0.5-calm.27.apk",
-  "size": 1248056,
-  "notes": "Standby clock: four AuDHD-safe faces to choose from (Bold defined analogue, big Digital, ultra-Minimal, and Combo), with a picker and Preview in Settings - Appearance. Plus the wheel-button-for-Navidrome fix."
+  "version": "1.0.5-calm.28",
+  "apk": "releases/MG4Launcher-1.0.5-calm.28.apk",
+  "size": 1305995,
+  "notes": "Live where-we-are map (experimental): Settings > Appearance/Home > Live map. Shows your position on a calm dark map with street names, recentres as you drive. Position only, not navigation. Also four AuDHD clock faces (Bold/Digital/Minimal/Combo) with a picker + preview."
 }
