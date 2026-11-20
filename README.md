@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.50
+- **Punto posizione da fermo**: la posizione viene inviata appena la mappa e' pronta e gli aggiornamenti arrivano anche da fermo, cosi' il punto blu e la via compaiono senza dover guidare.
+- **Pulsanti piu' grandi**: zoom e "Recenter" ingranditi.
+- Diagnostica aggiunta alla cache dei brani (per capire perche' non finisce).
+
 #### 1.0.5-calm.49
 - **Ricerca: l'indice si completa sempre**: una categoria che non risponde non blocca piu' l'indicizzazione (timeout 8 s), cosi' la ricerca non resta su "Indicizzazione".
 - **Animazione ricarica**: il buffer del fotogramma viene pulito prima di riusarlo, per evitare lampi scuri.
@@ -1073,6 +1078,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.50
+- **Position marker when parked**: the position is pushed as soon as the map is ready and updates arrive even when stationary, so the blue dot and street show without needing to drive.
+- **Bigger buttons**: zoom and "Recenter" enlarged.
+- Added diagnostics to the song cache (to see why it doesn't finish).
 
 #### 1.0.5-calm.49
 - **Search: the index always completes**: a category that doesn't respond no longer blocks indexing (8s timeout), so search won't get stuck on "Indexing".

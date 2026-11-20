@@ -33,6 +33,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final LocationManager lm;
     private TileServer server;
     private boolean pageReady, started, haveFix, mapReady, offline;
+    private android.location.Location lastLoc;
     private final boolean nightDim;
 
     public LiveMap(Context c) { this(c, false); }
@@ -137,8 +138,8 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try { last = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER); } catch (Throwable ignored) {}
             if (last == null) try { last = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); } catch (Throwable ignored) {}
             if (last != null) onLocationChanged(last);
-            try { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 3f, this); } catch (Throwable ignored) {}
-            try { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000L, 10f, this); } catch (Throwable ignored) {}
+            try { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this); } catch (Throwable ignored) {}
+            try { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000L, 0f, this); } catch (Throwable ignored) {}
         } catch (Throwable e) {
             Diag.put("map.stato", "GPS non disponibile: " + e.getClass().getSimpleName());
         }
@@ -147,6 +148,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     @Override
     public void onLocationChanged(Location l) {
         if (l == null) return;
+        lastLoc = l;
         if (!haveFix) { haveFix = true; Diag.put("map.stato", "posizione ok"); }
         final double lat = l.getLatitude(), lon = l.getLongitude();
         final float spd = l.hasSpeed() ? l.getSpeed() : -1f;   // m/s dal GPS
@@ -164,7 +166,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final class Bridge {
         @JavascriptInterface
         public void status(String s) {
-            if ("page-ready".equals(s)) { pageReady = true; }
+            if ("page-ready".equals(s)) { pageReady = true; if (lastLoc != null) post(() -> onLocationChanged(lastLoc)); }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }
             else if ("engine-ok".equals(s)) { mapReady = true; Diag.put("map.engine", "MapLibre offline ok"); post(() -> { if (haveFix) status.setVisibility(GONE); }); }

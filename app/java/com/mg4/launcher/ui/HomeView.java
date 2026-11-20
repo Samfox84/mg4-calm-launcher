@@ -2922,6 +2922,7 @@ public final class HomeView extends LinearLayout {
             for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : catalogue.entrySet()) {
                 if (e.getKey().toLowerCase(java.util.Locale.ROOT).contains("album")) { albums = e.getValue(); break; }
             }
+            com.mg4.launcher.svc.Diag.put("lib.canzoni", "categorie=" + catalogue.keySet() + " album trovati=" + (albums == null ? "no" : String.valueOf(albums.size())));
             if (albums == null || albums.isEmpty()) { songsIndexed = true; everIndexed = true; return; }
             songIndexing = true;
             songAlbumIds.clear();
@@ -2936,6 +2937,8 @@ public final class HomeView extends LinearLayout {
         private void processNextAlbum() {
             if (songCursor >= songAlbumIds.size()) {
                 songsIndexed = true; everIndexed = true; songIndexing = false; hideProgress();
+                java.util.List<android.media.browse.MediaBrowser.MediaItem> sg = catalogue.get("Songs");
+                com.mg4.launcher.svc.Diag.put("lib.canzoni", "fatto: " + (sg == null ? 0 : sg.size()) + " brani da " + songAlbumIds.size() + " album");
                 String q = searchBox.getText().toString().trim();
                 if (!q.isEmpty()) globalSearch(q);
                 return;
