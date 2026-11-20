@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.18",
-  "apk": "releases/MG4Launcher-1.0.5-calm.18.apk",
+  "version": "1.0.5-calm.19",
+  "apk": "releases/MG4Launcher-1.0.5-calm.19.apk",
   "size": 1186538,
-  "notes": "Drive-mode polish: the mode name (Sport/Eco/Snow/Custom) fades in for a couple of seconds when you switch, so you know which one you're in. New Settings controls for glow brightness (Soft/Medium/Bright) and fade speed (Slow/Medium/Fast)."
+  "notes": "Automatic diagnostic logs are now on: the launcher sends a log to your private GitHub logs repo on launch and every 30 minutes. This is the build that lets me see what's restarting the radio."
 }
