@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.42",
-  "apk": "releases/MG4Launcher-1.0.5-calm.42.apk",
+  "version": "1.0.5-calm.43",
+  "apk": "releases/MG4Launcher-1.0.5-calm.43.apk",
   "size": 1359461,
-  "notes": "Live map polished: the 'Where to?' search bar is hidden over the map, there's a pulsing blue dot on your position, the map follows the car and starts zoomed to street level, with +/- zoom buttons, drag-to-pan, and a Recenter button."
+  "notes": "Map now has softly faded edges and shows the current street name, updating as you drive. (Next: the Navidrome catalogue cache for fast complete search.)"
 }
