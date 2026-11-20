@@ -3041,7 +3041,12 @@ public final class HomeView extends LinearLayout {
         private void renderSearch(java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections, int token) {
             if (token != searchToken) return;
             listCol.removeAllViews();
-            if (sections.isEmpty()) { message("No matches"); return; }
+            if (sections.isEmpty()) {
+                // Non dire "nessun risultato" mentre la libreria sta ancora caricando i brani.
+                if (songIndexing && !songsIndexed) message("Still loading library… one moment");
+                else message("No matches");
+                return;
+            }
             for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : sections.entrySet()) {
                 TextView hdr = Ui.text(getContext(), e.getKey().toUpperCase(L.locale()), 13, t.sub, Ui.MEDIUM);
                 hdr.setLetterSpacing(0.08f);

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.53",
-  "apk": "releases/MG4Launcher-1.0.5-calm.53.apk",
+  "version": "1.0.5-calm.55",
+  "apk": "releases/MG4Launcher-1.0.5-calm.55.apk",
   "size": 1363557,
-  "notes": "Re-sync button now at the top of the library panel (easy to find). More robust current-street lookup + stronger map edge gradient. Animated boot logo. Extended library sync diagnostics."
+  "notes": "Radio no longer auto-starts (Resume last source now OFF by default). Map edge gradient fixed (old WebView ignored inset:0). New build-time WebView compatibility guard catches silently-dead features. Library search shows 'still loading' instead of 'no matches' mid-sync."
 }

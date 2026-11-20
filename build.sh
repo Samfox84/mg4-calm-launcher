@@ -153,6 +153,7 @@ PY
 if [ -f app/assets/map/map-vector.html ]; then
   echo "==> controllo JS mappa"
   sh tools/mapjscheck.sh app/assets/map/map-vector.html || { echo "ERRORE: JS della mappa non valido"; exit 1; }
+  sh tools/webviewcompat.sh || { echo "ERRORE: funzioni non supportate dalla WebView vecchia"; exit 1; }
 fi
 
 echo "==> java (javac, bytecode 8)"

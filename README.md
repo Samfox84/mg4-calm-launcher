@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.55
+- Raccoglie calm.54 (radio non parte da sola, sfumatura mappa) in un'unica versione.
+- **Nuovo controllo in compilazione**: scova le funzioni JS/CSS che la WebView vecchia ignora in silenzio (come `inset:0`), cosi' non arrivano piu' bug invisibili.
+- **Ricerca libreria**: mentre i brani si stanno ancora caricando mostra "sto caricando" invece di "nessun risultato".
+
 #### 1.0.5-calm.54
 - **La radio non parte piu' da sola all'avvio**: "Riprendi l'ultima sorgente" ora e' spento di default (si puo' riaccendere in Impostazioni - Home).
 - **Sfumatura mappa riparata**: su questa WebView vecchia `inset:0` non funzionava, quindi la sfumatura dei bordi non si vedeva; ora i bordi sfumano nel buio del cruscotto.
@@ -1095,6 +1100,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.55
+- Folds calm.54 (radio no longer auto-starts, map gradient) into one release.
+- **New build-time guard**: catches JS/CSS this old WebView ignores silently (like `inset:0`), so invisible bugs can't ship.
+- **Library search**: shows "still loading" instead of "no matches" while tracks are still syncing.
 
 #### 1.0.5-calm.54
 - **Radio no longer auto-starts**: "Resume last source on start" is now OFF by default (re-enable in Settings - Home).
