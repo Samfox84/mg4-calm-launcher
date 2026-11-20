@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.43
+- **Mappa: sfumatura e via corrente**: bordi sfumati per un aspetto piu' curato e il nome della via che si aggiorna mentre si guida.
+
 #### 1.0.5-calm.42
 - **Mappa dal vivo rifinita**: niente piu' barra "Dove vuoi andare" sopra la mappa; punto blu pulsante sulla posizione, la mappa segue l'auto, pulsanti zoom +/-, trascinamento e pulsante "Recenter".
 
@@ -1044,6 +1047,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.43
+- **Map: soft gradient + current street**: softly faded edges for a cleaner look, and the current street name updating as you drive.
 
 #### 1.0.5-calm.42
 - **Live map polished**: no more "Where to?" bar over the map; pulsing blue dot on your position, map follows the car, +/- zoom buttons, drag to pan, and a "Recenter" button.

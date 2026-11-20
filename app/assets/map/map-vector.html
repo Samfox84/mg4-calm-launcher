@@ -11,9 +11,12 @@
   html,body,#map{height:100%;margin:0;background:#0E1114;}
   .leaflet-container{background:#0E1114;}
   .leaflet-control-attribution{display:none !important;}
-  /* dark, calm zoom buttons */
   .leaflet-bar a{background:#1B2024;color:#E7ECF0;border-bottom-color:#2A3036;width:44px;height:44px;line-height:44px;font-size:24px;}
   .leaflet-bar a:hover{background:#242C33;}
+  #vignette{position:absolute;inset:0;pointer-events:none;z-index:400;
+      background:radial-gradient(ellipse 75% 75% at 42% 48%, rgba(14,17,20,0) 52%, rgba(14,17,20,.72) 100%);}
+  #street{position:absolute;left:22px;bottom:24px;z-index:500;color:#EEF2F6;font:600 27px sans-serif;
+      letter-spacing:.2px;text-shadow:0 2px 12px rgba(0,0,0,.85);pointer-events:none;max-width:58%;}
   .me-dot{width:18px;height:18px;border-radius:50%;background:#4F9BF0;border:2px solid #cfe4ff;
           box-shadow:0 0 0 0 rgba(79,155,240,.55);animation:pulse 2s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,155,240,.55)}70%{box-shadow:0 0 0 20px rgba(79,155,240,0)}100%{box-shadow:0 0 0 0 rgba(79,155,240,0)}}
@@ -24,30 +27,28 @@
 </head>
 <body>
 <div id="map"></div>
+<div id="vignette"></div>
+<div id="street"></div>
 <div id="recenter">Recenter</div>
 <script>
   window.onerror=function(m,src,ln){ try{console.error('map: onerror '+m+' @'+src+':'+ln);}catch(e){} };
-  function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
   console.log('map: page start, origin='+location.origin);
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
         dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:0.5}).setView([52.5,-2.5],16);
     L.control.zoom({position:'bottomright'}).addTo(map);
-    console.log('map: creating layer url='+purl);
     var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en'});
     var tileN=0, reported=false;
     function ok(){ if(!reported){reported=true; try{AndroidMap.status('engine-ok');}catch(e){}} }
-    if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; if(tileN===1) console.log('map: first tile'); }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
+    if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
     layer.addTo(map);
     console.log('map: layer added');
 
-    // pulsing "you are here" marker
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
-
-    var follow=true, haveFix=false;
-    var rebtn=document.getElementById('recenter');
+    var follow=true, haveFix=false, lastStreet='', loggedQ=false;
+    var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
     rebtn.addEventListener('click', function(){ setFollow(true); if(haveFix){ map.setView(me.getLatLng(), map.getZoom(), {animate:true}); } });
@@ -56,11 +57,23 @@
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
 
+    function streetAt(lat,lon){
+      try{
+        if(!layer.queryTileFeaturesDebug) return;
+        var fm=layer.queryTileFeaturesDebug(lon,lat,16), nm='';
+        fm.forEach(function(arr){ if(nm) return; for(var i=0;i<arr.length;i++){ var e=arr[i];
+          if(e&&e.layerName==='roads'&&e.feature&&e.feature.props&&e.feature.props.name){ nm=e.feature.props.name; break; } } });
+        if(!loggedQ){ loggedQ=true; var ls=[]; fm.forEach(function(a){a.forEach(function(e){ if(ls.indexOf(e.layerName)<0) ls.push(e.layerName); });}); try{AndroidMap.status('query:layers='+ls.slice(0,10).join(',')+' road='+nm);}catch(e){} }
+        if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
+      }catch(e){ console.error('map: query '+e); }
+    }
+
     window.setPos=function(lat,lon){
       var ll=[lat,lon];
       if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; try{AndroidMap.status('fix');}catch(e){} }
       me.setLatLng(ll);
       if(follow){ map.panTo(ll,{animate:true,duration:0.8}); }
+      streetAt(lat,lon);
       resize();
     };
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
