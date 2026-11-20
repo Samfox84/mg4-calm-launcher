@@ -56,6 +56,11 @@ public final class SettingsView extends FrameLayout {
 
         /** 1.0.5: servizio veicolo (Spegni la vettura). */
         com.mg4.launcher.svc.VehicleClient vehicle();
+
+        /** calm.20: anteprima orologio standby e prova riduzione notturna. */
+        void previewStandby();
+
+        void testNightDim();
     }
 
     // 1.0.0 (punto 11): 7 sezioni nello stesso ordine su tutte le versioni - Auto, Home, Barra e pulsanti,
@@ -1057,6 +1062,28 @@ public final class SettingsView extends FrameLayout {
             }));
         }
         col.addView(fgs, topFull(14));
+
+        col.addView(label(c, "Standby clock"), top(28));
+        col.addView(row(c, "Show a clock when idle", "Fades in after a while with the date and battery.",
+                toggle(c, prefs.standbyClock(), on -> { prefs.setStandbyClock(on); host.settingsChanged(false); }), true));
+        col.addView(label(c, "After"), top(20));
+        String[] sbMins = {"2 min", "5 min", "10 min"};
+        Flow fsb = new Flow(c);
+        for (int mi = 0; mi < sbMins.length; mi++) {
+            final int idx = mi;
+            fsb.addView(choice(c, sbMins[mi], prefs.standbyMins() == mi, v -> {
+                if (prefs.standbyMins() == idx) return;
+                prefs.setStandbyMins(idx);
+                host.settingsChanged(false);
+            }));
+        }
+        col.addView(fsb, topFull(14));
+        col.addView(choice(c, "Preview now", false, v -> { host.closeSettings(); host.previewStandby(); }), top(14));
+
+        col.addView(label(c, "Dim at night"), top(28));
+        col.addView(row(c, "Auto-dim after dark", "Uses the car's day/night. Your dark theme stays the same.",
+                toggle(c, prefs.nightDim(), on -> { prefs.setNightDim(on); host.settingsChanged(false); }), true));
+        col.addView(choice(c, "Test dim", false, v -> { host.closeSettings(); host.testNightDim(); }), top(14));
 
         col.addView(label(c, L.s(R.string.set_apps_size)), top(28));
         int[] appNames = {R.string.ui_size_normal, R.string.ui_size_large, R.string.ui_size_xlarge};

@@ -2883,6 +2883,7 @@ public final class HomeView extends LinearLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         startGlow();
+        startIdleWatch();
     }
 
     private void startGlow() {
@@ -2910,6 +2911,130 @@ public final class HomeView extends LinearLayout {
     protected void dispatchDraw(android.graphics.Canvas canvas) {
         super.dispatchDraw(canvas);
         drawDriveGlow(canvas);
+        boolean animate = updateOverlays();
+        drawNightDim(canvas);
+        drawStandby(canvas);
+        if (animate) postInvalidateOnAnimation();
+    }
+
+    // ===== Standby clock + riduzione notturna =====
+    private float standbyAlpha = 0f;
+    private boolean standbyShown = false;
+    private long lastTouchMs = android.os.SystemClock.uptimeMillis();
+    private boolean idleWatch = false;
+    private long nightTestUntil = 0L;
+    private float nightDimAlpha = 0f;
+    private static final float NIGHT_DIM_MAX = 0.42f;
+    private static final int[] STANDBY_MS = {2 * 60_000, 5 * 60_000, 10 * 60_000};
+    private android.graphics.Paint sbStroke, sbText;
+
+    private final Runnable idleTick = new Runnable() {
+        @Override public void run() {
+            if (!idleWatch) return;
+            if (prefs.standbyClock() && hasWindowFocus() && !standbyShown
+                    && android.os.SystemClock.uptimeMillis() - lastTouchMs > STANDBY_MS[prefs.standbyMins()]) {
+                standbyShown = true;
+                invalidate();
+            }
+            postDelayed(this, 3000);
+        }
+    };
+    private void startIdleWatch() { if (!idleWatch) { idleWatch = true; lastTouchMs = android.os.SystemClock.uptimeMillis(); postDelayed(idleTick, 3000); } }
+    private void stopIdleWatch() { idleWatch = false; removeCallbacks(idleTick); }
+
+    /** Pulsante "Anteprima": mostra subito l'orologio. */
+    public void previewStandby() { lastTouchMs = android.os.SystemClock.uptimeMillis(); standbyShown = true; invalidate(); }
+    /** Pulsante "Prova": mostra la riduzione notturna per qualche secondo. */
+    public void testNightDim() { nightTestUntil = android.os.SystemClock.uptimeMillis() + 4000; invalidate(); }
+
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent e) {
+        lastTouchMs = android.os.SystemClock.uptimeMillis();
+        if (standbyShown || standbyAlpha > 0.02f) {
+            if (e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN) { standbyShown = false; invalidate(); }
+            return true;   // il tocco che sveglia non arriva ai pulsanti sotto
+        }
+        return super.dispatchTouchEvent(e);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        lastTouchMs = android.os.SystemClock.uptimeMillis();
+        if (!hasFocus) standbyShown = false;   // CarPlay o altra app davanti: niente standby
+    }
+
+    private boolean updateOverlays() {
+        boolean night = !com.mg4.launcher.svc.DayNight.get(getContext()).isDay();
+        boolean testing = android.os.SystemClock.uptimeMillis() < nightTestUntil;
+        float dimTarget = ((prefs.nightDim() && night) || testing) ? NIGHT_DIM_MAX : 0f;
+        if (Math.abs(dimTarget - nightDimAlpha) < 0.02f) nightDimAlpha = dimTarget;
+        else nightDimAlpha += dimTarget > nightDimAlpha ? 0.02f : -0.02f;
+        float sbTarget = standbyShown ? 1f : 0f;
+        if (Math.abs(sbTarget - standbyAlpha) < 0.05f) standbyAlpha = sbTarget;
+        else standbyAlpha += sbTarget > standbyAlpha ? 0.05f : -0.05f;
+        return standbyAlpha > 0.01f || nightDimAlpha != dimTarget || testing;
+    }
+
+    private void drawNightDim(android.graphics.Canvas c) {
+        if (nightDimAlpha <= 0.01f) return;
+        c.drawColor(((int) (nightDimAlpha * 255)) << 24);
+    }
+
+    private void drawStandby(android.graphics.Canvas c) {
+        if (standbyAlpha <= 0.01f) return;
+        int w = getWidth(), h = getHeight();
+        int a = (int) (standbyAlpha * 255);
+        c.drawColor((a << 24) | 0x0E1114);                 // sfondo scuro in dissolvenza
+        if (sbStroke == null) {
+            sbStroke = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            sbStroke.setStyle(android.graphics.Paint.Style.STROKE);
+            sbStroke.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+            sbText = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            sbText.setTextAlign(android.graphics.Paint.Align.CENTER);
+        }
+        float cx = w / 2f, cy = h * 0.46f, r = Math.min(w * 0.30f, h * 0.34f);
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        float sec = cal.get(java.util.Calendar.SECOND) + cal.get(java.util.Calendar.MILLISECOND) / 1000f;
+        float min = cal.get(java.util.Calendar.MINUTE) + sec / 60f;
+        float hr = (cal.get(java.util.Calendar.HOUR_OF_DAY) % 12) + min / 60f;
+        // anello
+        sbStroke.setColor(0xFF242C33); sbStroke.setAlpha(a); sbStroke.setStrokeWidth(dp(2));
+        c.drawCircle(cx, cy, r, sbStroke);
+        // tacche ore
+        sbStroke.setColor(0xFF39434C); sbStroke.setAlpha(a);
+        for (int i = 0; i < 12; i++) {
+            double ang = Math.toRadians(i * 30);
+            float o = (i % 3 == 0) ? dp(14) : dp(8);
+            sbStroke.setStrokeWidth(i % 3 == 0 ? dp(3) : dp(2));
+            c.drawLine(cx + (float) Math.sin(ang) * (r - o), cy - (float) Math.cos(ang) * (r - o),
+                    cx + (float) Math.sin(ang) * r, cy - (float) Math.cos(ang) * r, sbStroke);
+        }
+        // lancette
+        drawHand(c, cx, cy, hr / 12f * 360f, r * 0.52f, dp(6), 0xFFD9DEE2, a);
+        drawHand(c, cx, cy, min / 60f * 360f, r * 0.78f, dp(4), 0xFFD9DEE2, a);
+        drawHand(c, cx, cy, sec / 60f * 360f, r * 0.82f, dp(2), 0xFF5FA87C, a);
+        sbStroke.setColor(0xFFD9DEE2); sbStroke.setAlpha(a); sbStroke.setStyle(android.graphics.Paint.Style.FILL);
+        c.drawCircle(cx, cy, dp(5), sbStroke);
+        sbStroke.setStyle(android.graphics.Paint.Style.STROKE);
+        // data
+        sbText.setColor(0xFFAEB6BF); sbText.setAlpha(a); sbText.setTextSize(dp(22));
+        String date = new java.text.SimpleDateFormat("EEEE d MMMM", L.locale()).format(cal.getTime());
+        c.drawText(date, cx, cy - r - dp(26), sbText);
+        // batteria
+        boolean mi = Units.miles(prefs, lastVehicle.distUnit);
+        String soc = lastVehicle.soc >= 0 ? Math.round(lastVehicle.soc) + "%" : "";
+        String rng = lastVehicle.rangeKm > 0 && lastVehicle.rangeKm < 2000
+                ? Units.range(lastVehicle.rangeKm, mi) + (mi ? " mi" : " km") : "";
+        String bat = soc + (!soc.isEmpty() && !rng.isEmpty() ? "   ·   " : "") + rng;
+        sbText.setColor(0xFFC7CDD3); sbText.setAlpha(a); sbText.setTextSize(dp(20));
+        if (!bat.isEmpty()) c.drawText(bat, cx, cy + r + dp(44), sbText);
+    }
+
+    private void drawHand(android.graphics.Canvas c, float cx, float cy, float deg, float len, float wdt, int color, int alpha) {
+        double ang = Math.toRadians(deg);
+        sbStroke.setColor(color); sbStroke.setAlpha(alpha); sbStroke.setStrokeWidth(wdt);
+        c.drawLine(cx, cy, cx + (float) Math.sin(ang) * len, cy - (float) Math.cos(ang) * len, sbStroke);
     }
 
     /** Calm Launcher: modo Auto - misura la fluidita' e scende (Siri -> Pulse -> Static) se l'animazione rallenta. */
@@ -3070,6 +3195,7 @@ public final class HomeView extends LinearLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         stopGlow();
+        stopIdleWatch();
         if (music != null) music.close();
         if (popup != null) popup.close();
         if (tileIsPhone || sideFavBox != null) {

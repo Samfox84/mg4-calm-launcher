@@ -856,6 +856,12 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     }
 
     @Override
+    public void previewStandby() { if (home != null) home.previewStandby(); }
+
+    @Override
+    public void testNightDim() { if (home != null) home.testNightDim(); }
+
+    @Override
     public void testChargeAnimation() {
         String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
         new Thread(() -> {

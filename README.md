@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.20
+- **Orologio standby**: quando la home resta ferma, appare in dissolvenza un orologio analogico con data e batteria; un tocco lo chiude. Timer e anteprima nelle Impostazioni.
+- **Riduzione notturna**: dim automatico dopo il tramonto (segnale giorno/notte dell'auto); il tema scuro resta invariato. Con pulsante di prova.
+
 #### 1.0.5-calm.19
 - **Invio log automatico** attivo (repository privato dei log su GitHub): all'avvio e ogni 30 minuti, per la diagnostica.
 
@@ -970,6 +974,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.20
+- **Standby clock**: when the home screen sits idle, a calm analogue clock with date and battery fades in; a touch dismisses it. Timer and preview in Settings.
+- **Night auto-dim**: optional gentle dim after dark (car's day/night signal); your dark theme is unchanged. With a test button.
 
 #### 1.0.5-calm.19
 - **Automatic log upload** enabled (private GitHub logs repo): on launch and every 30 minutes, for diagnostics.
