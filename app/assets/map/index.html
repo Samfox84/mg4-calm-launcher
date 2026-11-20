@@ -9,6 +9,7 @@
   html,body,#map{height:100%;margin:0;background:#0E1114;}
   /* AuDHD calm: dark, low-contrast, no bright UI */
   .leaflet-container{background:#0E1114;font-family:sans-serif;}
+  .leaflet-tile{filter:invert(1) hue-rotate(185deg) brightness(.82) contrast(.9) saturate(.55);}
   .leaflet-control-zoom,.leaflet-control-attribution a{display:none !important;}
   .leaflet-control-attribution{background:rgba(14,17,20,.55);color:#6B7682;font-size:10px;padding:1px 5px;}
   .me{width:22px;height:22px;border-radius:50%;background:#7CB8F0;
@@ -23,8 +24,8 @@
       fadeAnimation:true,zoomAnimation:true,inertia:false,keyboard:false,
       dragging:false,touchZoom:false,doubleClickZoom:false,scrollWheelZoom:false,boxZoom:false,tap:false});
   map.setView([51.5,-0.12],16);
-  var tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      {maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO',crossOrigin:true});
+  var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {maxZoom:19,subdomains:'abc',attribution:'© OpenStreetMap',crossOrigin:true});
   var okReported=false, errReported=false;
   tiles.on('load', function(){ if(!okReported){okReported=true; try{AndroidMap.status('tiles-ok');}catch(e){}} });
   tiles.on('tileerror', function(){ if(!errReported){errReported=true; try{AndroidMap.status('tiles-error');}catch(e){}} });

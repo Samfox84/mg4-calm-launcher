@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="maplibre-gl.css" rel="stylesheet">
+<script src="maplibre-gl.js"></script>
+<script src="pmtiles.js"></script>
+<style>
+  html,body,#map{height:100%;margin:0;background:#0E1114;}
+  .maplibregl-ctrl,.maplibregl-ctrl-attrib{display:none !important;}
+  #me{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;
+      background:#7CB8F0;box-shadow:0 0 0 6px rgba(124,184,240,.18),0 0 14px rgba(124,184,240,.5);
+      z-index:5;pointer-events:none;}
+  #street{position:absolute;left:0;right:0;top:20px;text-align:center;color:#E7ECF0;
+      font:600 28px sans-serif;letter-spacing:.2px;text-shadow:0 1px 8px #000;z-index:6;pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="me"></div>
+<div id="street"></div>
+<script>
+  function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
+  var url='http://127.0.0.1:'+q('port')+'/map.pmtiles';
+  try{
+    var pm=new pmtiles.PMTiles(url);
+    var proto=new pmtiles.Protocol(); proto.add(pm);
+    maplibregl.addProtocol('pmtiles', proto.tile);
+  }catch(e){ try{AndroidMap.status('engine-error:pmtiles '+e);}catch(x){} }
+  fetch('style-dark.json').then(function(r){return r.text();}).then(function(txt){
+    txt=txt.replace('__PMTILES_URL__', url);
+    var style=JSON.parse(txt);
+    var map=new maplibregl.Map({container:'map',style:style,center:[-2.5,52.5],zoom:14,
+        attributionControl:false,interactive:false,fadeDuration:200,renderWorldCopies:false});
+    map.on('load', function(){ try{AndroidMap.status('engine-ok');}catch(e){} });
+    map.on('error', function(e){ try{AndroidMap.status('engine-error:'+(e&&e.error?e.error.message:'?'));}catch(x){} });
+    var first=true;
+    window.setPos=function(lat,lon){
+      map.setCenter([lon,lat]);
+      if(first){ map.setZoom(15.3); first=false; try{AndroidMap.status('fix');}catch(e){} }
+      try{
+        var pt=map.project([lon,lat]);
+        var fs=map.queryRenderedFeatures([[pt.x-12,pt.y-12],[pt.x+12,pt.y+12]],{});
+        var name='';
+        for(var i=0;i<fs.length;i++){ if(fs[i].sourceLayer==='roads' && fs[i].properties && fs[i].properties.name){ name=fs[i].properties.name; break; } }
+        document.getElementById('street').textContent=name;
+      }catch(e){}
+    };
+    try{AndroidMap.status('page-ready');}catch(e){}
+  }).catch(function(e){ try{AndroidMap.status('style-error:'+e);}catch(x){} });
+</script>
+</body>
+</html>

@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.30
+- **Mappe offline vettoriali (sperimentale)**: se metti un file .pmtiles in Download o in /CalmMap sul dispositivo, la mappa dal vivo diventa offline (MapLibre + pmtiles), scura e calma, con i nomi delle vie e la via corrente in alto, senza dati internet. Ripiego online scuro senza chiave.
+
 #### 1.0.5-calm.29
 - **Mappa: verifica WebGL** per preparare le mappe offline (vettoriali o raster). Lo stato finisce nel log.
 
@@ -1003,6 +1006,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.30
+- **Offline vector maps (experimental)**: drop a .pmtiles file in Download or /CalmMap on the device and the live map goes fully offline (MapLibre + pmtiles) - calm dark style, street names, current street shown at the top, no data needed. Keyless dark online fallback.
 
 #### 1.0.5-calm.29
 - **Map: WebGL capability check** to prepare offline maps (vector or raster). Result is logged.
