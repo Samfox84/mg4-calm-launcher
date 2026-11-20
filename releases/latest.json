@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.41",
-  "apk": "releases/MG4Launcher-1.0.5-calm.41.apk",
-  "size": 1355365,
-  "notes": "Navidrome search now finds all matches (no 40 cap); shows up to 150 per category with a '+N more' note if there are more. Plus the dark Comfort/Climate tiles, global grouped search, and the map cleartext fix."
+  "version": "1.0.5-calm.42",
+  "apk": "releases/MG4Launcher-1.0.5-calm.42.apk",
+  "size": 1359461,
+  "notes": "Live map polished: the 'Where to?' search bar is hidden over the map, there's a pulsing blue dot on your position, the map follows the car and starts zoomed to street level, with +/- zoom buttons, drag-to-pan, and a Recenter button."
 }
