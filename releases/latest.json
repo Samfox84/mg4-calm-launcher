@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.49",
-  "apk": "releases/MG4Launcher-1.0.5-calm.49.apk",
+  "version": "1.0.5-calm.50",
+  "apk": "releases/MG4Launcher-1.0.5-calm.50.apk",
   "size": 1363557,
-  "notes": "Search no longer gets stuck on 'Indexing' if a category is slow (8s timeout per category, then it moves on). Charge animation clears each frame buffer before reuse to avoid dark flashes. Builds on the map fix and resume toggle."
+  "notes": "Blue position dot + street now show even when parked (position is pushed as soon as the map is ready, and updates keep coming when stationary). Zoom and Recenter buttons enlarged. Added song-cache diagnostics so the next log shows why song search isn't populating."
 }
