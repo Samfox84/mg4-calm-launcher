@@ -2968,6 +2968,15 @@ public final class HomeView extends LinearLayout {
         super.onAttachedToWindow();
         startGlow();
         startIdleWatch();
+        com.mg4.launcher.svc.WheelKeys.setAction((code, down, lp) -> {
+            if (!down || (code != 3 && code != 4 && code != 5)) return;
+            post(() -> {
+                if (!libShowing || musicCtl == null) return;   // solo quando suona la libreria; sennò lascia fare all'auto
+                if (code == 3) musicTogglePlay();
+                else if (code == 4) musicSkip(false);
+                else musicSkip(true);
+            });
+        });
     }
 
     private void startGlow() {
@@ -3280,6 +3289,7 @@ public final class HomeView extends LinearLayout {
         super.onDetachedFromWindow();
         stopGlow();
         stopIdleWatch();
+        com.mg4.launcher.svc.WheelKeys.setAction(null);
         try { if (musicCtl != null && musicCb != null) musicCtl.unregisterCallback(musicCb); } catch (Exception ignored) {}
         try { if (musicBrowser != null) musicBrowser.disconnect(); } catch (Exception ignored) {}
         musicBrowser = null; musicCtl = null;

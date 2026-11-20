@@ -20,6 +20,7 @@ public final class WheelKeys {
 
     private static boolean registered;
     private static volatile Listener probe;
+    private static volatile Listener action;
     private static int count;
     private static final java.util.TreeMap<Integer, Integer> perCode = new java.util.TreeMap<>();
 
@@ -36,6 +37,8 @@ public final class WheelKeys {
                     note(code, down, lp);
                     Listener l = probe;
                     if (l != null) l.onKey(code, down, lp);
+                    Listener a = action;
+                    if (a != null) a.onKey(code, down, lp);
                 }
             }, new IntentFilter(ACTION));
             registered = true;
@@ -48,6 +51,11 @@ public final class WheelKeys {
     /** Prova del Controllo funzioni: riceve i tasti finché non si rimette null. */
     public static void setProbe(Listener l) {
         probe = l;
+    }
+
+    /** Comando persistente: il launcher inoltra i tasti alla libreria quando è lei a suonare. */
+    public static void setAction(Listener l) {
+        action = l;
     }
 
     public static String name(int code) {
