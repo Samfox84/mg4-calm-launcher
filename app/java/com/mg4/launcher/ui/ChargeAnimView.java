@@ -346,7 +346,7 @@ public final class ChargeAnimView extends View {
             o.inMutable = true;
             o.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap reuse = p.buf[slot];
-            if (reuse != null && !reuse.isRecycled()) o.inBitmap = reuse;
+            if (reuse != null && !reuse.isRecycled()) { reuse.eraseColor(android.graphics.Color.TRANSPARENT); o.inBitmap = reuse; }
             Bitmap b = BitmapFactory.decodeFile(f.getAbsolutePath(), o);
             if (b != null) p.buf[slot] = b;
             return b;

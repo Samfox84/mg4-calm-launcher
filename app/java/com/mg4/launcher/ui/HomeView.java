@@ -2888,14 +2888,18 @@ public final class HomeView extends LinearLayout {
                 final String catName = labelOf(cat);
                 pending[0]++;
                 try { musicBrowser.unsubscribe(cat.getMediaId()); } catch (Exception ignored) {}
+                final boolean[] counted = { false };
+                final Runnable countOne = new Runnable() {
+                    @Override public void run() { if (!counted[0]) { counted[0] = true; finishOne(pending); } }
+                };
                 musicBrowser.subscribe(cat.getMediaId(), new android.media.browse.MediaBrowser.SubscriptionCallback() {
-                    private boolean counted = false;
                     @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                         catalogue.put(catName, new java.util.ArrayList<>(children));
-                        if (!counted) { counted = true; finishOne(pending); }
+                        countOne.run();
                     }
-                    @Override public void onError(String pid) { if (!counted) { counted = true; finishOne(pending); } }
+                    @Override public void onError(String pid) { countOne.run(); }
                 });
+                postDelayed(countOne, 8000);   // una categoria che non risponde non blocca l'indice (e quindi la ricerca)
             }
             if (pending[0] == 0) { indexing = false; indexed = true; }
         }

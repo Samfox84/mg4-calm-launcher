@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.49
+- **Ricerca: l'indice si completa sempre**: una categoria che non risponde non blocca piu' l'indicizzazione (timeout 8 s), cosi' la ricerca non resta su "Indicizzazione".
+- **Animazione ricarica**: il buffer del fotogramma viene pulito prima di riusarlo, per evitare lampi scuri.
+
 #### 1.0.5-calm.48
 - **Mappa riparata**: un errore JavaScript (q non definito, introdotto con la riduzione notturna) bloccava tutta la pagina mappa su "ricerca posizione". Corretto.
 - **Riprendi all'avvio (interruttore)**: nuova opzione per NON far ripartire l'ultima sorgente (radio) all'accensione.
@@ -1069,6 +1073,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.49
+- **Search: the index always completes**: a category that doesn't respond no longer blocks indexing (8s timeout), so search won't get stuck on "Indexing".
+- **Charge animation**: the frame buffer is cleared before reuse, to avoid dark flashes.
 
 #### 1.0.5-calm.48
 - **Map fixed**: a JavaScript error (q not defined, introduced with night-dim) crashed the whole map page, leaving it stuck on "finding position". Fixed.
