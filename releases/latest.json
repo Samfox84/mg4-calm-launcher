@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.24",
-  "apk": "releases/MG4Launcher-1.0.5-calm.24.apk",
+  "version": "1.0.5-calm.25",
+  "apk": "releases/MG4Launcher-1.0.5-calm.25.apk",
   "size": 1248056,
-  "notes": "Media: tap Radio/USB/Bluetooth to stop Navidrome and go back to the car source; the media box now shows the Navidrome album artwork (when the app provides it). Note: diagnostic log upload still needs the GitHub token permission fixed (404)."
+  "notes": "Rebuilt with the corrected logs token. Update, drive a moment, then Settings - System - Save log: the log should finally upload (no more 404)."
 }
