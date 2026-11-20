@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.46
+- **Correzioni dal secondo giro di test**: un album che non risponde non blocca piu' la cache dei brani (timeout di 6 s e salta); con la mappa dal vivo gli overlay di navigazione ("Dove vuoi andare", scheda svolta) restano nascosti anche dopo un aggiornamento di stato.
+
 #### 1.0.5-calm.45
 - **Cache completa Navidrome + barra di avanzamento**: indicizza categorie e TUTTI i brani (scorrendo gli album); barra di avanzamento durante la cache; la ricerca filtra tutto all'istante.
 - **Correzioni (stabilita')**: la WebView e il server locale della mappa ora vengono liberati alla ricostruzione della home (niente perdite); timeout sulle connessioni del mini-server; niente brani doppi se si riapre la libreria durante l'indicizzazione.
@@ -1054,6 +1057,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.46
+- **Fixes from the second test pass**: an unresponsive album no longer stalls the whole song cache (6s timeout, then it skips); with the live map on, the navigation overlays ("Where to?", turn card) now stay hidden even after a state update.
 
 #### 1.0.5-calm.45
 - **Full Navidrome cache + progress bar**: indexes categories and ALL songs (walking every album); a progress bar shows during caching; search filters everything instantly.

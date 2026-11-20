@@ -1297,12 +1297,13 @@ public final class HomeView extends LinearLayout {
         MediaClient.State m = media.last();
         boolean remote = m.deviceType != 0 && m.tbtActive;
         boolean guiding = n.navigating || remote;
-        navHomeBtn.setVisibility(n.connected && n.hasHome ? VISIBLE : GONE);
-        navOfficeBtn.setVisibility(n.connected && n.hasOffice ? VISIBLE : GONE);
-        navPlaces.setVisibility(n.connected && (n.hasHome || n.hasOffice) ? VISIBLE : GONE);
-        navIdle.setVisibility(guiding ? GONE : VISIBLE);
-        navCard.setVisibility(guiding ? VISIBLE : GONE);
-        navEta.setVisibility(n.navigating && !remote && n.remainSeconds > 0 ? VISIBLE : GONE);
+        boolean lm = prefs.liveMap();   // con la mappa dal vivo il pannello resta pulito: niente overlay di navigazione
+        navHomeBtn.setVisibility(!lm && n.connected && n.hasHome ? VISIBLE : GONE);
+        navOfficeBtn.setVisibility(!lm && n.connected && n.hasOffice ? VISIBLE : GONE);
+        navPlaces.setVisibility(!lm && n.connected && (n.hasHome || n.hasOffice) ? VISIBLE : GONE);
+        navIdle.setVisibility(!lm && !guiding ? VISIBLE : GONE);
+        navCard.setVisibility(!lm && guiding ? VISIBLE : GONE);
+        navEta.setVisibility(!lm && n.navigating && !remote && n.remainSeconds > 0 ? VISIBLE : GONE);
         // 1.0.5: icona della manovra dal codice del navigatore MG (0-39, ManeuverIcons); CarPlay/AA: freccia generica
         int icon = remote ? R.drawable.ic_turn : ManeuverIcons.drawable(n.turnIcon);
         navManeuverIcon.setImageResource(icon);
@@ -2890,23 +2891,27 @@ public final class HomeView extends LinearLayout {
             showProgress(songCursor, songAlbumIds.size());
             final String aid = songAlbumIds.get(songCursor);
             try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
+            final boolean[] done = { false };
+            // un solo avanzamento, sia dal callback sia dal timeout: un album che non risponde non blocca tutto
+            final Runnable advance = new Runnable() {
+                @Override public void run() {
+                    if (done[0]) return; done[0] = true;
+                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
+                    songCursor++;
+                    processNextAlbum();
+                }
+            };
             musicBrowser.subscribe(aid, new android.media.browse.MediaBrowser.SubscriptionCallback() {
-                private boolean once = false;
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
-                    if (once) return; once = true;
-                    java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
-                    if (songs != null) for (android.media.browse.MediaBrowser.MediaItem mi : children) if (!mi.isBrowsable()) songs.add(mi);
-                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
-                    songCursor++;
-                    processNextAlbum();
+                    if (!done[0]) {
+                        java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
+                        if (songs != null) for (android.media.browse.MediaBrowser.MediaItem mi : children) if (!mi.isBrowsable()) songs.add(mi);
+                    }
+                    advance.run();
                 }
-                @Override public void onError(String pid) {
-                    if (once) return; once = true;
-                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
-                    songCursor++;
-                    processNextAlbum();
-                }
+                @Override public void onError(String pid) { advance.run(); }
             });
+            postDelayed(advance, 6000);   // salta un album che non risponde entro 6 s
         }
 
         private void showProgress(int done, int total) {
