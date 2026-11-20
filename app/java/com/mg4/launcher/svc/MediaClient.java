@@ -1490,7 +1490,7 @@ public final class MediaClient {
     private volatile String pendingPowerOn;
 
     private void resumeAfterPowerOn(String why) {
-        if (!ctx.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getBoolean("resumeMedia", true)) {
+        if (!ctx.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getBoolean("resumeMedia", false)) {
             Diag.put("media.avvio", "ripresa disattivata nelle impostazioni (" + why + ")");
             return;
         }

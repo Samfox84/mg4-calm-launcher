@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.54
+- **La radio non parte piu' da sola all'avvio**: "Riprendi l'ultima sorgente" ora e' spento di default (si puo' riaccendere in Impostazioni - Home).
+- **Sfumatura mappa riparata**: su questa WebView vecchia `inset:0` non funzionava, quindi la sfumatura dei bordi non si vedeva; ora i bordi sfumano nel buio del cruscotto.
+
 #### 1.0.5-calm.53
 - **Pulsante "Re-sync" nella libreria**: ora e' in alto nel pannello della libreria (facile da trovare), ricammina tutta la libreria.
 - **Mappa: via corrente piu' robusta** (prova piu' zoom e ordini di coordinate) e **sfumatura bordi piu' marcata**.
@@ -1091,6 +1095,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.54
+- **Radio no longer auto-starts**: "Resume last source on start" is now OFF by default (re-enable in Settings - Home).
+- **Map edge gradient fixed**: this old WebView ignored `inset:0`, so the fade never painted; map edges now blend into the dark dash.
 
 #### 1.0.5-calm.53
 - **"Re-sync" button in the library**: now at the top of the library panel (easy to find), re-walks the whole library.

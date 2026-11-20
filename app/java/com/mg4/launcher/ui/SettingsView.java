@@ -524,7 +524,7 @@ public final class SettingsView extends FrameLayout {
                     host.settingsChanged(true);
                 }), false));
         card.addView(row(c, "Resume last source on start",
-                "When the car powers on, start playing whatever was last playing (radio, Bluetooth...). Turn off to start silent.",
+                "Off by default: the launcher starts silent. Turn on to auto-resume whatever was last playing (radio, Bluetooth...) when the car powers on.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));
         card.addView(choice(c, "Re-sync music library", false, v -> {
             HomeView.forceLibResync = true;
