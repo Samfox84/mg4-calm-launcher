@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.35
+- **Mappa offline: dimensione corretta** - la mappa ora ricalcola le dimensioni, così riempie il pannello invece di disegnare un solo riquadro nell'angolo.
+
 #### 1.0.5-calm.34
 - **Mappa offline: stessa origine** - la pagina mappa e il file .pmtiles ora sono serviti entrambi dal mini-server locale (http), così il vecchio WebView non blocca più il fetch dei dati.
 
@@ -1018,6 +1021,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.35
+- **Offline map: correct sizing** - the map now recalculates its size so it fills the panel instead of drawing a single corner tile.
 
 #### 1.0.5-calm.34
 - **Offline map: same-origin serving** - the map page and the .pmtiles file are now both served by the local mini-server (http), so the old WebView no longer blocks the data fetch.

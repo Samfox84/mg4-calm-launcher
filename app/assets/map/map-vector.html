@@ -30,10 +30,14 @@
     function ok(){ if(!reported){ reported=true; try{AndroidMap.status('engine-ok');}catch(e){} } }
     if (layer.on){ layer.on('load', ok); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tile');}catch(e){} }); }
     layer.addTo(map);
+    // Leaflet renders at the size it had on load; recalc once the panel has real dimensions
+    function resize(){ try{ map.invalidateSize(true); }catch(e){} }
+    window.addEventListener('resize', resize);
+    setTimeout(resize,150); setTimeout(resize,500); setTimeout(resize,1200); setTimeout(resize,2500);
     setTimeout(ok, 3000);           // fallback if 'load' never fires
     var first=true;
     window.setPos=function(lat,lon){
-      var ll=[lat,lon];
+      var ll=[lat,lon]; resize();
       if(first){ map.setView(ll,15); first=false; try{AndroidMap.status('fix');}catch(e){} }
       else { map.panTo(ll,{animate:true,duration:0.8}); }
     };
