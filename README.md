@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.24
+- **Ritorno alla radio**: toccando Radio/USB/Bluetooth la libreria si ferma e il riquadro torna alla sorgente dell'auto.
+- **Copertina**: il riquadro media mostra la copertina del brano Navidrome (se l'app la fornisce).
+
 #### 1.0.5-calm.23
 - **Libreria ovunque**: titolo, artista e icona play/pausa della libreria Navidrome ora si riflettono anche nella barra in basso e nel widget laterale, non solo nel riquadro media.
 
@@ -984,6 +988,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.24
+- **Back to radio**: tapping Radio/USB/Bluetooth stops the library and the box returns to the car source.
+- **Album art**: the media box shows the Navidrome track's artwork (when the app provides it).
 
 #### 1.0.5-calm.23
 - **Library everywhere**: the Navidrome title, artist and play/pause icon now show in the bottom bar and side widget too, not just the media panel.

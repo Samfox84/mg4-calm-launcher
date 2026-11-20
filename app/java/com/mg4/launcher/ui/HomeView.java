@@ -189,6 +189,14 @@ public final class HomeView extends LinearLayout {
     private android.media.session.MediaController musicCtl;
     private android.media.session.MediaController.Callback musicCb;
 
+    private boolean libShowing;   // il riquadro media sta mostrando la libreria (non una sorgente dell'auto)
+
+    private void setArt(ImageView v, android.graphics.Bitmap art) {
+        if (v == null) return;
+        if (art != null) { v.clearColorFilter(); v.setImageBitmap(art); }
+        else { v.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN); v.setImageResource(R.drawable.ic_music); }
+    }
+
     /** true se la libreria (Ultrasonic/Navidrome) ha una sessione attiva. */
     private boolean musicActive() {
         if (musicCtl == null) return false;
@@ -198,13 +206,13 @@ public final class HomeView extends LinearLayout {
                 || ps.getState() == android.media.session.PlaybackState.STATE_BUFFERING);
     }
     private void musicTogglePlay() {
-        if (!musicActive()) { media.playPause(); return; }
+        if (!libShowing) { media.playPause(); return; }
         android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
         if (ps != null && ps.getState() == android.media.session.PlaybackState.STATE_PLAYING) musicCtl.getTransportControls().pause();
         else musicCtl.getTransportControls().play();
     }
     private void musicSkip(boolean fwd) {
-        if (!musicActive()) { media.skip(fwd); return; }
+        if (!libShowing) { media.skip(fwd); return; }
         if (fwd) musicCtl.getTransportControls().skipToNext(); else musicCtl.getTransportControls().skipToPrevious();
     }
     private static final int LIBRARY = -100;   // sorgente "Library" (non e' una sorgente dell'auto)
@@ -1597,6 +1605,7 @@ public final class HomeView extends LinearLayout {
                 b.setTag(src);
                 b.setContentDescription(sourceLabel(src));
                 b.setOnClickListener(v -> {
+                    if (musicCtl != null) musicCtl.getTransportControls().pause();   // ferma la libreria: torna alla sorgente auto
                     pendingSource = src;
                     pendingSourceUntil = SystemClock.uptimeMillis() + 3000;
                     styleSources(src);
@@ -1887,12 +1896,20 @@ public final class HomeView extends LinearLayout {
     public void onMedia(MediaClient.State m) {
         boolean radio = m.source == MediaClient.SRC_RADIO;
         showSources(m);
+        libShowing = false;
+        if (musicCtl != null) {
+            android.media.session.PlaybackState ps0 = musicCtl.getPlaybackState();
+            int st0 = ps0 != null ? ps0.getState() : 0;
+            boolean up = st0 == android.media.session.PlaybackState.STATE_PLAYING;
+            boolean has = up || st0 == android.media.session.PlaybackState.STATE_PAUSED || st0 == android.media.session.PlaybackState.STATE_BUFFERING;
+            libShowing = up || (has && !m.playing);   // la libreria cede alla sorgente auto quando questa suona
+        }
         mTitle.setText(m.title);
         mSub.setText(m.subtitle);
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         // rubato ai comandi (prima in "Molto grande" il tasto play risultava tagliato)
         mSub.setVisibility(m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
-        if (musicActive()) { radio = false; styleSources(LIBRARY); }
+        if (libShowing) { radio = false; styleSources(LIBRARY); }
         boolean logo = radio && m.logo != null;
         artLogo.setVisibility(logo ? VISIBLE : GONE);
         if (logo) artLogo.setImageBitmap(m.logo);
@@ -1966,7 +1983,7 @@ public final class HomeView extends LinearLayout {
             miniArt.setImageResource(sourceIcon(m.source));
         }
 
-        if (musicActive()) {
+        if (libShowing) {
             android.media.MediaMetadata md = musicCtl.getMetadata();
             android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
             boolean playing = ps != null && ps.getState() == android.media.session.PlaybackState.STATE_PLAYING;
@@ -1974,22 +1991,28 @@ public final class HomeView extends LinearLayout {
             String ar = md != null ? md.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST) : null;
             if (tt == null || tt.isEmpty()) tt = "Library";
             if (ar == null) ar = "";
+            android.graphics.Bitmap art = null;
+            if (md != null) {
+                art = md.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART);
+                if (art == null) art = md.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART);
+                if (art == null && md.getDescription() != null) art = md.getDescription().getIconBitmap();
+            }
+            String subLine = ar.isEmpty() ? "Library" : "Library \u00b7 " + ar;
+            int picon = playing ? R.drawable.ic_pause : R.drawable.ic_play;
             mTitle.setText(tt);
             mSub.setText(ar); mSub.setVisibility(ar.isEmpty() ? GONE : VISIBLE);
             if (mMeta != null) mMeta.setText("NAVIDROME");
-            int picon = playing ? R.drawable.ic_pause : R.drawable.ic_play;
             playIcon.setImageResource(picon);
             miniPlayIcon.setImageResource(picon);
             miniTitle.setText(tt);
-            miniSub.setText(ar.isEmpty() ? "Library" : "Library \u00b7 " + ar);
-            miniArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
-            miniArt.setImageResource(R.drawable.ic_music);
+            miniSub.setText(subLine);
+            setArt(artIcon, art);
+            setArt(miniArt, art);
             if (sideMediaTitle != null) {
                 sideMediaTitle.setText(tt);
-                sideMediaSub.setText(ar.isEmpty() ? "Library" : "Library \u00b7 " + ar);
+                sideMediaSub.setText(subLine);
                 sideMediaPlay.setImageResource(picon);
-                sideMediaArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
-                sideMediaArt.setImageResource(R.drawable.ic_music);
+                setArt(sideMediaArt, art);
             }
         }
 
