@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.44",
-  "apk": "releases/MG4Launcher-1.0.5-calm.44.apk",
+  "version": "1.0.5-calm.45",
+  "apk": "releases/MG4Launcher-1.0.5-calm.45.apk",
   "size": 1359461,
-  "notes": "Navidrome search now indexes the whole library once when you open it, then filters instantly from memory as you type - grouped by Albums/Artists/Songs/Playlists. Plus the map soft gradient and live current-street name."
+  "notes": "Full Navidrome cache: indexes every album and all songs with a progress bar, then search filters the whole library instantly. Plus stability fixes - map WebView/server released on home rebuild (no leaks), mini-server connection timeouts, and no duplicate songs if you reopen the library mid-index."
 }
