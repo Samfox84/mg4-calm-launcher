@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.23",
-  "apk": "releases/MG4Launcher-1.0.5-calm.23.apk",
+  "version": "1.0.5-calm.24",
+  "apk": "releases/MG4Launcher-1.0.5-calm.24.apk",
   "size": 1248056,
-  "notes": "Navidrome now-playing shows everywhere: the play/pause icon flips correctly and the bottom bar and side widget show the track too. (The steering-wheel media button is still the car's own - that one likely can't be reached from the launcher.)"
+  "notes": "Media: tap Radio/USB/Bluetooth to stop Navidrome and go back to the car source; the media box now shows the Navidrome album artwork (when the app provides it). Note: diagnostic log upload still needs the GitHub token permission fixed (404)."
 }
