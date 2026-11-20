@@ -20,22 +20,26 @@
 <div id="map"></div>
 <div id="me"></div>
 <script>
+  window.onerror=function(m,src,ln,col,err){ try{console.error('map: window.onerror '+m+' @'+src+':'+ln);}catch(e){} };
   function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
+  console.log('map: page start, origin='+location.origin);
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,dragging:false,touchZoom:false,
         doubleClickZoom:false,scrollWheelZoom:false,keyboard:false,boxZoom:false,inertia:false}).setView([52.5,-2.5],15);
+    console.log('map: creating layer url='+purl);
     var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en'});
     var reported=false;
     function ok(){ if(!reported){ reported=true; try{AndroidMap.status('engine-ok');}catch(e){} } }
     if (layer.on){ layer.on('load', ok); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tile');}catch(e){} }); }
     layer.addTo(map);
+    console.log('map: layer added');
     // Leaflet renders at the size it had on load; recalc once the panel has real dimensions
     function resize(){ try{ map.invalidateSize(true); }catch(e){} }
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,500); setTimeout(resize,1200); setTimeout(resize,2500);
     var tileN=0;
-    if (layer.on){ layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
+    if (layer.on){ layer.on('tileload', function(){ tileN++; if(tileN===1) console.log('map: first tile drawn'); }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     setTimeout(ok, 3000);           // fallback if 'load' never fires
     var first=true;
@@ -45,7 +49,7 @@
       else { map.panTo(ll,{animate:true,duration:0.8}); }
     };
     try{AndroidMap.status('page-ready');}catch(e){}
-  }catch(e){ try{AndroidMap.status('engine-error:'+e);}catch(x){} }
+  }catch(e){ console.error('map: fatal '+(e&&e.stack?e.stack:e)); try{AndroidMap.status('engine-error:'+e);}catch(x){} }
 </script>
 </body>
 </html>

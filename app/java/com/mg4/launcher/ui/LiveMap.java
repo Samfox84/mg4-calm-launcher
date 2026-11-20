@@ -48,8 +48,10 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         web.setWebViewClient(new android.webkit.WebViewClient());
         web.setWebChromeClient(new android.webkit.WebChromeClient() {
             @Override public boolean onConsoleMessage(android.webkit.ConsoleMessage m) {
-                if (m != null && m.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR)
-                    Diag.put("map.console", m.message() + " @" + m.sourceId() + ":" + m.lineNumber());
+                if (m != null) {
+                    String lvl = m.messageLevel() != null ? m.messageLevel().name() : "LOG";
+                    Diag.put("map.console", lvl + ": " + m.message() + " @" + m.sourceId() + ":" + m.lineNumber());
+                }
                 return true;
             }
         });
