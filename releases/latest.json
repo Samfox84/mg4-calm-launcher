@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.30",
-  "apk": "releases/MG4Launcher-1.0.5-calm.30.apk",
-  "size": 1880331,
-  "notes": "Offline vector maps: drop a .pmtiles file for your area into the head unit's Download (or a CalmMap) folder and the live map runs fully offline - calm dark streets, street names, and the current street shown at the top, no data signal needed. The online fallback is now keyless (no more 'API key' message)."
+  "version": "1.0.5-calm.31",
+  "apk": "releases/MG4Launcher-1.0.5-calm.31.apk",
+  "size": 1355365,
+  "notes": "Offline map now uses a browser-compatible engine (Leaflet + protomaps-leaflet, Canvas, no WebGL) so it renders on the head unit's old browser. It reads your calm-map.pmtiles with a calm dark theme. Update, open the live map, and it should draw your streets offline."
 }
