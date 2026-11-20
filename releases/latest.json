@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.46",
-  "apk": "releases/MG4Launcher-1.0.5-calm.46.apk",
-  "size": 1359461,
-  "notes": "Second deep-test pass fixes: an unresponsive album no longer stalls the song cache (6s timeout then skip), and the navigation overlays stay hidden over the live map even after a state update. Builds on the full cache + progress bar and all earlier fixes."
+  "version": "1.0.5-calm.47",
+  "apk": "releases/MG4Launcher-1.0.5-calm.47.apk",
+  "size": 1363557,
+  "notes": "Library album art thumbnails (cached), speed-aware map zoom, live-map night-dim (same toggle as the standby clock), and the charging line now shows the target % alongside power and time-to-full. Now-playing with cover art was already built."
 }
