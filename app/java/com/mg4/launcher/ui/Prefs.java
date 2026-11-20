@@ -85,6 +85,8 @@ public final class Prefs {
     public void setShowOnline(boolean b) { sp.edit().putBoolean("showOnline", b).apply(); }
     public boolean standbyClock() { return sp.getBoolean("standbyClock", true); }
     public void setStandbyClock(boolean b) { sp.edit().putBoolean("standbyClock", b).apply(); }
+    public int standbyStyle() { return Math.max(0, Math.min(3, sp.getInt("standbyStyle", 0))); }   // 0 grande 1 digitale 2 minimale 3 combo
+    public void setStandbyStyle(int i) { sp.edit().putInt("standbyStyle", Math.max(0, Math.min(3, i))).apply(); }
     public int standbyMins() { return Math.max(0, Math.min(2, sp.getInt("standbyMins", 1))); }   // 0=2min 1=5min 2=10min
     public void setStandbyMins(int i) { sp.edit().putInt("standbyMins", Math.max(0, Math.min(2, i))).apply(); }
     public boolean nightDim() { return sp.getBoolean("nightDim", false); }

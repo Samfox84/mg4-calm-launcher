@@ -3078,7 +3078,7 @@ public final class HomeView extends LinearLayout {
         if (standbyAlpha <= 0.01f) return;
         int w = getWidth(), h = getHeight();
         int a = (int) (standbyAlpha * 255);
-        c.drawColor((a << 24) | 0x0E1114);                 // sfondo scuro in dissolvenza
+        c.drawColor((a << 24) | 0x0E1114);
         if (sbStroke == null) {
             sbStroke = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
             sbStroke.setStyle(android.graphics.Paint.Style.STROKE);
@@ -3086,42 +3086,68 @@ public final class HomeView extends LinearLayout {
             sbText = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
             sbText.setTextAlign(android.graphics.Paint.Align.CENTER);
         }
-        float cx = w / 2f, cy = h * 0.46f, r = Math.min(w * 0.30f, h * 0.34f);
         java.util.Calendar cal = java.util.Calendar.getInstance();
-        float sec = cal.get(java.util.Calendar.SECOND) + cal.get(java.util.Calendar.MILLISECOND) / 1000f;
-        float min = cal.get(java.util.Calendar.MINUTE) + sec / 60f;
+        String date = new java.text.SimpleDateFormat("EEEE d MMMM", L.locale()).format(cal.getTime());
+        String hhmm = String.format(java.util.Locale.ROOT, "%02d:%02d", cal.get(java.util.Calendar.HOUR_OF_DAY), cal.get(java.util.Calendar.MINUTE));
+        boolean mi = Units.miles(prefs, lastVehicle.distUnit);
+        String soc = lastVehicle.soc >= 0 ? Math.round(lastVehicle.soc) + "%" : "";
+        String rng = lastVehicle.rangeKm > 0 && lastVehicle.rangeKm < 2000 ? Units.range(lastVehicle.rangeKm, mi) + (mi ? " mi" : " km") : "";
+        String bat = soc + (!soc.isEmpty() && !rng.isEmpty() ? "   \u00b7   " : "") + rng;
+        float cx = w / 2f;
+        int style = prefs.standbyStyle();
+
+        if (style == 1 || style == 2) {                 // 1 = digitale, 2 = minimale
+            if (style == 1) {
+                sbText.setColor(0xFFAEB6BF); sbText.setAlpha(a); sbText.setTextSize(dp(24));
+                c.drawText(date, cx, h * 0.5f - dp(88), sbText);
+            }
+            sbText.setColor(0xFFE7ECF0); sbText.setAlpha(a);
+            sbText.setTextSize(dp(style == 2 ? 120 : 96));
+            android.graphics.Paint.FontMetrics fm = sbText.getFontMetrics();
+            c.drawText(hhmm, cx, h * 0.5f - (fm.ascent + fm.descent) / 2f, sbText);
+            if (style == 1 && !bat.isEmpty()) {
+                sbText.setColor(0xFFC7CDD3); sbText.setAlpha(a); sbText.setTextSize(dp(20));
+                c.drawText(bat, cx, h * 0.5f + dp(98), sbText);
+            }
+            return;
+        }
+
+        // analogico definito: 0 = grande, 3 = con ora digitale sotto
+        float r = Math.min(w * 0.26f, h * 0.32f);
+        float cy = style == 3 ? h * 0.42f : h * 0.47f;
+        sbText.setColor(0xFFAEB6BF); sbText.setAlpha(a); sbText.setTextSize(dp(22));
+        c.drawText(date, cx, cy - r - dp(28), sbText);
+        drawBoldClock(c, cx, cy, r, a, cal);
+        float belowY = cy + r + dp(44);
+        if (style == 3) {
+            sbText.setColor(0xFFE7ECF0); sbText.setAlpha(a); sbText.setTextSize(dp(34));
+            c.drawText(hhmm, cx, cy + r + dp(48), sbText);
+            belowY = cy + r + dp(86);
+        }
+        sbText.setColor(0xFFC7CDD3); sbText.setAlpha(a); sbText.setTextSize(dp(20));
+        if (!bat.isEmpty()) c.drawText(bat, cx, belowY, sbText);
+    }
+
+    /** Quadrante analogico "definito" (AuDHD): anello e tacche spesse, lancette spesse, niente secondi. */
+    private void drawBoldClock(android.graphics.Canvas c, float cx, float cy, float r, int a, java.util.Calendar cal) {
+        float min = cal.get(java.util.Calendar.MINUTE) + cal.get(java.util.Calendar.SECOND) / 60f;
         float hr = (cal.get(java.util.Calendar.HOUR_OF_DAY) % 12) + min / 60f;
-        // anello
-        sbStroke.setColor(0xFF242C33); sbStroke.setAlpha(a); sbStroke.setStrokeWidth(dp(2));
+        sbStroke.setColor(0xFF2E3741); sbStroke.setAlpha(a); sbStroke.setStrokeWidth(dp(3));
         c.drawCircle(cx, cy, r, sbStroke);
-        // tacche ore
-        sbStroke.setColor(0xFF39434C); sbStroke.setAlpha(a);
+        sbStroke.setColor(0xFF6B7682); sbStroke.setAlpha(a);
         for (int i = 0; i < 12; i++) {
             double ang = Math.toRadians(i * 30);
-            float o = (i % 3 == 0) ? dp(14) : dp(8);
-            sbStroke.setStrokeWidth(i % 3 == 0 ? dp(3) : dp(2));
+            boolean card = i % 3 == 0;
+            float o = card ? dp(20) : dp(12);
+            sbStroke.setStrokeWidth(card ? dp(6) : dp(4));
             c.drawLine(cx + (float) Math.sin(ang) * (r - o), cy - (float) Math.cos(ang) * (r - o),
                     cx + (float) Math.sin(ang) * r, cy - (float) Math.cos(ang) * r, sbStroke);
         }
-        // lancette
-        drawHand(c, cx, cy, hr / 12f * 360f, r * 0.52f, dp(6), 0xFFD9DEE2, a);
-        drawHand(c, cx, cy, min / 60f * 360f, r * 0.78f, dp(4), 0xFFD9DEE2, a);
-        drawHand(c, cx, cy, sec / 60f * 360f, r * 0.82f, dp(2), 0xFF5FA87C, a);
-        sbStroke.setColor(0xFFD9DEE2); sbStroke.setAlpha(a); sbStroke.setStyle(android.graphics.Paint.Style.FILL);
-        c.drawCircle(cx, cy, dp(5), sbStroke);
+        drawHand(c, cx, cy, hr / 12f * 360f, r * 0.50f, dp(11), 0xFFE7ECF0, a);
+        drawHand(c, cx, cy, min / 60f * 360f, r * 0.80f, dp(7), 0xFFE7ECF0, a);
+        sbStroke.setColor(0xFFE7ECF0); sbStroke.setAlpha(a); sbStroke.setStyle(android.graphics.Paint.Style.FILL);
+        c.drawCircle(cx, cy, dp(7), sbStroke);
         sbStroke.setStyle(android.graphics.Paint.Style.STROKE);
-        // data
-        sbText.setColor(0xFFAEB6BF); sbText.setAlpha(a); sbText.setTextSize(dp(22));
-        String date = new java.text.SimpleDateFormat("EEEE d MMMM", L.locale()).format(cal.getTime());
-        c.drawText(date, cx, cy - r - dp(26), sbText);
-        // batteria
-        boolean mi = Units.miles(prefs, lastVehicle.distUnit);
-        String soc = lastVehicle.soc >= 0 ? Math.round(lastVehicle.soc) + "%" : "";
-        String rng = lastVehicle.rangeKm > 0 && lastVehicle.rangeKm < 2000
-                ? Units.range(lastVehicle.rangeKm, mi) + (mi ? " mi" : " km") : "";
-        String bat = soc + (!soc.isEmpty() && !rng.isEmpty() ? "   ·   " : "") + rng;
-        sbText.setColor(0xFFC7CDD3); sbText.setAlpha(a); sbText.setTextSize(dp(20));
-        if (!bat.isEmpty()) c.drawText(bat, cx, cy + r + dp(44), sbText);
     }
 
     private void drawHand(android.graphics.Canvas c, float cx, float cy, float deg, float len, float wdt, int color, int alpha) {

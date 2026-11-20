@@ -1078,6 +1078,19 @@ public final class SettingsView extends FrameLayout {
             }));
         }
         col.addView(fsb, topFull(14));
+        col.addView(label(c, "Clock face"), top(20));
+        String[] sbFaces = {"Bold", "Digital", "Minimal", "Combo"};
+        int[] sbFaceIdx = {0, 1, 2, 3};
+        Flow fsf = new Flow(c);
+        for (int fi = 0; fi < sbFaces.length; fi++) {
+            final int idx = sbFaceIdx[fi];
+            fsf.addView(choice(c, sbFaces[fi], prefs.standbyStyle() == idx, v -> {
+                if (prefs.standbyStyle() == idx) return;
+                prefs.setStandbyStyle(idx);
+                host.settingsChanged(false);
+            }));
+        }
+        col.addView(fsf, topFull(14));
         col.addView(choice(c, "Preview now", false, v -> { host.closeSettings(); host.previewStandby(); }), top(14));
 
         col.addView(label(c, "Dim at night"), top(28));
