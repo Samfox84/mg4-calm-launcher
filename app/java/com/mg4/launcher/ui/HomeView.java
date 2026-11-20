@@ -2745,7 +2745,7 @@ public final class HomeView extends LinearLayout {
         private final java.util.ArrayDeque<String> toExpand = new java.util.ArrayDeque<>();
         private final java.util.HashSet<String> visited = new java.util.HashSet<>();
         private final java.util.HashSet<String> songIds = new java.util.HashSet<>();
-        private int inFlight, expandedCount;
+        private int inFlight, expandedCount, totChildren, totBrowsable;
         private static final int SYNC_MAX_INFLIGHT = 4;
         private static final int SYNC_CAP = 20000;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
@@ -2773,6 +2773,11 @@ public final class HomeView extends LinearLayout {
             head.addView(backBtn, new LayoutParams(dp(56), dp(56)));
             titleTv = Ui.oneLine(Ui.text(c, "Library", big ? 24 : 20, t.text, Ui.MEDIUM));
             head.addView(titleTv, Ui.margins(Ui.lpWeight(0, -2, 1), dp(16), 0, dp(16), 0));
+            TextView resyncBtn = Ui.oneLine(Ui.text(c, "Re-sync", big ? 18 : 16, t.accent, Ui.MEDIUM));
+            resyncBtn.setPadding(dp(16), dp(10), dp(16), dp(10));
+            resyncBtn.setBackground(Ui.pressable(c, 0, dp(12), t));
+            resyncBtn.setOnClickListener(v -> { Sfx.click(); doResync(); });
+            head.addView(resyncBtn, Ui.margins(new LayoutParams(-2, -2), 0, 0, dp(12), 0));
             head.addView(Ui.text(c, L.s(R.string.tap_outside_close), 15, t.sub, Ui.REGULAR), new LayoutParams(-2, -2));
             card.addView(head, new LayoutParams(-1, -2));
 
@@ -2888,6 +2893,14 @@ public final class HomeView extends LinearLayout {
             });
         }
 
+        /** Pulsante "Re-sync": svuota la cache e ricammina tutta la libreria. */
+        private void doResync() {
+            indexed = false; everIndexed = false; songsIndexed = false; songIndexing = false;
+            catalogue.clear(); visited.clear(); toExpand.clear(); songIds.clear();
+            message("Re-syncing\u2026");
+            if (rootId != null) load(rootId);
+        }
+
         private String labelOf(android.media.browse.MediaBrowser.MediaItem mi) {
             CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
             return tt != null ? tt.toString() : (mi.getMediaId() == null ? "" : mi.getMediaId());
@@ -2937,7 +2950,7 @@ public final class HomeView extends LinearLayout {
             if (songsIndexed || songIndexing) return;
             songIndexing = true;
             toExpand.clear(); visited.clear(); songIds.clear();
-            inFlight = 0; expandedCount = 0;
+            inFlight = 0; expandedCount = 0; totChildren = 0; totBrowsable = 0;
             catalogue.put("Songs", new java.util.ArrayList<>());
             for (android.media.browse.MediaBrowser.MediaItem cat : rootCategories)
                 if (cat.isBrowsable() && cat.getMediaId() != null) toExpand.add(cat.getMediaId());
@@ -2966,9 +2979,11 @@ public final class HomeView extends LinearLayout {
                     @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                         if (!done[0]) {
                             java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
+                            totChildren += children.size();
                             for (android.media.browse.MediaBrowser.MediaItem mi : children) {
                                 String cid = mi.getMediaId();
                                 if (mi.isBrowsable()) {
+                                    totBrowsable++;
                                     if (cid != null && !visited.contains(cid) && expandedCount + toExpand.size() < SYNC_CAP) toExpand.add(cid);
                                 } else if (songs != null && cid != null && songIds.add(cid)) {
                                     songs.add(mi);
@@ -2988,7 +3003,7 @@ public final class HomeView extends LinearLayout {
             if (songsIndexed) return;
             songsIndexed = true; everIndexed = true; songIndexing = false; hideProgress();
             java.util.List<android.media.browse.MediaBrowser.MediaItem> sg = catalogue.get("Songs");
-            com.mg4.launcher.svc.Diag.put("lib.canzoni", "sync completo: " + (sg == null ? 0 : sg.size()) + " brani, " + expandedCount + " nodi");
+            com.mg4.launcher.svc.Diag.put("lib.canzoni", "sync completo: " + (sg == null ? 0 : sg.size()) + " brani, " + expandedCount + " nodi, " + totChildren + " figli, " + totBrowsable + " sfogliabili");
             String q = searchBox.getText().toString().trim();
             if (!q.isEmpty()) globalSearch(q);
         }

@@ -15,7 +15,7 @@
   .leaflet-bar a:hover{background:#242C33;}
   #nightdim{position:absolute;inset:0;pointer-events:none;z-index:401;background:rgba(0,0,0,.32);display:none;}
   #vignette{position:absolute;inset:0;pointer-events:none;z-index:400;
-      background:radial-gradient(ellipse 75% 75% at 42% 48%, rgba(14,17,20,0) 52%, rgba(14,17,20,.72) 100%);}
+      background:radial-gradient(ellipse 82% 82% at 45% 46%, rgba(14,17,20,0) 38%, rgba(14,17,20,.55) 78%, rgba(14,17,20,.9) 100%);}
   #street{position:absolute;left:22px;bottom:24px;z-index:500;color:#EEF2F6;font:600 27px sans-serif;
       letter-spacing:.2px;text-shadow:0 2px 12px rgba(0,0,0,.85);pointer-events:none;max-width:58%;}
   .me-dot{width:18px;height:18px;border-radius:50%;background:#4F9BF0;border:2px solid #cfe4ff;
@@ -63,14 +63,22 @@
     setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
 
     function streetAt(lat,lon){
-      try{
-        if(!layer.queryTileFeaturesDebug) return;
-        var fm=layer.queryTileFeaturesDebug(lon,lat,16), nm='';
-        fm.forEach(function(arr){ if(nm) return; for(var i=0;i<arr.length;i++){ var e=arr[i];
-          if(e&&e.layerName==='roads'&&e.feature&&e.feature.props&&e.feature.props.name){ nm=e.feature.props.name; break; } } });
-        if(!loggedQ){ loggedQ=true; var ls=[]; fm.forEach(function(a){a.forEach(function(e){ if(ls.indexOf(e.layerName)<0) ls.push(e.layerName); });}); try{AndroidMap.status('query:layers='+ls.slice(0,10).join(',')+' road='+nm);}catch(e){} }
-        if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
-      }catch(e){ console.error('map: query '+e); }
+      if(!layer.queryTileFeaturesDebug) return;
+      var zCur=Math.floor(map.getZoom());
+      var zooms=[zCur,16,15,14], orders=[[lon,lat],[lat,lon]], nm='', dbg=[];
+      for(var zi=0; zi<zooms.length && !nm; zi++){
+        for(var oi=0; oi<orders.length && !nm; oi++){
+          try{
+            var fm=layer.queryTileFeaturesDebug(orders[oi][0],orders[oi][1],zooms[zi]);
+            var cnt=0, lset={};
+            fm.forEach(function(arr){ arr.forEach(function(e){ cnt++; lset[e.layerName]=1;
+              if(!nm && e.layerName==='roads' && e.feature && e.feature.props && e.feature.props.name) nm=e.feature.props.name; }); });
+            if(cnt>0 && dbg.length<4) dbg.push('z'+zooms[zi]+(oi?'/latlon':'/lonlat')+':'+Object.keys(lset).join('+'));
+          }catch(e){ if(dbg.length<4) dbg.push('err'); }
+        }
+      }
+      if(!loggedQ){ loggedQ=true; try{AndroidMap.status('query:'+(dbg.length?dbg.join(' ; '):'vuoto')+' road='+nm);}catch(e){} }
+      if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
     }
 
     window.setPos=function(lat,lon,speed){

@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.53
+- **Pulsante "Re-sync" nella libreria**: ora e' in alto nel pannello della libreria (facile da trovare), ricammina tutta la libreria.
+- **Mappa: via corrente piu' robusta** (prova piu' zoom e ordini di coordinate) e **sfumatura bordi piu' marcata**.
+- **Logo di avvio animato** (dissolvenza + leggero respiro).
+- Diagnostica estesa al sync (figli/sfogliabili) per capire perche' si ferma.
+
 #### 1.0.5-calm.52
 - **Rifinitura "lusso" (tipografia)**: numeri e titoli piu' sottili e ariosi (batteria, data, titolo brano, "Dove vuoi andare", titoli widget), etichette sorgente con piu' spaziatura. Stesso layout, aspetto piu' pulito e premium.
 
@@ -1085,6 +1091,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.53
+- **"Re-sync" button in the library**: now at the top of the library panel (easy to find), re-walks the whole library.
+- **Map: more robust current-street** (tries several zooms and coordinate orders) and a **stronger edge gradient**.
+- **Animated boot logo** (fade in + gentle breathe).
+- Extended sync diagnostics (children/browsable counts) to see why it stops short.
 
 #### 1.0.5-calm.52
 - **Luxury polish (typography)**: thinner, airier numbers and titles (battery, date, track title, "Where to?", widget titles) and more letter-spacing on source labels. Same layout, cleaner and more premium feel.

@@ -63,6 +63,17 @@ public final class BootSplashActivity extends Activity {
         logo.setImageResource(R.drawable.calm_logo);
         int sz = Math.round(d * 150);
         col.addView(logo, new android.widget.LinearLayout.LayoutParams(sz, sz));
+        logo.setAlpha(0f); logo.setScaleX(0.86f); logo.setScaleY(0.86f);
+        logo.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(850)
+            .setInterpolator(new android.view.animation.DecelerateInterpolator())
+            .withEndAction(new Runnable() { @Override public void run() {
+                logo.animate().scaleX(1.04f).scaleY(1.04f).setDuration(1400)
+                    .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                    .withEndAction(new Runnable() { @Override public void run() {
+                        logo.animate().scaleX(1f).scaleY(1f).setDuration(1400)
+                            .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator()).start();
+                    }}).start();
+            }}).start();
         TextView tv = new TextView(this);
         tv.setText("Calm Launcher");
         tv.setTextColor(0x66FFFFFF);
@@ -70,6 +81,8 @@ public final class BootSplashActivity extends Activity {
         tv.setGravity(Gravity.CENTER);
         android.widget.LinearLayout.LayoutParams tp = new android.widget.LinearLayout.LayoutParams(-2, -2);
         tp.topMargin = Math.round(d * 18);
+        tv.setAlpha(0f);
+        tv.animate().alpha(1f).setDuration(700).setStartDelay(350).start();
         col.addView(tv, tp);
         setContentView(col);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
