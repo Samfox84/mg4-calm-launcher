@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.43",
-  "apk": "releases/MG4Launcher-1.0.5-calm.43.apk",
+  "version": "1.0.5-calm.44",
+  "apk": "releases/MG4Launcher-1.0.5-calm.44.apk",
   "size": 1359461,
-  "notes": "Map now has softly faded edges and shows the current street name, updating as you drive. (Next: the Navidrome catalogue cache for fast complete search.)"
+  "notes": "Navidrome search now indexes the whole library once when you open it, then filters instantly from memory as you type - grouped by Albums/Artists/Songs/Playlists. Plus the map soft gradient and live current-street name."
 }
