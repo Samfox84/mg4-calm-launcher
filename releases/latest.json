@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.33",
-  "apk": "releases/MG4Launcher-1.0.5-calm.33.apk",
+  "version": "1.0.5-calm.34",
+  "apk": "releases/MG4Launcher-1.0.5-calm.34.apk",
   "size": 1355365,
-  "notes": "Offline map engine fix: the vector renderer's global was being clobbered on the old browser, so nothing drew. Now it loads properly. Update, open the live map - it should finally render your streets."
+  "notes": "Offline map: the map page and your .pmtiles are now both served from the local mini-server over http, so the old browser no longer blocks the data fetch (that was the 'Failed to fetch' in the last log). This should finally draw your streets."
 }
