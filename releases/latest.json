@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.51",
-  "apk": "releases/MG4Launcher-1.0.5-calm.51.apk",
+  "version": "1.0.5-calm.52",
+  "apk": "releases/MG4Launcher-1.0.5-calm.52.apk",
   "size": 1363557,
-  "notes": "Full library sync: walks every level of your library and caches every track (de-duplicated) with a progress bar and live track count. New 'Re-sync music library' button in Settings forces a complete re-sync."
+  "notes": "Luxury polish v1 (typography): thinner, airier numbers and titles (battery, date, track title, 'Where to?', widget titles) and more letter-spacing on source labels. Same layout - just a cleaner, more premium BMW-ish feel."
 }
