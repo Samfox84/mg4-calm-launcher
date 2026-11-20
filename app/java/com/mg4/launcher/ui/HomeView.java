@@ -2682,8 +2682,11 @@ public final class HomeView extends LinearLayout {
         private final android.widget.EditText searchBox;
         private final java.util.List<android.media.browse.MediaBrowser.MediaItem> currentItems = new java.util.ArrayList<>();
         private final java.util.List<android.media.browse.MediaBrowser.MediaItem> rootCategories = new java.util.ArrayList<>();
+        private final java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> catalogue = new java.util.LinkedHashMap<>();
         private String rootId;
         private int searchToken;
+        private boolean indexed, indexing;
+        private String pendingQuery;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2802,7 +2805,7 @@ public final class HomeView extends LinearLayout {
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
                     currentItems.clear();
                     currentItems.addAll(children);
-                    if (pid != null && pid.equals(rootId)) { rootCategories.clear(); rootCategories.addAll(children); }
+                    if (pid != null && pid.equals(rootId)) { rootCategories.clear(); rootCategories.addAll(children); startIndex(); }
                     if (children.isEmpty()) { message("(nothing here)"); return; }
                     String q = searchBox.getText().toString().trim();
                     if (q.isEmpty()) renderList(""); else globalSearch(q);
@@ -2816,30 +2819,48 @@ public final class HomeView extends LinearLayout {
             return tt != null ? tt.toString() : (mi.getMediaId() == null ? "" : mi.getMediaId());
         }
 
-        /** Cerca in tutte le categorie (Album, Artisti, Brani, Playlist) e mostra i risultati raggruppati. */
-        private void globalSearch(final String query) {
-            final int token = ++searchToken;
-            final String q = query.toLowerCase(java.util.Locale.ROOT);
-            if (rootCategories.isEmpty()) { message("Searching\u2026"); return; }
-            final java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections = new java.util.LinkedHashMap<>();
-            message("Searching\u2026");
+        /** Indicizza tutta la libreria una volta (Album, Artisti, Brani, Playlist) per cercare all'istante. */
+        private void startIndex() {
+            if (indexing || rootCategories.isEmpty()) return;
+            indexing = true;
+            final int[] pending = { 0 };
             for (final android.media.browse.MediaBrowser.MediaItem cat : rootCategories) {
                 if (!cat.isBrowsable() || cat.getMediaId() == null) continue;
                 final String catName = labelOf(cat);
+                pending[0]++;
                 try { musicBrowser.unsubscribe(cat.getMediaId()); } catch (Exception ignored) {}
                 musicBrowser.subscribe(cat.getMediaId(), new android.media.browse.MediaBrowser.SubscriptionCallback() {
+                    private boolean counted = false;
                     @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
-                        if (token != searchToken) return;
-                        java.util.List<android.media.browse.MediaBrowser.MediaItem> hits = new java.util.ArrayList<>();
-                        for (android.media.browse.MediaBrowser.MediaItem mi : children) {
-                            if (labelOf(mi).toLowerCase(java.util.Locale.ROOT).contains(q)) hits.add(mi);
-                        }
-                        if (hits.isEmpty()) sections.remove(catName); else sections.put(catName, hits);
-                        renderSearch(sections, token);
+                        catalogue.put(catName, new java.util.ArrayList<>(children));
+                        if (!counted) { counted = true; finishOne(pending); }
                     }
-                    @Override public void onError(String pid) {}
+                    @Override public void onError(String pid) { if (!counted) { counted = true; finishOne(pending); } }
                 });
             }
+            if (pending[0] == 0) { indexing = false; indexed = true; }
+        }
+
+        private void finishOne(int[] pending) {
+            pending[0]--;
+            if (pending[0] <= 0) {
+                indexing = false; indexed = true;
+                if (pendingQuery != null) { String q = pendingQuery; pendingQuery = null; globalSearch(q); }
+            }
+        }
+
+        /** Cerca nella libreria indicizzata e mostra i risultati raggruppati (istantaneo). */
+        private void globalSearch(final String query) {
+            final String q = query.toLowerCase(java.util.Locale.ROOT);
+            if (!indexed) { pendingQuery = query; if (!indexing) startIndex(); message("Indexing library\u2026"); return; }
+            java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections = new java.util.LinkedHashMap<>();
+            for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : catalogue.entrySet()) {
+                java.util.List<android.media.browse.MediaBrowser.MediaItem> hits = new java.util.ArrayList<>();
+                for (android.media.browse.MediaBrowser.MediaItem mi : e.getValue())
+                    if (labelOf(mi).toLowerCase(java.util.Locale.ROOT).contains(q)) hits.add(mi);
+                if (!hits.isEmpty()) sections.put(e.getKey(), hits);
+            }
+            renderSearch(sections, ++searchToken);
         }
 
         private void renderSearch(java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> sections, int token) {
