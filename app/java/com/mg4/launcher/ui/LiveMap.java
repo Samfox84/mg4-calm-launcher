@@ -105,6 +105,8 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         @JavascriptInterface
         public void status(String s) {
             if ("page-ready".equals(s)) { pageReady = true; }
+            else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
+            else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }
             else if ("tiles-ok".equals(s)) { tilesOk = true; Diag.put("map.stato", "riquadri ok (internet auto)"); post(() -> { if (haveFix) status.setVisibility(GONE); }); }
             else if ("tiles-error".equals(s)) { Diag.put("map.stato", "riquadri OFFLINE (niente internet per la mappa)"); post(() -> { status.setText("Map offline – no data signal"); status.setVisibility(VISIBLE); }); }
             else if ("fix".equals(s)) { post(() -> { if (tilesOk) status.setVisibility(GONE); }); }

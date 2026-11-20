@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.29
+- **Mappa: verifica WebGL** per preparare le mappe offline (vettoriali o raster). Lo stato finisce nel log.
+
 #### 1.0.5-calm.28
 - **Mappa dal vivo "dove siamo" (sperimentale)**: mostra la posizione dell'auto su una mappa scura e calma con i nomi delle vie, si ricentra mentre si guida. Solo posizione, non navigazione. Si attiva in Impostazioni.
 
@@ -1000,6 +1003,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.29
+- **Map: WebGL capability check** to prepare offline maps (vector or raster). Result is logged.
 
 #### 1.0.5-calm.28
 - **Live "where we are" map (experimental)**: shows the car's position on a calm dark map with street names, recentres as you drive. Position only, not navigation. Turn it on in Settings.

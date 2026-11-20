@@ -39,6 +39,9 @@
     if(first){ map.setView(ll, 16, {animate:false}); first=false; try{AndroidMap.status('fix');}catch(e){} }
     else { map.panTo(ll, {animate:true, duration:0.8}); }
   };
+  // Capability probe: does the head-unit WebView support WebGL (needed for offline vector maps)?
+  (function(){var gl=null;try{var cv=document.createElement('canvas');gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');}catch(e){}
+    try{AndroidMap.status(gl?'webgl-yes':'webgl-no');}catch(e){}})();
   try{AndroidMap.status('page-ready');}catch(e){}
 </script>
 </body>
