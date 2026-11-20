@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.26",
-  "apk": "releases/MG4Launcher-1.0.5-calm.26.apk",
+  "version": "1.0.5-calm.27",
+  "apk": "releases/MG4Launcher-1.0.5-calm.27.apk",
   "size": 1248056,
-  "notes": "Steering-wheel button now controls Navidrome when it's playing: press to play/pause, and skip forward/back. (Found in the logs that the wheel presses do reach the launcher.)"
+  "notes": "Standby clock: four AuDHD-safe faces to choose from (Bold defined analogue, big Digital, ultra-Minimal, and Combo), with a picker and Preview in Settings - Appearance. Plus the wheel-button-for-Navidrome fix."
 }
