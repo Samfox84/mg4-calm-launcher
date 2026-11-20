@@ -2676,6 +2676,8 @@ public final class HomeView extends LinearLayout {
         private final FrameLayout catcher;
         private final LinearLayout listCol;
         private final TextView titleTv;
+        private final android.widget.EditText searchBox;
+        private final java.util.List<android.media.browse.MediaBrowser.MediaItem> currentItems = new java.util.ArrayList<>();
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2703,6 +2705,21 @@ public final class HomeView extends LinearLayout {
             head.addView(titleTv, Ui.margins(Ui.lpWeight(0, -2, 1), dp(16), 0, dp(16), 0));
             head.addView(Ui.text(c, L.s(R.string.tap_outside_close), 15, t.sub, Ui.REGULAR), new LayoutParams(-2, -2));
             card.addView(head, new LayoutParams(-1, -2));
+
+            searchBox = new android.widget.EditText(c);
+            searchBox.setHint("Search\u2026");
+            searchBox.setSingleLine(true);
+            searchBox.setTextColor(t.text);
+            searchBox.setHintTextColor(t.sub);
+            searchBox.setTextSize(big ? 20 : 18);
+            searchBox.setBackground(Ui.round(t.chip, dp(14)));
+            searchBox.setPadding(dp(18), dp(12), dp(18), dp(12));
+            searchBox.addTextChangedListener(new android.text.TextWatcher() {
+                public void beforeTextChanged(CharSequence s, int a, int b, int cc) {}
+                public void onTextChanged(CharSequence s, int a, int b, int cc) { renderList(s.toString()); }
+                public void afterTextChanged(android.text.Editable s) {}
+            });
+            card.addView(searchBox, Ui.margins(new LayoutParams(dp(640), -2), 0, dp(14), 0, 0));
 
             android.widget.ScrollView sv = new android.widget.ScrollView(c);
             listCol = Ui.column(c);
@@ -2771,16 +2788,30 @@ public final class HomeView extends LinearLayout {
 
         private void load(String parentId) {
             titleTv.setText(names.containsKey(parentId) ? names.get(parentId) : "");
+            if (searchBox != null) searchBox.setText("");
             message("Loading...");
             try { musicBrowser.unsubscribe(parentId); } catch (Exception ignored) {}
             musicBrowser.subscribe(parentId, new android.media.browse.MediaBrowser.SubscriptionCallback() {
                 @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
-                    listCol.removeAllViews();
+                    currentItems.clear();
+                    currentItems.addAll(children);
                     if (children.isEmpty()) { message("(nothing here)"); return; }
-                    for (android.media.browse.MediaBrowser.MediaItem mi : children) addRow(mi);
+                    renderList(searchBox.getText().toString());
                 }
                 @Override public void onError(String pid) { message("Couldn't load this folder."); }
             });
+        }
+
+        private void renderList(String filter) {
+            listCol.removeAllViews();
+            String q = filter == null ? "" : filter.trim().toLowerCase(java.util.Locale.ROOT);
+            int shown = 0;
+            for (android.media.browse.MediaBrowser.MediaItem mi : currentItems) {
+                CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
+                String label = tt == null ? (mi.getMediaId() == null ? "" : mi.getMediaId()) : tt.toString();
+                if (q.isEmpty() || label.toLowerCase(java.util.Locale.ROOT).contains(q)) { addRow(mi); shown++; }
+            }
+            if (shown == 0) message(q.isEmpty() ? "(nothing here)" : "No matches");
         }
 
         private void addRow(android.media.browse.MediaBrowser.MediaItem mi) {

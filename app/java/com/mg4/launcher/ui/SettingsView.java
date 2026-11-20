@@ -1406,7 +1406,7 @@ public final class SettingsView extends FrameLayout {
                 LogUploader.requestNow();
                 StringBuilder sb = new StringBuilder(L.s(r.onUsb ? R.string.log_saved_usb : R.string.log_saved)).append(' ');
                 sb.append(r.paths.get(0));
-                sb.append("\nSending to the log server now\u2026");
+                sb.append("\nSent to the log server.");
                 if (!r.onUsb) sb.append('\n').append(L.s(R.string.log_usb_hint));
                 logSaveSub.setSingleLine(false);
                 logSaveSub.setText(sb.toString());
