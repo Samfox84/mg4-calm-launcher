@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.39",
-  "apk": "releases/MG4Launcher-1.0.5-calm.39.apk",
-  "size": 1355365,
-  "notes": "Found the real wall: Android 9 blocks plain http by default, so the WebView silently refused to load the map page from the local server - that's why calm.38's log showed no map activity at all. Now cleartext is allowed for 127.0.0.1 only. This should finally let the map run."
+  "version": "1.0.5-calm.40",
+  "apk": "releases/MG4Launcher-1.0.5-calm.40.apk",
+  "size": 1359461,
+  "notes": "Comfort/Climate off-tiles now follow the dark theme (no more light/pink tiles). Navidrome search is now global and grouped by Albums/Artists/Songs/Playlists. Also includes the map cleartext fix - the map page can finally load."
 }
