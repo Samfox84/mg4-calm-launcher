@@ -42,8 +42,13 @@ final class TileServer {
 
     private void loop() {
         while (run) {
-            try { Socket s = ss.accept(); new Thread(() -> handle(s), "calm-tiles-c").start(); }
-            catch (Exception e) { if (run) Diag.put("map.server", "errore: " + e.getClass().getSimpleName()); }
+            try {
+                Socket s = ss.accept();
+                try { s.setSoTimeout(15000); } catch (Exception ignored) {}   // niente thread bloccati per sempre
+                new Thread(() -> handle(s), "calm-tiles-c").start();
+            } catch (Exception e) {
+                if (run) Diag.put("map.server", "errore: " + e.getClass().getSimpleName());   // in stop() run==false: niente rumore
+            }
         }
     }
 

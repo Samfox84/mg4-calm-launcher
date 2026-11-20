@@ -2685,8 +2685,12 @@ public final class HomeView extends LinearLayout {
         private final java.util.LinkedHashMap<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> catalogue = new java.util.LinkedHashMap<>();
         private String rootId;
         private int searchToken;
-        private boolean indexed, indexing;
+        private boolean indexed, indexing, everIndexed, songsIndexed, songIndexing;
         private String pendingQuery;
+        private android.widget.ProgressBar indexBar;
+        private TextView indexLabel;
+        private final java.util.List<String> songAlbumIds = new java.util.ArrayList<>();
+        private int songCursor;
         private final java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<>();
         private final java.util.HashMap<String, String> names = new java.util.HashMap<>();
 
@@ -2729,6 +2733,14 @@ public final class HomeView extends LinearLayout {
                 public void afterTextChanged(android.text.Editable s) {}
             });
             card.addView(searchBox, Ui.margins(new LayoutParams(dp(640), -2), 0, dp(14), 0, 0));
+
+            indexBar = new android.widget.ProgressBar(c, null, android.R.attr.progressBarStyleHorizontal);
+            indexBar.setMax(100);
+            indexBar.setVisibility(GONE);
+            card.addView(indexBar, Ui.margins(new LayoutParams(dp(640), dp(6)), 0, dp(10), 0, 0));
+            indexLabel = Ui.oneLine(Ui.text(c, "", 14, t.sub, Ui.REGULAR));
+            indexLabel.setVisibility(GONE);
+            card.addView(indexLabel, Ui.margins(new LayoutParams(-2, -2), 0, dp(4), 0, 0));
 
             android.widget.ScrollView sv = new android.widget.ScrollView(c);
             listCol = Ui.column(c);
@@ -2821,7 +2833,7 @@ public final class HomeView extends LinearLayout {
 
         /** Indicizza tutta la libreria una volta (Album, Artisti, Brani, Playlist) per cercare all'istante. */
         private void startIndex() {
-            if (indexing || rootCategories.isEmpty()) return;
+            if (indexing || everIndexed || rootCategories.isEmpty()) return;
             indexing = true;
             final int[] pending = { 0 };
             for (final android.media.browse.MediaBrowser.MediaItem cat : rootCategories) {
@@ -2846,7 +2858,70 @@ public final class HomeView extends LinearLayout {
             if (pending[0] <= 0) {
                 indexing = false; indexed = true;
                 if (pendingQuery != null) { String q = pendingQuery; pendingQuery = null; globalSearch(q); }
+                startSongs();   // in background, con barra di avanzamento
             }
+        }
+
+        /** Dopo le categorie: scorre tutti gli album e mette tutti i brani in cache (barra di avanzamento). */
+        private void startSongs() {
+            if (songsIndexed || songIndexing) return;   // non ripartire se gia' in corso (evita brani doppi)
+            java.util.List<android.media.browse.MediaBrowser.MediaItem> albums = null;
+            for (java.util.Map.Entry<String, java.util.List<android.media.browse.MediaBrowser.MediaItem>> e : catalogue.entrySet()) {
+                if (e.getKey().toLowerCase(java.util.Locale.ROOT).contains("album")) { albums = e.getValue(); break; }
+            }
+            if (albums == null || albums.isEmpty()) { songsIndexed = true; everIndexed = true; return; }
+            songIndexing = true;
+            songAlbumIds.clear();
+            for (android.media.browse.MediaBrowser.MediaItem mi : albums)
+                if (mi.isBrowsable() && mi.getMediaId() != null) songAlbumIds.add(mi.getMediaId());
+            catalogue.put("Songs", new java.util.ArrayList<>());   // lista pulita a ogni indicizzazione
+            songCursor = 0;
+            showProgress(0, songAlbumIds.size());
+            processNextAlbum();
+        }
+
+        private void processNextAlbum() {
+            if (songCursor >= songAlbumIds.size()) {
+                songsIndexed = true; everIndexed = true; songIndexing = false; hideProgress();
+                String q = searchBox.getText().toString().trim();
+                if (!q.isEmpty()) globalSearch(q);
+                return;
+            }
+            showProgress(songCursor, songAlbumIds.size());
+            final String aid = songAlbumIds.get(songCursor);
+            try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
+            musicBrowser.subscribe(aid, new android.media.browse.MediaBrowser.SubscriptionCallback() {
+                private boolean once = false;
+                @Override public void onChildrenLoaded(String pid, java.util.List<android.media.browse.MediaBrowser.MediaItem> children) {
+                    if (once) return; once = true;
+                    java.util.List<android.media.browse.MediaBrowser.MediaItem> songs = catalogue.get("Songs");
+                    if (songs != null) for (android.media.browse.MediaBrowser.MediaItem mi : children) if (!mi.isBrowsable()) songs.add(mi);
+                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
+                    songCursor++;
+                    processNextAlbum();
+                }
+                @Override public void onError(String pid) {
+                    if (once) return; once = true;
+                    try { musicBrowser.unsubscribe(aid); } catch (Exception ignored) {}
+                    songCursor++;
+                    processNextAlbum();
+                }
+            });
+        }
+
+        private void showProgress(int done, int total) {
+            if (indexBar == null) return;
+            indexBar.setVisibility(View.VISIBLE);
+            indexBar.setMax(Math.max(1, total));
+            indexBar.setProgress(done);
+            indexLabel.setVisibility(View.VISIBLE);
+            indexLabel.setText("Caching library\u2026 " + done + " / " + total + " albums");
+        }
+
+        private void hideProgress() {
+            if (indexBar == null) return;
+            indexBar.setVisibility(View.GONE);
+            indexLabel.setVisibility(View.GONE);
         }
 
         /** Cerca nella libreria indicizzata e mostra i risultati raggruppati (istantaneo). */

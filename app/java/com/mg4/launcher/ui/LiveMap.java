@@ -117,8 +117,12 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         super.onDetachedFromWindow();
         try { if (lm != null) lm.removeUpdates(this); } catch (Throwable ignored) {}
         started = false;
+        if (server != null) { server.stop(); server = null; }
+        // libera la WebView e il server locale (la mappa viene ricreata quando serve)
         try { web.onPause(); } catch (Throwable ignored) {}
-        if (server != null) server.stop();
+        try { web.removeJavascriptInterface("AndroidMap"); } catch (Throwable ignored) {}
+        try { ((android.view.ViewGroup) web.getParent()).removeView(web); } catch (Throwable ignored) {}
+        try { web.destroy(); } catch (Throwable ignored) {}
     }
 
     @SuppressLint("MissingPermission")

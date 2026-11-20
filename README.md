@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.45
+- **Cache completa Navidrome + barra di avanzamento**: indicizza categorie e TUTTI i brani (scorrendo gli album); barra di avanzamento durante la cache; la ricerca filtra tutto all'istante.
+- **Correzioni (stabilita')**: la WebView e il server locale della mappa ora vengono liberati alla ricostruzione della home (niente perdite); timeout sulle connessioni del mini-server; niente brani doppi se si riapre la libreria durante l'indicizzazione.
+
 #### 1.0.5-calm.44
 - **Ricerca Navidrome in cache**: all'apertura la libreria viene indicizzata una volta (Album, Artisti, Brani, Playlist), poi ogni lettera filtra all'istante dalla memoria.
 
@@ -1050,6 +1054,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.45
+- **Full Navidrome cache + progress bar**: indexes categories and ALL songs (walking every album); a progress bar shows during caching; search filters everything instantly.
+- **Stability fixes**: the map WebView and local server are now released when the home rebuilds (no leaks); mini-server connections time out instead of hanging; no duplicate songs if you reopen the library mid-index.
 
 #### 1.0.5-calm.44
 - **Cached Navidrome search**: the library is indexed once when you open it (Albums, Artists, Songs, Playlists), then every keystroke filters instantly from memory.
