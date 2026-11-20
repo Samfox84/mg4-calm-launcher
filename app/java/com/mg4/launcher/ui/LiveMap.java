@@ -33,9 +33,12 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final LocationManager lm;
     private TileServer server;
     private boolean pageReady, started, haveFix, mapReady, offline;
+    private final boolean nightDim;
 
-    public LiveMap(Context c) {
+    public LiveMap(Context c) { this(c, false); }
+    public LiveMap(Context c, boolean nightDim) {
         super(c);
+        this.nightDim = nightDim;
         setBackgroundColor(0xFF0E1114);
         web = new WebView(c);
         web.setBackgroundColor(0xFF0E1114);
@@ -72,7 +75,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try {
                 int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html");
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html" + (nightDim ? "?dim=1" : ""));
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());
@@ -146,9 +149,10 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         if (l == null) return;
         if (!haveFix) { haveFix = true; Diag.put("map.stato", "posizione ok"); }
         final double lat = l.getLatitude(), lon = l.getLongitude();
+        final float spd = l.hasSpeed() ? l.getSpeed() : -1f;   // m/s dal GPS
         if (!pageReady) return;
         post(() -> {
-            try { web.evaluateJavascript("window.setPos(" + lat + "," + lon + ")", null); } catch (Throwable ignored) {}
+            try { web.evaluateJavascript("window.setPos(" + lat + "," + lon + "," + spd + ")", null); } catch (Throwable ignored) {}
             if (mapReady) status.setVisibility(GONE);
         });
     }

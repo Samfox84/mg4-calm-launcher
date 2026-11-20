@@ -836,15 +836,21 @@ public final class HomeView extends LinearLayout {
         int cs = s.chargingStatus;
         if ((cs == 1 || cs == 3 || cs == 10 || cs == 11) && !VehicleClient.cablePlugged(s)) return "";
         String kw = s.chargeKw > 0.3f ? String.format(L.locale(), " · %.1f kW", s.chargeKw) : "";
+        String tgt = target(s.chargeLimit);
         switch (s.chargingStatus) {
-            case 1: return L.s(R.string.charge_charging) + kw + remaining(s.predictMinutes);
-            case 3: return L.s(R.string.charge_balancing) + kw + remaining(s.predictMinutes);
-            case 10: return L.s(R.string.charge_fast) + kw + remaining(s.predictMinutes);
-            case 11: return s.chargeKw > 0.3f ? L.s(R.string.charge_fast) + kw + remaining(s.predictMinutes) : "";
-            case 16: return L.s(R.string.charge_wireless) + kw + remaining(s.predictMinutes);
+            case 1: return L.s(R.string.charge_charging) + kw + remaining(s.predictMinutes) + tgt;
+            case 3: return L.s(R.string.charge_balancing) + kw + remaining(s.predictMinutes) + tgt;
+            case 10: return L.s(R.string.charge_fast) + kw + remaining(s.predictMinutes) + tgt;
+            case 11: return s.chargeKw > 0.3f ? L.s(R.string.charge_fast) + kw + remaining(s.predictMinutes) + tgt : "";
+            case 16: return L.s(R.string.charge_wireless) + kw + remaining(s.predictMinutes) + tgt;
             case 13: return L.s(R.string.v2l_active) + kw + remaining(s.dischargeMinutes);
             default: return "";
         }
+    }
+
+    /** " · \u2192 80%" obiettivo di ricarica, vuoto se pieno o non letto. */
+    private static String target(int limit) {
+        return (limit >= 10 && limit < 100) ? " \u00b7 \u2192 " + limit + "%" : "";
     }
 
     /** " · 1 h 25 min" (tempo rimanente), vuoto se non disponibile. */
@@ -1045,7 +1051,8 @@ public final class HomeView extends LinearLayout {
         FrameLayout f = new FrameLayout(c);
         if (prefs.liveMap()) {
             // Calm Launcher: mappa reale dal vivo "dove siamo" (AuDHD), si ricentra mentre si guida
-            f.addView(new LiveMap(c), new FrameLayout.LayoutParams(-1, -1));
+            boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
+            f.addView(new LiveMap(c, mapNight), new FrameLayout.LayoutParams(-1, -1));
         } else {
             Bars.MapDecor decor = new Bars.MapDecor(c);
             decor.setColors(t.map, t.road, t.roadMinor);
@@ -2676,6 +2683,44 @@ public final class HomeView extends LinearLayout {
 
     /** Calm Launcher: sfoglia e riproduce la libreria di un client Subsonic (Ultrasonic/DSub) dentro il launcher,
      *  tramite l'interfaccia MediaBrowser di Android Auto. Riproduzione e controlli restano nel riquadro media. */
+    // Calm Launcher: cache copertine libreria (limite di memoria) + caricamento in background
+    private static final android.util.LruCache<String, android.graphics.Bitmap> ART_CACHE =
+            new android.util.LruCache<String, android.graphics.Bitmap>(6 * 1024 * 1024) {
+                @Override protected int sizeOf(String k, android.graphics.Bitmap v) { return v.getByteCount(); }
+            };
+    private static java.util.concurrent.ExecutorService ART_EXEC;
+    private static synchronized java.util.concurrent.ExecutorService artExec() {
+        if (ART_EXEC == null) ART_EXEC = java.util.concurrent.Executors.newFixedThreadPool(3);
+        return ART_EXEC;
+    }
+    private static android.graphics.Bitmap decodeArt(Context c, String uri) {
+        java.io.InputStream in = null;
+        try {
+            android.net.Uri u = android.net.Uri.parse(uri);
+            String sch = u.getScheme();
+            if ("http".equals(sch) || "https".equals(sch)) {
+                java.net.HttpURLConnection con = (java.net.HttpURLConnection) new java.net.URL(uri).openConnection();
+                con.setConnectTimeout(5000); con.setReadTimeout(5000);
+                in = con.getInputStream();
+            } else {
+                in = c.getContentResolver().openInputStream(u);
+            }
+            if (in == null) return null;
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192]; int n;
+            while ((n = in.read(buf)) != -1) bos.write(buf, 0, n);
+            byte[] data = bos.toByteArray();
+            android.graphics.BitmapFactory.Options o = new android.graphics.BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length, o);
+            int target = 160, ss = 1;
+            while (o.outWidth > 0 && o.outWidth / (ss * 2) >= target) ss *= 2;
+            o.inJustDecodeBounds = false; o.inSampleSize = ss;
+            return android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length, o);
+        } catch (Throwable e) { return null; }
+        finally { try { if (in != null) in.close(); } catch (Throwable ignored) {} }
+    }
+
     private final class MusicBrowser {
         private final FrameLayout catcher;
         private final LinearLayout listCol;
@@ -2978,13 +3023,30 @@ public final class HomeView extends LinearLayout {
         private void addRow(android.media.browse.MediaBrowser.MediaItem mi) {
             Context c = getContext();
             final String id = mi.getMediaId();
-            CharSequence tt = mi.getDescription() != null ? mi.getDescription().getTitle() : null;
+            android.media.MediaDescription d = mi.getDescription();
+            final CharSequence tt = d != null ? d.getTitle() : null;
             final boolean browsable = mi.isBrowsable();
             String label = (tt == null ? id : tt.toString());
-            TextView row = Ui.oneLine(Ui.text(c, (browsable ? "" : "\u266A  ") + label, big ? 24 : 20, t.text, Ui.REGULAR));
-            row.setPadding(dp(14), dp(16), dp(14), dp(16));
+
+            LinearLayout row = Ui.row(c);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(10), dp(8), dp(14), dp(8));
             row.setClickable(true);
             row.setBackground(Ui.pressable(c, 0, dp(12), t));
+
+            ImageView thumb = new ImageView(c);
+            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.setBackground(Ui.round(t.chip, dp(8)));
+            thumb.setImageResource(R.drawable.ic_music);
+            thumb.setColorFilter(t.sub);
+            thumb.setPadding(dp(8), dp(8), dp(8), dp(8));
+            int ts = tp(big ? 52 : 44);
+            loadArt(thumb, d);
+            row.addView(thumb, new LayoutParams(ts, ts));
+
+            TextView tv = Ui.oneLine(Ui.text(c, label, big ? 22 : 18, t.text, Ui.REGULAR));
+            row.addView(tv, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
+
             row.setOnClickListener(v -> {
                 Sfx.click();
                 if (browsable) {
@@ -2997,6 +3059,32 @@ public final class HomeView extends LinearLayout {
                 }
             });
             listCol.addView(row, new LayoutParams(-1, -2));
+        }
+
+        /** Copertina: bitmap diretta se c\'e\', altrimenti caricata in background dall\'URI (con cache). */
+        private void loadArt(final ImageView iv, android.media.MediaDescription d) {
+            if (d == null) return;
+            android.graphics.Bitmap b = d.getIconBitmap();
+            if (b != null) { showArt(iv, b); return; }
+            android.net.Uri u = d.getIconUri();
+            if (u == null) return;
+            final String key = u.toString();
+            android.graphics.Bitmap cached = ART_CACHE.get(key);
+            if (cached != null) { showArt(iv, cached); return; }
+            iv.setTag(key);
+            final Context ac = getContext().getApplicationContext();
+            artExec().execute(() -> {
+                final android.graphics.Bitmap bmp = decodeArt(ac, key);
+                if (bmp == null) return;
+                ART_CACHE.put(key, bmp);
+                post(() -> { if (key.equals(iv.getTag())) showArt(iv, bmp); });
+            });
+        }
+
+        private void showArt(ImageView iv, android.graphics.Bitmap b) {
+            iv.clearColorFilter();
+            iv.setPadding(0, 0, 0, 0);
+            iv.setImageBitmap(b);
         }
 
         private void back() {

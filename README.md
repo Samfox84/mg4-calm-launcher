@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.47
+- **Copertine nella libreria**: miniature degli album nei risultati di ricerca e nello sfoglia (cache con limite di memoria).
+- **Zoom in base alla velocita'**: la mappa si allarga un po' quando vai veloce e torna stretta da fermo.
+- **Mappa piu' scura di notte**: la mappa dal vivo si attenua di notte, con lo stesso interruttore della riduzione notturna dell'orologio.
+- **Obiettivo di ricarica**: la riga di ricarica mostra anche il target (es. "→ 80%") oltre a potenza e tempo rimanente.
+
 #### 1.0.5-calm.46
 - **Correzioni dal secondo giro di test**: un album che non risponde non blocca piu' la cache dei brani (timeout di 6 s e salta); con la mappa dal vivo gli overlay di navigazione ("Dove vuoi andare", scheda svolta) restano nascosti anche dopo un aggiornamento di stato.
 
@@ -1057,6 +1063,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.47
+- **Library album art**: album thumbnails in the search results and when browsing (memory-bounded cache).
+- **Speed-aware zoom**: the map eases out a little at speed and tightens back in when you stop.
+- **Map night-dim**: the live map gently dims at night, using the same toggle as the standby clock's night-dim.
+- **Charge target**: the charging line now also shows the target (e.g. "→ 80%") alongside power and time remaining.
 
 #### 1.0.5-calm.46
 - **Fixes from the second test pass**: an unresponsive album no longer stalls the whole song cache (6s timeout, then it skips); with the live map on, the navigation overlays ("Where to?", turn card) now stay hidden even after a state update.

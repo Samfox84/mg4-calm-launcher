@@ -13,6 +13,7 @@
   .leaflet-control-attribution{display:none !important;}
   .leaflet-bar a{background:#1B2024;color:#E7ECF0;border-bottom-color:#2A3036;width:44px;height:44px;line-height:44px;font-size:24px;}
   .leaflet-bar a:hover{background:#242C33;}
+  #nightdim{position:absolute;inset:0;pointer-events:none;z-index:401;background:rgba(0,0,0,.32);display:none;}
   #vignette{position:absolute;inset:0;pointer-events:none;z-index:400;
       background:radial-gradient(ellipse 75% 75% at 42% 48%, rgba(14,17,20,0) 52%, rgba(14,17,20,.72) 100%);}
   #street{position:absolute;left:22px;bottom:24px;z-index:500;color:#EEF2F6;font:600 27px sans-serif;
@@ -28,11 +29,13 @@
 <body>
 <div id="map"></div>
 <div id="vignette"></div>
+<div id="nightdim"></div>
 <div id="street"></div>
 <div id="recenter">Recenter</div>
 <script>
   window.onerror=function(m,src,ln){ try{console.error('map: onerror '+m+' @'+src+':'+ln);}catch(e){} };
   console.log('map: page start, origin='+location.origin);
+  if(q('dim')==='1'){ var nd=document.getElementById('nightdim'); if(nd) nd.style.display='block'; }
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
@@ -47,7 +50,8 @@
 
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
-    var follow=true, haveFix=false, lastStreet='', loggedQ=false;
+    var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
+    function zoomForSpeed(ms){ var k=ms*3.6; if(k<5)return 16.5; if(k<25)return 16; if(k<50)return 15.5; if(k<80)return 15; if(k<110)return 14.5; return 14; }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
@@ -68,11 +72,17 @@
       }catch(e){ console.error('map: query '+e); }
     }
 
-    window.setPos=function(lat,lon){
+    window.setPos=function(lat,lon,speed){
       var ll=[lat,lon];
       if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; try{AndroidMap.status('fix');}catch(e){} }
       me.setLatLng(ll);
-      if(follow){ map.panTo(ll,{animate:true,duration:0.8}); }
+      if(follow){
+        map.panTo(ll,{animate:true,duration:0.8});
+        if(typeof speed==='number' && speed>=0){
+          var tz=zoomForSpeed(speed), b=Math.round(tz*2);
+          if(b!==lastBucket){ lastBucket=b; map.setZoom(tz,{animate:true}); }
+        }
+      }
       streetAt(lat,lon);
       resize();
     };
