@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.20",
-  "apk": "releases/MG4Launcher-1.0.5-calm.20.apk",
-  "size": 1186538,
-  "notes": "New: a calm analogue standby clock (date + battery) that fades in when the home screen sits idle, with a timer and a Preview button in Settings; plus an optional gentle night auto-dim with a Test button. Diagnostic logs still on."
+  "version": "1.0.5-calm.21",
+  "apk": "releases/MG4Launcher-1.0.5-calm.21.apk",
+  "size": 1190634,
+  "notes": "Library/Navidrome: the track now shows in the media box and the on-screen play/next/previous buttons control it. (The steering-wheel media button still drives the car's own media - that's a separate, harder fix.) Diagnostic logging still on."
 }
