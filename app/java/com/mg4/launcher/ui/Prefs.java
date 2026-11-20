@@ -27,6 +27,15 @@ public final class Prefs {
 
     private final SharedPreferences sp;
 
+    // Calm Launcher: server musica diretto (Navidrome/Subsonic)
+    public String musicUrl() { return sp.getString("msUrl", ""); }
+    public void setMusicUrl(String v) { sp.edit().putString("msUrl", v == null ? "" : v.trim()).apply(); }
+    public String musicUser() { return sp.getString("msUser", ""); }
+    public void setMusicUser(String v) { sp.edit().putString("msUser", v == null ? "" : v.trim()).apply(); }
+    public String musicPass() { return sp.getString("msPass", ""); }
+    public void setMusicPass(String v) { sp.edit().putString("msPass", v == null ? "" : v).apply(); }
+    public boolean musicDirect() { return !musicUrl().isEmpty() && !musicUser().isEmpty(); }
+
     public Prefs(Context c) {
         sp = c.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE);
     }

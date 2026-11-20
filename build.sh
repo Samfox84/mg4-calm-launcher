@@ -156,6 +156,12 @@ if [ -f app/assets/map/map-vector.html ]; then
   sh tools/webviewcompat.sh || { echo "ERRORE: funzioni non supportate dalla WebView vecchia"; exit 1; }
 fi
 
+# Calm Launcher: test unitari della logica Subsonic (token auth, URL, ricerca)
+if [ -f tools/subsonic-test.sh ]; then
+  echo "==> test logica Subsonic"
+  sh tools/subsonic-test.sh || { echo "ERRORE: test Subsonic falliti"; exit 1; }
+fi
+
 echo "==> java (javac, bytecode 8)"
 find "$SRC" "$OUT/gen" -name '*.java' > "$OUT/sources.txt"
 # API Java 8 dal JDK (lambda), API Android da android.jar

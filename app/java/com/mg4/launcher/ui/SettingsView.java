@@ -674,6 +674,66 @@ public final class SettingsView extends FrameLayout {
         }
         card.addView(row(c, L.s(R.string.set_top_button), L.s(R.string.set_top_button_sub), topRow, true));
         col.addView(card, topFull(14));
+        musicServerCard(c, col);
+    }
+
+    /** Calm Launcher: configurazione del server musica diretto (Navidrome/Subsonic) + sincronizzazione completa. */
+    private void musicServerCard(Context c, LinearLayout col) {
+        col.addView(label(c, "Music server (Navidrome)"), topFull(18));
+        LinearLayout card = card(c);
+        card.setPadding(dp(24), dp(20), dp(24), dp(20));
+        TextView hint = Ui.text(c, "Connect straight to your Navidrome/Subsonic server to search your WHOLE library (not just what Ultrasonic shows). It downloads the track list once and caches it on the car, then searches offline.", 17, t.sub, Ui.REGULAR);
+        card.addView(hint);
+        final android.widget.EditText url = field(c, "Server address  e.g. http://192.168.1.199:4533", prefs.musicUrl(), 0);
+        final android.widget.EditText usr = field(c, "Username", prefs.musicUser(), 1);
+        final android.widget.EditText pwd = field(c, "Password", prefs.musicPass(), 2);
+        card.addView(url, topFull(16));
+        card.addView(usr, topFull(12));
+        card.addView(pwd, topFull(12));
+        final TextView status = Ui.text(c, prefs.musicDirect()
+                ? ("Saved" + (new com.mg4.launcher.svc.Subsonic(c, prefs.musicUrl(), prefs.musicUser(), prefs.musicPass()).loadCache()
+                    ? ": library cached. Open Media to search." : ". Tap Connect to download your library."))
+                : "Enter your Navidrome address and login, then tap Connect.", 17, t.sub, Ui.REGULAR);
+        status.setPadding(dp(4), dp(16), dp(4), dp(2));
+        TextView go = button(c, "Connect & sync full library", v -> {
+            prefs.setMusicUrl(url.getText().toString());
+            prefs.setMusicUser(usr.getText().toString());
+            prefs.setMusicPass(pwd.getText().toString());
+            if (!prefs.musicDirect()) { status.setText("Need at least a server address and a username."); return; }
+            status.setText("Connecting…");
+            final com.mg4.launcher.svc.Subsonic sub = new com.mg4.launcher.svc.Subsonic(c, prefs.musicUrl(), prefs.musicUser(), prefs.musicPass());
+            sub.syncAll(new com.mg4.launcher.svc.Subsonic.SyncCb() {
+                @Override public void progress(final int done, final int total, final int songs) {
+                    status.post(() -> status.setText("Syncing… " + done + "/" + total + " albums · " + songs + " tracks"));
+                }
+                @Override public void done(final int songs, final String error) {
+                    status.post(() -> status.setText(error == null
+                            ? ("Done – " + songs + " tracks cached. Open Media to search your whole library.")
+                            : ("Couldn't connect: " + error)));
+                }
+            });
+        });
+        go.setLayoutParams(topFull(18));
+        card.addView(go);
+        card.addView(status);
+        col.addView(card, topFull(0));
+    }
+
+    /** Campo di testo per la configurazione (kind: 0=url, 1=utente, 2=password). */
+    private android.widget.EditText field(Context c, String hint, String val, int kind) {
+        android.widget.EditText e = new android.widget.EditText(c);
+        e.setHint(hint);
+        e.setText(val == null ? "" : val);
+        e.setTextColor(t.text);
+        e.setHintTextColor(t.sub);
+        e.setTextSize(19);
+        e.setSingleLine(true);
+        e.setPadding(dp(16), dp(14), dp(16), dp(14));
+        e.setBackground(Ui.round(t.panel, dp(12)));
+        if (kind == 2) e.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        else if (kind == 0) e.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        else e.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        return e;
     }
 
     /** Elenco delle app installate per il pulsante in alto a destra. */

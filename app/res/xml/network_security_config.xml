@@ -6,7 +6,8 @@
   Radici dal Mozilla CA store: USERTrust RSA e ECC, Sectigo Public Server Authentication Root R46 ed E46.
 -->
 <network-security-config>
-    <base-config>
+    <!-- cleartext permesso: il server musica (Navidrome/Subsonic) dell'utente puo' essere in http su una rete locale. -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
             <certificates src="@raw/usertrust_rsa" />
