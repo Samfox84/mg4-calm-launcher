@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.21",
-  "apk": "releases/MG4Launcher-1.0.5-calm.21.apk",
-  "size": 1190634,
-  "notes": "Library/Navidrome: the track now shows in the media box and the on-screen play/next/previous buttons control it. (The steering-wheel media button still drives the car's own media - that's a separate, harder fix.) Diagnostic logging still on."
+  "version": "1.0.5-calm.22",
+  "apk": "releases/MG4Launcher-1.0.5-calm.22.apk",
+  "size": 1248056,
+  "notes": "New Calm Launcher logo on the boot screen; the online/Amazon music tab is hidden (toggle in Settings - Media to bring it back). Also includes the earlier Navidrome now-playing fix and diagnostic logging - make sure this version actually installs."
 }
