@@ -34,6 +34,9 @@
     function resize(){ try{ map.invalidateSize(true); }catch(e){} }
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,500); setTimeout(resize,1200); setTimeout(resize,2500);
+    var tileN=0;
+    if (layer.on){ layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
+    setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     setTimeout(ok, 3000);           // fallback if 'load' never fires
     var first=true;
     window.setPos=function(lat,lon){

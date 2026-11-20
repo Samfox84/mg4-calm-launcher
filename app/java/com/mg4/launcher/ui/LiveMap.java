@@ -46,6 +46,13 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         web.getSettings().setAllowUniversalAccessFromFileURLs(true);
         web.addJavascriptInterface(new Bridge(), "AndroidMap");
         web.setWebViewClient(new android.webkit.WebViewClient());
+        web.setWebChromeClient(new android.webkit.WebChromeClient() {
+            @Override public boolean onConsoleMessage(android.webkit.ConsoleMessage m) {
+                if (m != null && m.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR)
+                    Diag.put("map.console", m.message() + " @" + m.sourceId() + ":" + m.lineNumber());
+                return true;
+            }
+        });
         addView(web, new LayoutParams(-1, -1));
 
         status = new TextView(c);
@@ -155,6 +162,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             else if (s != null && s.startsWith("style-error")) { Diag.put("map.engine", "stile ERRORE: " + s); }
             else if ("tiles-ok".equals(s)) { mapReady = true; Diag.put("map.stato", "riquadri ok (internet auto)"); post(() -> { if (haveFix) status.setVisibility(GONE); }); }
             else if ("tiles-error".equals(s)) { Diag.put("map.stato", "riquadri OFFLINE (niente internet)"); post(() -> { status.setText(offline ? "" : "Map offline – no data signal"); status.setVisibility(offline ? GONE : VISIBLE); }); }
+            else if (s != null && s.startsWith("size:")) { Diag.put("map.size", s.substring(5)); }
             else if ("fix".equals(s)) { post(() -> { if (mapReady) status.setVisibility(GONE); }); }
         }
     }

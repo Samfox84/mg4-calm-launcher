@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.37
+- **Mappa: errori nel log** - ogni errore JavaScript della mappa, più la dimensione reale e il numero di riquadri, finiscono nel log per capire cos'è quel riquadro.
+
 #### 1.0.5-calm.36
 - **Ricerca nella libreria Navidrome**: casella di ricerca in cima all'elenco (album/cartelle) per filtrare al volo invece di scorrere tutto.
 - **"Send now"**: l'etichetta ora dice "Sent" invece di restare su "Sending…".
@@ -1025,6 +1028,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.37
+- **Map: errors to the log** - every JavaScript error from the map, plus its real size and tile count, now go into the log to pin down what that box is.
 
 #### 1.0.5-calm.36
 - **Navidrome library search**: a search box at the top of the album/folder list to filter instantly instead of scrolling everything.
