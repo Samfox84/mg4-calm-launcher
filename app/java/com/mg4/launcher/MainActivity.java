@@ -543,10 +543,14 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     /** 1.0.0: true mentre il launcher è davanti (onResume..onPause), per sapere se Home arriva "da dentro". */
     private boolean inFront;
 
-    // Calm Launcher: se DiPlay (com.shilapi.xcertplay) prende lo schermo nei primi 30s dall'avvio, ripremi Home e torna al launcher.
-    // Mira SOLO a DiPlay: la retrocamera e ogni altra app non vengono mai toccate. Rispetta le aperture volute dall'utente.
+    // Calm Launcher: se DiPlay prende lo schermo nei primi 30s dall'avvio, ripremi Home e torna al launcher.
+    // Mira SOLO a DiPlay (tutte le varianti del pacchetto: com.shihab.diplay, .hudtest, e la vecchia com.shilapi.xcertplay):
+    // la retrocamera e ogni altra app non vengono mai toccate. Rispetta le aperture volute dall'utente.
     private static final long RECLAIM_WINDOW_MS = 30_000L;
-    private static final String DIPLAY_PKG = "com.shilapi.xcertplay";
+
+    private static boolean isDiPlay(String pkg) {
+        return pkg != null && (pkg.startsWith("com.shihab.diplay") || pkg.equals("com.shilapi.xcertplay"));
+    }
     private long bootAt, userLaunchAt;
     private int reclaimCount;
 
@@ -616,7 +620,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
                 if (inFront) return;                            // gia' tornato davanti
                 if (now - userLaunchAt < 2500L) return;         // l'utente ha aperto qualcosa apposta
                 if (reclaimCount >= 3) return;                  // niente ping-pong infinito
-                if (!DIPLAY_PKG.equals(topPackage())) return;   // SOLO DiPlay (mai retrocamera o altro)
+                if (!isDiPlay(topPackage())) return;   // SOLO DiPlay (mai retrocamera o altro)
                 reclaimCount++;
                 com.mg4.launcher.svc.Diag.put("ripresa.schermo", "DiPlay in primo piano all'avvio: torno al launcher (" + reclaimCount + ")");
                 startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)

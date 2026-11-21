@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.78
+- **Ripresa schermo da DiPlay corretta**: ora riconosce il pacchetto giusto (com.shihab.diplay e la variante .hudtest, oltre alla vecchia com.shilapi.xcertplay). Prima puntava solo a com.shilapi.xcertplay, così con la DiPlay "shihab" non scattava mai.
+
 #### 1.0.5-calm.77
 - **Joystick volante per la musica**: ora comanda anche il lettore diretto Navidrome (prima funzionava solo con la libreria dell'auto, quindi non faceva niente). Sinistra/destra = precedente/successivo, pressione centrale = play/pausa.
 
@@ -1262,6 +1265,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.78
+- **DiPlay screen-reclaim fixed**: now recognises the right package (com.shihab.diplay and the .hudtest variant, plus the old com.shilapi.xcertplay). It used to target only com.shilapi.xcertplay, so with the "shihab" DiPlay it never fired.
 
 #### 1.0.5-calm.77
 - **Steering-wheel joystick for music**: now also controls the direct Navidrome player (before it only worked with the car's library session, so it did nothing). Left/right = previous/next, centre press = play/pause.
