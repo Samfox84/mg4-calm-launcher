@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.76",
-  "apk": "releases/MG4Launcher-1.0.5-calm.76.apk",
+  "version": "1.0.5-calm.77",
+  "apk": "releases/MG4Launcher-1.0.5-calm.77.apk",
   "size": 8642594,
-  "notes": "Auto car hotspot: the launcher turns the car hotspot on at launch (if off) so wireless DiPlay/CarPlay connects without doing it by hand. Result is logged under 'hotspot'."
+  "notes": "Steering-wheel joystick now controls the direct Navidrome player too (left/right skip, centre play-pause)."
 }
