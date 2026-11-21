@@ -421,6 +421,89 @@ public final class Updater {
         }
     }
 
+    /** URL dell'APK di DiPlay servito dal repo del launcher. */
+    public String diplayUrl() {
+        return OWN_RAW + "releases/DiPlay.apk";
+    }
+
+    /** Scarica e installa DiPlay (pacchetto diverso dal launcher) direttamente, senza chiavetta. */
+    public void installDiPlay() {
+        if (busy) return;
+        busy = true;
+        Release r = new Release();
+        r.apkName = "DiPlay";
+        r.apkUrl = diplayUrl();
+        r.raw = true;
+        r.repo = "";
+        bg.post(() -> {
+            try {
+                status(L.f(R.string.upd_downloading, "DiPlay"), r, true);
+                byte[] apk = download(r.apkUrl, r, "", "application/octet-stream");
+                if (!isApk(apk)) {
+                    status(L.f(R.string.upd_invalid_apk, apk.length), r, false);
+                    return;
+                }
+                String pkg = archivePackage(apk);
+                status(L.f(R.string.upd_installing, pkg != null ? pkg : "DiPlay"), r, true);
+                installForeign(apk);
+                Diag.put("diplay.install", "avviata installazione " + (pkg != null ? pkg : "?") + " (" + apk.length + " byte)");
+            } catch (HttpError e) {
+                status(e.getMessage(), r, false);
+                Diag.error("diplay.install", e.getMessage());
+            } catch (Exception e) {
+                status(L.f(R.string.upd_download_failed, describe(e)), r, false);
+                Diag.error("diplay.install", Diag.trace(e));
+            } finally {
+                busy = false;
+            }
+        });
+    }
+
+    /** Nome del pacchetto dentro un APK, senza verificarlo rispetto al launcher. */
+    private String archivePackage(byte[] apk) {
+        File[] dirs = {ctx.getCacheDir(), ctx.getFilesDir(), ctx.getExternalCacheDir()};
+        for (File dir : dirs) {
+            if (dir == null) continue;
+            File f = new File(dir, "foreign-check.apk");
+            try {
+                if (!dir.exists()) dir.mkdirs();
+                try (OutputStream os = new FileOutputStream(f)) { os.write(apk); }
+                PackageInfo pi = ctx.getPackageManager().getPackageArchiveInfo(f.getPath(), 0);
+                f.delete();
+                if (pi != null) return pi.packageName;
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    /** Come installApk ma NON forza il pacchetto del launcher: l'installer lo legge dall'APK (DiPlay ha un pacchetto suo). */
+    private void installForeign(byte[] apk) throws Exception {
+        PackageInstaller pi = ctx.getPackageManager().getPackageInstaller();
+        PackageInstaller.SessionParams p = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        p.setSize(apk.length);
+        p.setInstallLocation(PackageInfo.INSTALL_LOCATION_INTERNAL_ONLY);
+        try {
+            java.lang.reflect.Field f = PackageInstaller.SessionParams.class.getField("installFlags");
+            f.setInt(p, f.getInt(p) | 0x2 | 0x10);   // REPLACE_EXISTING + INTERNAL
+        } catch (Throwable t) {
+            Diag.error("diplay.flag", t.toString());
+        }
+        int id = pi.createSession(p);
+        try (PackageInstaller.Session s = pi.openSession(id)) {
+            try (OutputStream os = s.openWrite("base.apk", 0, apk.length)) {
+                os.write(apk);
+                s.fsync(os);
+            }
+            try { ctx.registerReceiver(result, new IntentFilter(ACTION_RESULT)); } catch (Exception ignored) {}
+            PendingIntent cb = PendingIntent.getBroadcast(ctx, id,
+                    new Intent(ACTION_RESULT).setPackage(ctx.getPackageName()), PendingIntent.FLAG_UPDATE_CURRENT);
+            s.commit(cb.getIntentSender());
+        } catch (Exception e) {
+            try { pi.abandonSession(id); } catch (Exception ignored) {}
+            throw e;
+        }
+    }
+
     private final BroadcastReceiver result = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent i) {

@@ -533,6 +533,22 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Reclaim screen from DiPlay at startup",
                 "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
                 toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
+        // Scarica e installa DiPlay direttamente da GitHub (niente chiavetta). Lo stato compare nel riquadro aggiornamenti in basso.
+        TextView diplayBtn = Ui.text(c, "Install", Ui.ts(18), t.text, Ui.MEDIUM);
+        diplayBtn.setGravity(Gravity.CENTER);
+        diplayBtn.setPadding(tp(22), 0, tp(22), 0);
+        diplayBtn.setBackground(Ui.pressable(c, t.chip, 14 * Ui.K, t));
+        diplayBtn.setClickable(true);
+        diplayBtn.setLayoutParams(new LinearLayout.LayoutParams(-2, tp(54)));
+        diplayBtn.setOnClickListener(v -> {
+            host.updater().installDiPlay();
+            diplayBtn.setText("Installing…");
+            diplayBtn.setClickable(false);
+            diplayBtn.setAlpha(0.6f);
+        });
+        card.addView(row(c, "Download / install DiPlay",
+                "Downloads our DiPlay build straight from GitHub and installs it — no USB stick. Delete the official DiPlay first. Progress shows in the update box at the bottom of the menu.",
+                diplayBtn, false));
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);

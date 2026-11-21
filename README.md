@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.79
+- **Scarica DiPlay dalle Impostazioni**: Impostazioni → sezione "Home" → "Download / install DiPlay" (sotto "Reclaim screen from DiPlay"). Tocca "Install" e il launcher scarica e installa la nostra DiPlay da GitHub, senza chiavetta. Lo stato compare nel riquadro aggiornamenti in basso.
+
 #### 1.0.5-calm.78
 - **Ripresa schermo da DiPlay corretta**: ora riconosce il pacchetto giusto (com.shihab.diplay e la variante .hudtest, oltre alla vecchia com.shilapi.xcertplay). Prima puntava solo a com.shilapi.xcertplay, così con la DiPlay "shihab" non scattava mai.
 
@@ -1265,6 +1268,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.79
+- **Download DiPlay from Settings**: Settings → "Home" section → "Download / install DiPlay" (under "Reclaim screen from DiPlay"). Tap "Install" and the launcher downloads and installs our DiPlay from GitHub — no USB stick. Progress shows in the update box at the bottom.
 
 #### 1.0.5-calm.78
 - **DiPlay screen-reclaim fixed**: now recognises the right package (com.shihab.diplay and the .hudtest variant, plus the old com.shilapi.xcertplay). It used to target only com.shilapi.xcertplay, so with the "shihab" DiPlay it never fired.
