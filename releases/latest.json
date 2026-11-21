@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.62",
-  "apk": "releases/MG4Launcher-1.0.5-calm.62.apk",
-  "size": 1384037,
-  "notes": "Map now shows as soon as tiles load instead of waiting for GPS (fixes 'stuck on finding position'). Simpler gradient syntax the old WebView accepts. GIF animation uses software decode with detailed error logging."
+  "version": "1.0.5-calm.63",
+  "apk": "releases/MG4Launcher-1.0.5-calm.63.apk",
+  "size": 9523234,
+  "notes": "Charge animation (Camden Grey) is now bundled in the app at 984x300 quality - ready from install, no download. Map/gradient/GIF-decode fixes from calm.62 included."
 }
