@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.66
+- **Animazione di ricarica**: ora la GIF gira davvero (riprodotta tramite ImageView, avanzamento fotogrammi affidabile). Prima si decodificava ma non si animava.
+- **Musica**: l'album ora avanza al brano successivo (prima ripeteva il primo): l'avanzamento esce dal callback di fine brano.
+- **Mappa**: puntino blu che scorre morbido tra un aggiornamento GPS e l'altro; nome della via cercato allo zoom dei dati (14/15) nella cache della mappa; sfumatura piu' scura e visibile ai bordi.
+
 #### 1.0.5-calm.65
 - **Piu' suoni del pacchetto calmo**: suono all'avvio, suono quando si collega il cavo di ricarica, suono all'apertura dei comandi di ricarica.
 - **Animazione d'avvio**: l'anello di colori ora e' un alone INTORNO al logo (prima il logo lo copriva) e pulsa insieme al logo.
@@ -319,6 +324,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
+
+#### 1.0.5-calm.66
+- **Charge animation**: the GIF actually plays now (hosted in an ImageView for reliable frame advance). It decoded before but didn't animate.
+- **Music**: albums now advance to the next track (they used to repeat the first) - the advance runs outside the track-end callback.
+- **Map**: blue dot glides smoothly between GPS updates; street name queried at the tile data zoom (14/15) in the map cache; darker, visible edge gradient.
 
 #### 1.0.5-calm.65
 - **More calm-pack sounds**: a startup chime, a sound when the charge cable is connected, and a sound when the charge controls open.
@@ -1150,6 +1160,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.66
+- **Charge animation**: the GIF actually plays now (hosted in an ImageView for reliable frame advance). It decoded before but didn't animate.
+- **Music**: albums now advance to the next track (they used to repeat the first) - the advance runs outside the track-end callback.
+- **Map**: blue dot glides smoothly between GPS updates; street name queried at the tile data zoom (14/15) in the map cache; darker, visible edge gradient.
 
 #### 1.0.5-calm.65
 - **More calm-pack sounds**: a startup chime, a sound when the charge cable is connected, and a sound when the charge controls open.

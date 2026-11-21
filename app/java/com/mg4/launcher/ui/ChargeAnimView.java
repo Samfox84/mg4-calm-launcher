@@ -33,7 +33,7 @@ import java.io.File;
  * Posizione: la clip (1312×400) è il doppio del riquadro dell'auto nel layout di ricarica (circa 656×200); i centri
  * ruota della clip (x 358 e 973, y 288) si allineano a quelli della foto disegnata da CarView.
  */
-public final class ChargeAnimView extends View {
+public final class ChargeAnimView extends android.widget.FrameLayout {
     public static final int IDLE = 0, AGGANCIO = 1, LOOP = 2, FINITA = 3, SGANCIO = 4;
     private static final String[] NAMES = {"ferma", "aggancio", "loop", "finita", "sgancio"};
     private static final float CLIP_W = 1312, CLIP_H = 400, CLIP_WHEEL_X1 = 358, CLIP_WHEEL_X2 = 973, CLIP_WHEEL_Y = 288;
@@ -58,6 +58,7 @@ public final class ChargeAnimView extends View {
     }
 
     private Player player;
+    private final android.widget.ImageView iv;
     private final Rect dst = new Rect();
     private final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
     private android.graphics.drawable.AnimatedImageDrawable current;
@@ -77,6 +78,9 @@ public final class ChargeAnimView extends View {
     public ChargeAnimView(Context c) {
         super(c);
         setClickable(false);
+        iv = new android.widget.ImageView(c);
+        iv.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        addView(iv, new android.widget.FrameLayout.LayoutParams(0, 0));
         setVisibility(GONE);
         setAlpha(0f);
     }
@@ -106,13 +110,10 @@ public final class ChargeAnimView extends View {
             int cw = Math.round(CLIP_W * k), ch = Math.round(CLIP_H * k);
             int cx = Math.round(wc[0] - CLIP_WHEEL_X1 * k), cy = Math.round(wc[1] - CLIP_WHEEL_Y * k);
             dst.set(cx, cy, cx + cw, cy + ch);
+            android.widget.FrameLayout.LayoutParams lp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
+            lp.width = cw; lp.height = ch; lp.leftMargin = cx; lp.topMargin = cy;
+            iv.setLayoutParams(lp);
         }
-    }
-
-    @Override
-    protected void onDraw(Canvas c) {
-        android.graphics.drawable.AnimatedImageDrawable d = current;
-        if (d != null) { d.setBounds(dst); d.draw(c); }
     }
 
     // ---- logica delle fasi ---------------------------------------------------------------------
@@ -302,10 +303,9 @@ public final class ChargeAnimView extends View {
         boolean fromPhoto = getVisibility() != VISIBLE || getAlpha() < 1f;
         clearDrawable();
         current = aid;
-        aid.setCallback(cb);
         int repeat;
         if (phase == LOOP) repeat = (afterTest != null) ? 2 : android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE;
-        else repeat = 0;   // play once, override whatever loop count is baked into the GIF
+        else repeat = 0;   // una volta sola; sovrascrive il loop scritto nella GIF
         try { aid.setRepeatCount(repeat); } catch (Throwable ignored) {}
         aid.registerAnimationCallback(new android.graphics.drawable.Animatable2.AnimationCallback() {
             @Override public void onAnimationEnd(android.graphics.drawable.Drawable drawable) {
@@ -313,10 +313,10 @@ public final class ChargeAnimView extends View {
                 main.post(() -> { if (g == gen) onPhaseEnd(phase); });
             }
         });
+        iv.setImageDrawable(aid);          // la ImageView gestisce invalidazione e avanzamento fotogrammi
         setVisibility(VISIBLE);
-        aid.setBounds(dst);
+        iv.setVisibility(VISIBLE);
         aid.start();
-        invalidate();
         if (fromPhoto) { animate().cancel(); animate().alpha(1f).setDuration(300).start(); }
         else setAlpha(1f);
     }
@@ -325,16 +325,10 @@ public final class ChargeAnimView extends View {
         android.graphics.drawable.AnimatedImageDrawable d = current;
         current = null;
         if (d != null) {
-            try { d.clearAnimationCallbacks(); d.stop(); d.setCallback(null); } catch (Throwable ignored) {}
+            try { d.clearAnimationCallbacks(); d.stop(); } catch (Throwable ignored) {}
         }
+        iv.setImageDrawable(null);
     }
-
-    /** Il drawable chiede di ridisegnarsi: inoltra l'invalidazione alla vista. */
-    private final android.graphics.drawable.Drawable.Callback cb = new android.graphics.drawable.Drawable.Callback() {
-        @Override public void invalidateDrawable(android.graphics.drawable.Drawable who) { postInvalidateOnAnimation(); }
-        @Override public void scheduleDrawable(android.graphics.drawable.Drawable who, Runnable what, long when) { main.postAtTime(what, when); }
-        @Override public void unscheduleDrawable(android.graphics.drawable.Drawable who, Runnable what) { main.removeCallbacks(what); }
-    };
 
     private void fail(String why) {
         reason = why;

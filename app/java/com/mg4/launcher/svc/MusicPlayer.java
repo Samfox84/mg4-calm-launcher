@@ -101,7 +101,7 @@ public final class MusicPlayer {
                 @Override public void onPrepared(MediaPlayer m) { prepared = true; m.start(); setPlaying(true); }
             });
             mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override public void onCompletion(MediaPlayer m) { next(); }
+                @Override public void onCompletion(MediaPlayer m) { ui.post(() -> next()); }   // fuori dal callback: evita il reset del player dentro il suo stesso onCompletion
             });
             mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override public boolean onError(MediaPlayer m, int what, int extra) {
@@ -131,6 +131,7 @@ public final class MusicPlayer {
     public void next() {
         if (queue.isEmpty()) return;
         index = (index + 1) % queue.size();
+        Diag.put("musica.player", "avanti: brano " + (index + 1) + "/" + queue.size());
         startCurrent();
     }
 

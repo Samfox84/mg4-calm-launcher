@@ -15,7 +15,7 @@
   .leaflet-bar a:hover{background:#242C33;}
   #nightdim{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:401;background:rgba(0,0,0,.32);display:none;}
   #vignette{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:450;
-      background:radial-gradient(ellipse at 50% 45%, rgba(14,17,20,0) 40%, rgba(14,17,20,.6) 80%, rgba(14,17,20,.95) 100%);}
+      background:radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 34%, rgba(0,0,0,.42) 72%, rgba(0,0,0,.9) 100%);}
   #street{position:absolute;left:22px;bottom:24px;z-index:500;color:#EEF2F6;font:600 27px sans-serif;
       letter-spacing:.2px;text-shadow:0 2px 12px rgba(0,0,0,.85);pointer-events:none;max-width:58%;}
   .me-dot{width:18px;height:18px;border-radius:50%;background:#4F9BF0;border:2px solid #cfe4ff;
@@ -52,6 +52,7 @@
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
+    var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
     function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 17; if(k<50)return 16; if(k<80)return 15; return 14; }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
@@ -62,36 +63,58 @@
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
 
+    function propsOf(e){ return (e && e.feature && e.feature.props) || (e && e.props) || null; }
     function roadName(props){
       if(!props) return '';
       return props.name || props['name:en'] || props['name:latin'] || props.ref || '';
     }
-    function streetAt(lat,lon){
-      if(!layer.queryTileFeaturesDebug) return;
-      var nm='', lset={}, cnt=0;
+    function featuresAt(lat,lon,z){
+      var out=[];
       try{
-        var fm=layer.queryTileFeaturesDebug(lat,lon);   // punto costruito come [lon,lat] dentro la libreria; zoom intero = cache ok
-        fm.forEach(function(arr){ arr.forEach(function(e){ cnt++; lset[e.layerName]=1;
-          if(!nm && e.layerName==='roads'){ var n=roadName(e.feature&&e.feature.props); if(n) nm=n; } }); });
+        if(layer.views && layer.views.forEach){
+          layer.views.forEach(function(view){
+            try{ var r=view.queryFeatures(lat,lon,z,z); if(r && r.length){ for(var i=0;i<r.length;i++) out.push(r[i]); } }catch(e){}
+          });
+        }
       }catch(e){}
+      return out;
+    }
+    function isRoad(ln){ return ln==='roads'||ln==='transportation'||ln==='transportation_name'; }
+    function streetAt(lat,lon){
+      var nm='', cnt=0, lset={}, usedZ=-1;
+      var zs=[14,15,13,12,16];
+      for(var zi=0; zi<zs.length && cnt===0; zi++){
+        var arr=featuresAt(lat,lon,zs[zi]);
+        if(arr.length){ usedZ=zs[zi];
+          for(var i=0;i<arr.length;i++){ var e=arr[i]; cnt++; lset[e.layerName]=1;
+            if(!nm && isRoad(e.layerName)){ var n=roadName(propsOf(e)); if(n) nm=n; } }
+        }
+      }
       if(!loggedQ || (!lastStreet && nm)){ loggedQ=true;
-        try{AndroidMap.status('query:'+(cnt?('n='+cnt+' layers='+Object.keys(lset).slice(0,8).join('+')):'vuoto')+' road='+nm);}catch(e){} }
+        try{AndroidMap.status('query:'+(cnt?('z'+usedZ+' n='+cnt+' '+Object.keys(lset).slice(0,8).join('+')):'vuoto')+' road='+nm);}catch(e){} }
       if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
     }
 
+    function lerpStep(){
+      animReq=false;
+      if(!animTo) return;
+      var p=Math.min(1,(Date.now()-animStart)/ANIM_MS);
+      var lat=animFrom[0]+(animTo[0]-animFrom[0])*p, lon=animFrom[1]+(animTo[1]-animFrom[1])*p;
+      me.setLatLng([lat,lon]);
+      if(follow){ map.panTo([lat,lon],{animate:false}); }
+      if(p<1){ animReq=true; requestAnimationFrame(lerpStep); } else { curLL=animTo; animFrom=animTo=null; }
+    }
     window.setPos=function(lat,lon,speed){
       var ll=[lat,lon];
-      if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; try{AndroidMap.status('fix');}catch(e){} }
-      me.setLatLng(ll);
-      if(follow){
-        map.panTo(ll,{animate:true,duration:0.8});
-        if(typeof speed==='number' && speed>=0){
-          var tz=zoomForSpeed(speed), b=Math.round(tz*2);
-          if(b!==lastBucket){ lastBucket=b; map.setZoom(tz,{animate:true}); }
-        }
+      if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
+      // scorrimento morbido verso il nuovo punto invece di saltare
+      animFrom=curLL||ll; animTo=ll; curLL=ll; animStart=Date.now();
+      if(!animReq){ animReq=true; requestAnimationFrame(lerpStep); }
+      if(follow && typeof speed==='number' && speed>=0){
+        var tz=zoomForSpeed(speed), b=Math.round(tz*2);
+        if(b!==lastBucket){ lastBucket=b; map.setZoom(tz,{animate:true}); }
       }
       streetAt(lat,lon);
-      resize();
     };
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     try{AndroidMap.status('page-ready');}catch(e){}
