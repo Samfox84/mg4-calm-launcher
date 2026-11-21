@@ -872,6 +872,7 @@ public final class HomeView extends LinearLayout {
         if (inShow && !outOk) outIcon.setVisibility(VISIBLE);
         // 1.0.2 (issue SWI69 #2): fari accesi sull'auto disegnata (se lo stato si legge)
         car.setLights(s.lights == 1);
+        car.setSpeed(s.speedKmh);
         updateChargeAnim(s);
         showTpms(s.tireBar, s.distUnit);
         if (s.fanLevel >= 0 && SystemClock.uptimeMillis() > localFanUntil) {

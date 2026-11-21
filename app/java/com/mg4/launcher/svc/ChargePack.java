@@ -54,8 +54,15 @@ public final class ChargePack {
 
     /** Clip di una fase, null se il pacchetto del colore non è completo. */
     public static File clip(Context c, String color, boolean day, String phase) {
-        File f = new File(dir(c, color), "carica-" + slug(color) + "-" + (day ? "giorno" : "notte") + "-" + phase + ".mp4");
-        return f.isFile() && f.length() > 0 ? f : null;
+        return pick(dir(c, color), "carica-" + slug(color) + "-" + (day ? "giorno" : "notte") + "-" + phase);
+    }
+
+    /** GIF se c'e' (riproduzione nativa), altrimenti il vecchio MP4. */
+    private static File pick(File dir, String base) {
+        File gif = new File(dir, base + ".gif");
+        if (gif.isFile() && gif.length() > 0) return gif;
+        File mp4 = new File(dir, base + ".mp4");
+        return mp4.isFile() && mp4.length() > 0 ? mp4 : null;
     }
 
     /** True se ci sono tutte le 8 clip del colore. */
@@ -364,7 +371,6 @@ public final class ChargePack {
 
     /** Clip di una fase nella cartella di prova (slug del colore già pronto). */
     public static File clipIn(File dir, String slug, boolean day, String phase) {
-        File f = new File(dir, "carica-" + slug + "-" + (day ? "giorno" : "notte") + "-" + phase + ".mp4");
-        return f.isFile() && f.length() > 0 ? f : null;
+        return pick(dir, "carica-" + slug + "-" + (day ? "giorno" : "notte") + "-" + phase);
     }
 }

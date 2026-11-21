@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.60
+- **Animazione di ricarica in GIF (riproduzione nativa)**: niente piu' decodifica fotogramma per fotogramma (era quella a far "lampeggiare" lo schermo). Ora la GIF la riproduce Android stesso. La fase "loop" gira all'infinito, aggancio/finita/sgancio una volta sola. Pacchetto Camden Grey in GIF incluso.
+- **Cerchi che girano con la velocita'**: con un cerchio personalizzato (non quello del render) le ruote ruotano mentre l'auto si muove.
+
 #### 1.0.5-calm.59
 - **Nome della via offline (riparato)**: la ricerca della strada falliva perche' la mappa usava zoom frazionari (16,5) e la libreria cercava il tile con quello zoom senza trovarlo. Ora zoom interi + chiamata corretta: il nome della via arriva dal livello "roads" dei tile offline, senza rete.
 
@@ -1117,6 +1121,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.60
+- **GIF charge animation (native playback)**: no more per-frame decoding (that was the cause of the on-screen flashing). Android now plays the GIF itself. The "loop" phase repeats forever; plug-in/done/unplug play once. Camden Grey GIF pack included.
+- **Speed-based spinning wheels**: with a custom rim (not the render's photo wheel) the wheels rotate while the car moves.
 
 #### 1.0.5-calm.59
 - **Offline street name (fixed)**: the road lookup failed because the map used fractional zoom (16.5) and the library keyed the tile cache by that zoom, never hitting it. Now integer zooms + the correct call: the street name comes from the offline tiles' "roads" layer, no network.

@@ -53,6 +53,8 @@ public final class CarView extends View {
     private final Paint rimPaint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
     private final Paint rimShade = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rimDst = new RectF();
+    private float wheelAngle, speedKmh;
+    private long lastSpin;
     /** Fari accesi (anabbaglianti o posizione) disegnati sull'auto. */
     private boolean lights;
     private final Paint beamPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -102,6 +104,14 @@ public final class CarView extends View {
         glow = t.glow;
         floor.setShader(null);
         invalidate();
+    }
+
+    /** Velocita' per far girare i cerchi (solo con un cerchio personalizzato; la ruota del render non ruota). */
+    public void setSpeed(float kmh) {
+        float v = Float.isNaN(kmh) ? 0f : Math.abs(kmh);
+        boolean wasMoving = speedKmh >= 1f, moving = v >= 1f;
+        speedKmh = v;
+        if (moving != wasMoving) { lastSpin = 0; invalidate(); }
     }
 
     /** Fari accesi sull'auto disegnata; se lo stato non si legge l'auto resta com'è (false). */
@@ -176,13 +186,31 @@ public final class CarView extends View {
         Bitmap b = rim(wheel);
         if (b == null) return;
         float r = RIM_R * Prefs.WHEEL_SCALE[wheel] * s;
+        boolean moving = speedKmh >= 1f;
+        if (moving) {
+            long now = android.os.SystemClock.uptimeMillis();
+            float dt = lastSpin == 0 ? 0f : Math.min(0.1f, (now - lastSpin) / 1000f);
+            lastSpin = now;
+            // avanti (muso a sinistra) = antiorario; ~10 gradi/s per km/h: gira ma non sfarfalla
+            wheelAngle = (wheelAngle - speedKmh * 10f * dt) % 360f;
+        } else {
+            lastSpin = 0;
+        }
         for (float[] wc : WHEEL_CENTERS) {
             float cx = left + wc[0] * s, cy = top + wc[1] * s;
             rimDst.set(cx - r, cy - r, cx + r, cy + r);
-            c.drawBitmap(b, null, rimDst, rimPaint);
-            // ombra in basso come nel render (luce dall'alto)
+            if (moving) {
+                c.save();
+                c.rotate(wheelAngle, cx, cy);
+                c.drawBitmap(b, null, rimDst, rimPaint);
+                c.restore();
+            } else {
+                c.drawBitmap(b, null, rimDst, rimPaint);
+            }
+            // ombra in basso come nel render (luce dall'alto) - non ruota
             rimShade.setShader(new android.graphics.LinearGradient(0, cy - r, 0, cy + r, 0x00000000, 0x55000000, Shader.TileMode.CLAMP));
             c.drawCircle(cx, cy, r, rimShade);
         }
+        if (moving) postInvalidateOnAnimation();
     }
 }

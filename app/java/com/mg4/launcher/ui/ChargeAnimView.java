@@ -60,7 +60,7 @@ public final class ChargeAnimView extends View {
     private Player player;
     private final Rect dst = new Rect();
     private final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
-    private volatile Bitmap front;
+    private android.graphics.drawable.AnimatedImageDrawable current;
     /** Cresce a ogni nuova sequenza: il thread smette di disegnare quelle vecchie. */
     private volatile int gen;
 
@@ -111,8 +111,8 @@ public final class ChargeAnimView extends View {
 
     @Override
     protected void onDraw(Canvas c) {
-        Bitmap b = front;
-        if (b != null && !b.isRecycled()) c.drawBitmap(b, null, dst, paint);
+        android.graphics.drawable.AnimatedImageDrawable d = current;
+        if (d != null) { d.setBounds(dst); d.draw(c); }
     }
 
     // ---- logica delle fasi ---------------------------------------------------------------------
@@ -159,7 +159,7 @@ public final class ChargeAnimView extends View {
                 break;   // si decide alla fine dell'aggancio
             case LOOP:
                 if (!plugged) play(SGANCIO);
-                else if (done) finishAfterLoop = true;   // "finita" parte alla fine del giro del loop (stesso fotogramma)
+                else if (done) play(FINITA);
                 else if (themeChanged) play(LOOP);
                 break;
             case FINITA:
@@ -260,100 +260,72 @@ public final class ChargeAnimView extends View {
         state = phase;
         writeLog();
         Source src = source;
-        File clip = src == null ? null : src.clip(day, NAMES[phase]);
-        if (clip == null) {
+        final File clip = src == null ? null : src.clip(day, NAMES[phase]);
+        if (clip == null || !clip.isFile() || clip.length() == 0) {
             fail("clip " + NAMES[phase] + " mancante");
             return;
         }
-        File[] frames = ChargeFrames.frames(clip);
-        if (frames == null) {
-            // prima volta con questo pacchetto: si preparano i fotogrammi di tutte le fasi del tema, poi si riprova
-            preparing = true;
-            reason = "preparazione fotogrammi";
-            writeLog();
-            final boolean d = day;
-            final int g = ++gen;
-            ensurePlayer().h.post(() -> {
-                File[] all = new File[NAMES.length - 1];
-                for (int i = 1; i < NAMES.length; i++) all[i - 1] = src.clip(d, NAMES[i]);
-                String err = ChargeFrames.build(all);
-                main.post(() -> {
-                    preparing = false;
-                    reason = "";
-                    if (g != gen) return;   // nel frattempo è cambiato tutto
-                    if (err != null) fail("fotogrammi non preparati: " + err);
-                    else if (state == phase) play(phase);
-                });
-            });
-            return;
-        }
-        boolean fromPhoto = getVisibility() != VISIBLE || getAlpha() < 1f;
-        setVisibility(VISIBLE);
-        final Player p = ensurePlayer();
         final int g = ++gen;
-        final long t0 = SystemClock.uptimeMillis();
-        p.h.post(new Runnable() {
-            int i = 0, slot = 0;
-            boolean shown;
-
-            @Override
-            public void run() {
+        final int ph = phase;
+        ensurePlayer().h.post(() -> {
+            android.graphics.drawable.Drawable d;
+            try {
+                d = android.graphics.ImageDecoder.decodeDrawable(android.graphics.ImageDecoder.createSource(clip));
+            } catch (Throwable e) { d = null; }
+            final android.graphics.drawable.Drawable dd = d;
+            main.post(() -> {
                 if (g != gen) return;
-                int n = frames.length;
-                Bitmap b = decode(p, frames[i], slot);
-                if (b == null) {
-                    main.post(() -> {
-                        if (g == gen) fail("fotogramma " + (i + 1) + " di " + NAMES[phase] + " non leggibile");
-                    });
+                if (!(dd instanceof android.graphics.drawable.AnimatedImageDrawable)) {
+                    fail("gif " + NAMES[ph] + " non leggibile");
                     return;
                 }
-                slot = (slot + 1) % p.buf.length;
-                main.post(() -> {
-                    if (g != gen) return;
-                    front = b;
-                    invalidate();
-                    if (!shown && fromPhoto) {
-                        animate().cancel();
-                        animate().alpha(1f).setDuration(300).start();
-                    } else if (!shown) setAlpha(1f);
-                    shown = true;
-                });
-                i++;
-                boolean looping = phase == LOOP && (afterTest != null ? testLoops < 2 : !finishAfterLoop);
-                if (i >= n) {
-                    if (looping) {
-                        if (afterTest != null) testLoops++;
-                        i = 1;   // l'ultimo fotogramma del loop è uguale al primo: si riparte dal secondo
-                    } else {
-                        main.post(() -> {
-                            if (g == gen) onPhaseEnd(phase);
-                        });
-                        return;
-                    }
-                }
-                long next = t0 + (long) (++ticks) * FRAME_MS;
-                p.h.postAtTime(this, Math.max(next, SystemClock.uptimeMillis() + 1));
-            }
-
-            private long ticks;
+                showDrawable((android.graphics.drawable.AnimatedImageDrawable) dd, ph, g);
+            });
         });
     }
 
-    /** Decodifica un fotogramma nella bitmap dello slot (riusata: niente spazzatura a ogni fotogramma). */
-    private static Bitmap decode(Player p, File f, int slot) {
-        try {
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inMutable = true;
-            o.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap reuse = p.buf[slot];
-            if (reuse != null && !reuse.isRecycled()) { reuse.eraseColor(android.graphics.Color.TRANSPARENT); o.inBitmap = reuse; }
-            Bitmap b = BitmapFactory.decodeFile(f.getAbsolutePath(), o);
-            if (b != null) p.buf[slot] = b;
-            return b;
-        } catch (Throwable e) {
-            return null;
+    /**
+     * Mostra una GIF con riproduzione nativa (AnimatedImageDrawable): nessuna decodifica fotogramma per fotogramma,
+     * quindi niente scatti. Solo la fase LOOP si ripete all'infinito; le altre (aggancio, finita, sgancio) una volta
+     * sola, poi onPhaseEnd decide il seguito.
+     */
+    private void showDrawable(final android.graphics.drawable.AnimatedImageDrawable aid, final int phase, final int g) {
+        boolean fromPhoto = getVisibility() != VISIBLE || getAlpha() < 1f;
+        clearDrawable();
+        current = aid;
+        aid.setCallback(cb);
+        int repeat;
+        if (phase == LOOP) repeat = (afterTest != null) ? 2 : android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE;
+        else repeat = 0;   // play once, override whatever loop count is baked into the GIF
+        try { aid.setRepeatCount(repeat); } catch (Throwable ignored) {}
+        aid.registerAnimationCallback(new android.graphics.drawable.Animatable2.AnimationCallback() {
+            @Override public void onAnimationEnd(android.graphics.drawable.Drawable drawable) {
+                if (g != gen) return;
+                main.post(() -> { if (g == gen) onPhaseEnd(phase); });
+            }
+        });
+        setVisibility(VISIBLE);
+        aid.setBounds(dst);
+        aid.start();
+        invalidate();
+        if (fromPhoto) { animate().cancel(); animate().alpha(1f).setDuration(300).start(); }
+        else setAlpha(1f);
+    }
+
+    private void clearDrawable() {
+        android.graphics.drawable.AnimatedImageDrawable d = current;
+        current = null;
+        if (d != null) {
+            try { d.clearAnimationCallbacks(); d.stop(); d.setCallback(null); } catch (Throwable ignored) {}
         }
     }
+
+    /** Il drawable chiede di ridisegnarsi: inoltra l'invalidazione alla vista. */
+    private final android.graphics.drawable.Drawable.Callback cb = new android.graphics.drawable.Drawable.Callback() {
+        @Override public void invalidateDrawable(android.graphics.drawable.Drawable who) { postInvalidateOnAnimation(); }
+        @Override public void scheduleDrawable(android.graphics.drawable.Drawable who, Runnable what, long when) { main.postAtTime(what, when); }
+        @Override public void unscheduleDrawable(android.graphics.drawable.Drawable who, Runnable what) { main.removeCallbacks(what); }
+    };
 
     private void fail(String why) {
         reason = why;
@@ -389,7 +361,7 @@ public final class ChargeAnimView extends View {
         animate().cancel();
         setAlpha(0f);
         setVisibility(GONE);
-        front = null;
+        clearDrawable();
         Player p = player;
         player = null;
         if (p != null) {
