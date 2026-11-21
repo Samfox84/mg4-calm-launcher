@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.57",
-  "apk": "releases/MG4Launcher-1.0.5-calm.57.apk",
-  "size": 1375845,
-  "notes": "Reclaim screen from DiPlay at startup: if DiPlay grabs the screen in the first 30s after the car starts, the launcher presses Home and comes back. Targets only DiPlay, never the reverse camera, and respects when you open DiPlay yourself. Toggle in Settings - Home."
+  "version": "1.0.5-calm.58",
+  "apk": "releases/MG4Launcher-1.0.5-calm.58.apk",
+  "size": 1384037,
+  "notes": "Music: albums-first search (tap to play whole album), recently-played + Albums/Playlists browse buttons, disk-cached artwork, live play/pause everywhere. Charge controls popup on battery-% tap (limit, current, start/stop, unlock, scheduled). Boot animation (pulsing logo + swirling ring). Map edge gradient fixed."
 }
