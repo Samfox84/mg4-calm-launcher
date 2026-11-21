@@ -29,6 +29,7 @@ import com.mg4.launcher.ui.Prefs;
 import com.mg4.launcher.ui.SettingsView;
 import com.mg4.launcher.ui.Theme;
 import com.mg4.launcher.ui.Ui;
+import com.mg4.launcher.ui.StartupSplash;
 
 /** Home del launcher: costruisce l'interfaccia e collega i servizi dell'auto. */
 public final class MainActivity extends Activity implements HomeView.Host, AppsView.Host, SettingsView.Host {
@@ -115,6 +116,12 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         });
         goFullscreen();
         build();
+        // Calm Launcher: animazione d'avvio (logo che pulsa + anello di colori), una volta all'avvio a freddo
+        if (theme != null) {
+            final StartupSplash sp = new StartupSplash(this, theme.bg, theme.battery, theme.accent);
+            root.addView(sp, new FrameLayout.LayoutParams(-1, -1));
+            sp.play(() -> { try { root.removeView(sp); } catch (Exception ignored) {} });
+        }
         // primo avvio dopo un aggiornamento: popup "Novità" (una sola volta per versione)
         root.postDelayed(this::showNewsIfUpdated, 1500);
 

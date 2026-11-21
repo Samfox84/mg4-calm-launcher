@@ -54,6 +54,21 @@ public final class Subsonic {
         }
     }
 
+    /** Un album (derivato dai brani in cache). */
+    public static final class Album {
+        public final String id, name, artist, coverArt;
+        public int count;
+        public Album(String id, String name, String artist, String coverArt) {
+            this.id = id; this.name = name; this.artist = artist; this.coverArt = coverArt;
+        }
+    }
+
+    /** Una playlist del server. */
+    public static final class Playlist {
+        public final String id, name; public final int count;
+        public Playlist(String id, String name, int count) { this.id = id; this.name = name; this.count = count; }
+    }
+
     public interface SyncCb {
         void progress(int albumsDone, int albumsTotal, int songs);
         void done(int songs, String error);
@@ -147,7 +162,7 @@ public final class Subsonic {
             JSONArray a = new JSONArray(sb.toString());
             catalogue.clear();
             for (int i = 0; i < a.length(); i++) catalogue.add(Song.fromJson(a.getJSONObject(i)));
-            loaded = true;
+            loaded = true; albumCache = null;
             Diag.put("musica.cache", "catalogo caricato: " + catalogue.size() + " brani");
             return !catalogue.isEmpty();
         } catch (Exception e) {
@@ -269,7 +284,7 @@ public final class Subsonic {
             synchronized (this) {
                 catalogue.clear();
                 catalogue.addAll(collected);
-                loaded = true;
+                loaded = true; albumCache = null;
             }
             saveCache();
             Diag.put("musica.sync", "completato: " + collected.size() + " brani da " + total + " album");
@@ -281,4 +296,128 @@ public final class Subsonic {
             cb.done(0, e.getMessage() == null ? "errore" : e.getMessage());
         }
     }
+
+    // ---- album derivati dal catalogo (nessuna rete) ----
+    private List<Album> albumCache;
+    public synchronized List<Album> albums() {
+        if (albumCache != null) return albumCache;
+        java.util.LinkedHashMap<String, Album> map = new java.util.LinkedHashMap<>();
+        for (Song s : catalogue) {
+            String key = (s.albumId == null || s.albumId.isEmpty()) ? (s.album + "\u0001" + s.artist) : s.albumId;
+            Album a = map.get(key);
+            if (a == null) { a = new Album(s.albumId, s.album.isEmpty() ? "?" : s.album, s.artist, s.coverArt); map.put(key, a); }
+            a.count++;
+        }
+        List<Album> out = new ArrayList<>(map.values());
+        java.util.Collections.sort(out, new java.util.Comparator<Album>() {
+            public int compare(Album x, Album y) { return x.name.compareToIgnoreCase(y.name); }
+        });
+        albumCache = out;
+        return out;
+    }
+
+    public synchronized List<Song> songsOfAlbum(String albumId, String albumName) {
+        List<Song> out = new ArrayList<>();
+        for (Song s : catalogue) {
+            boolean hit = (albumId != null && !albumId.isEmpty()) ? albumId.equals(s.albumId) : (albumName != null && albumName.equals(s.album));
+            if (hit) out.add(s);
+        }
+        java.util.Collections.sort(out, new java.util.Comparator<Song>() {
+            public int compare(Song x, Song y) { return Integer.compare(x.track, y.track); }
+        });
+        return out;
+    }
+
+    /** Album che corrispondono alla query (per metterli in cima alla ricerca). */
+    public synchronized List<Album> searchAlbums(String query) {
+        String q = query == null ? "" : query.toLowerCase(Locale.ROOT).trim();
+        List<Album> out = new ArrayList<>();
+        if (q.isEmpty()) return out;
+        for (Album a : albums()) {
+            if (a.name.toLowerCase(Locale.ROOT).contains(q) || a.artist.toLowerCase(Locale.ROOT).contains(q)) {
+                out.add(a);
+                if (out.size() >= 60) break;
+            }
+        }
+        return out;
+    }
+
+    // ---- playlist dal server (rete, poche) ----
+    public List<Playlist> playlists() {
+        List<Playlist> out = new ArrayList<>();
+        try {
+            JSONObject root = get(endpoint("getPlaylists", null));
+            JSONObject pl = root.optJSONObject("playlists");
+            JSONArray arr = pl == null ? null : pl.optJSONArray("playlist");
+            if (arr != null) for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                String id = o.optString("id", null);
+                if (id != null) out.add(new Playlist(id, o.optString("name", "?"), o.optInt("songCount", 0)));
+            }
+        } catch (Exception e) { Diag.put("musica.playlist", "errore: " + e.getMessage()); }
+        return out;
+    }
+
+    public List<Song> playlistSongs(String id) {
+        List<Song> out = new ArrayList<>();
+        try {
+            JSONObject root = get(endpoint("getPlaylist", "id=" + Uri.encode(id)));
+            JSONObject pl = root.optJSONObject("playlist");
+            JSONArray arr = pl == null ? null : pl.optJSONArray("entry");
+            if (arr != null) for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                String sid = o.optString("id", null);
+                if (sid == null) continue;
+                out.add(new Song(sid, o.optString("title", "?"), o.optString("artist", ""), o.optString("album", ""),
+                        o.optString("albumId", ""), o.optString("coverArt", ""), o.optString("suffix", ""),
+                        o.optInt("duration", 0), o.optInt("track", 0), o.optInt("year", 0)));
+            }
+        } catch (Exception e) { Diag.put("musica.playlist", "brani errore: " + e.getMessage()); }
+        return out;
+    }
+
+    // ---- ascoltati di recente (id persistiti) ----
+    private File recentFile() { return new File(app.getFilesDir(), "music-recent.json"); }
+
+    public synchronized void notePlayed(String id) {
+        if (id == null || id.isEmpty()) return;
+        try {
+            List<String> ids = recentIds();
+            ids.remove(id);
+            ids.add(0, id);
+            while (ids.size() > 40) ids.remove(ids.size() - 1);
+            JSONArray a = new JSONArray();
+            for (String s : ids) a.put(s);
+            FileOutputStream o = new FileOutputStream(recentFile());
+            o.write(a.toString().getBytes("UTF-8"));
+            o.close();
+        } catch (Exception ignored) {}
+    }
+
+    private List<String> recentIds() {
+        List<String> ids = new ArrayList<>();
+        File f = recentFile();
+        if (!f.exists()) return ids;
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(new java.io.FileInputStream(f), "UTF-8"));
+            StringBuilder sb = new StringBuilder(); String ln;
+            while ((ln = r.readLine()) != null) sb.append(ln);
+            r.close();
+            JSONArray a = new JSONArray(sb.toString());
+            for (int i = 0; i < a.length(); i++) ids.add(a.optString(i));
+        } catch (Exception ignored) {}
+        return ids;
+    }
+
+    public synchronized List<Song> recent(int max) {
+        java.util.HashMap<String, Song> byId = new java.util.HashMap<>();
+        for (Song s : catalogue) byId.put(s.id, s);
+        List<Song> out = new ArrayList<>();
+        for (String id : recentIds()) {
+            Song s = byId.get(id);
+            if (s != null) { out.add(s); if (out.size() >= max) break; }
+        }
+        return out;
+    }
+
 }

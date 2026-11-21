@@ -191,6 +191,7 @@ public final class HomeView extends LinearLayout {
     private android.media.session.MediaController musicCtl;
     private android.media.session.MediaController.Callback musicCb;
     private MusicPlayer musicPlayer;   // Calm Launcher: lettore diretto Subsonic/Navidrome
+    private boolean directAudio;       // il lettore diretto e' la sorgente attiva nel pannello
 
     private boolean libShowing;   // il riquadro media sta mostrando la libreria (non una sorgente dell'auto)
 
@@ -208,13 +209,37 @@ public final class HomeView extends LinearLayout {
                 || ps.getState() == android.media.session.PlaybackState.STATE_PAUSED
                 || ps.getState() == android.media.session.PlaybackState.STATE_BUFFERING);
     }
+    /** Calm Launcher: il lettore diretto ha cambiato brano o play/pausa -> aggiorna pannello e barra. */
+    void onDirectChanged(Subsonic.Song song, boolean playing) {
+        directAudio = (song != null);
+        applyDirectToPanel();
+        if (music != null) music.updateNowBar();
+    }
+
+    private void applyDirectToPanel() {
+        if (!directAudio || musicPlayer == null) return;
+        Subsonic.Song s = musicPlayer.current();
+        if (s == null) return;
+        int picon = musicPlayer.isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play;
+        mTitle.setText(s.title);
+        mSub.setText(s.artist);
+        mSub.setVisibility(s.artist == null || s.artist.isEmpty() ? GONE : VISIBLE);
+        if (mMeta != null) mMeta.setText("NAVIDROME");
+        playIcon.setImageResource(picon);
+        miniPlayIcon.setImageResource(picon);
+        if (miniTitle != null) { miniTitle.setText(s.title); miniSub.setText(s.artist); }
+        if (sideMediaTitle != null) { sideMediaTitle.setText(s.title); sideMediaSub.setText(s.artist); sideMediaPlay.setImageResource(picon); }
+    }
+
     private void musicTogglePlay() {
+        if (directAudio && musicPlayer != null) { musicPlayer.toggle(); return; }
         if (!libShowing) { media.playPause(); return; }
         android.media.session.PlaybackState ps = musicCtl.getPlaybackState();
         if (ps != null && ps.getState() == android.media.session.PlaybackState.STATE_PLAYING) musicCtl.getTransportControls().pause();
         else musicCtl.getTransportControls().play();
     }
     private void musicSkip(boolean fwd) {
+        if (directAudio && musicPlayer != null) { if (fwd) musicPlayer.next(); else musicPlayer.prev(); return; }
         if (!libShowing) { media.skip(fwd); return; }
         if (fwd) musicCtl.getTransportControls().skipToNext(); else musicCtl.getTransportControls().skipToPrevious();
     }
@@ -328,6 +353,9 @@ public final class HomeView extends LinearLayout {
 
         LinearLayout batRow = Ui.row(c);
         batRow.setGravity(Gravity.CENTER_VERTICAL);
+        batRow.setClickable(true);
+        batRow.setBackground(Ui.pressable(c, 0, dp(12), t));
+        batRow.setOnClickListener(v -> { Sfx.click(); openChargePopup(); });
         battery = new Bars.Progress(c);
         battery.setColors(t.track, t.battery);
         batRow.addView(battery, Ui.lpWeight(0, dp(8), 1));
@@ -712,6 +740,41 @@ public final class HomeView extends LinearLayout {
         }
         Confirm.pick(host.overlay(), t, L.s(start ? R.string.cb_reserve_pick_start : R.string.cb_reserve_pick_end), "", times, sel,
                 L.s(R.string.btn_cancel), i -> vehicle.setReserveTime(start, i / 2, (i % 2) * 30));
+    }
+
+    /** Calm Launcher: pannello comandi ricarica (si apre toccando la percentuale della batteria). Riusa i comandi gia' esistenti. */
+    private void openChargePopup() {
+        VehicleClient.State s = lastVehicle;
+        if (s == null || !s.connected) {
+            Confirm.notice(host.overlay(), t, L.s(R.string.cb_charge), "", new String[]{"Vehicle not connected yet \u2013 try again in a moment."}, L.s(R.string.btn_ok), null);
+            return;
+        }
+        int mode = VehicleClient.plugMode(s);
+        boolean v2l = mode == 2;
+        int ctrl = v2l ? s.dischargeControl : s.chargeControl;
+        boolean running = v2l ? (ctrl == VehicleClient.CTRL_START || VehicleClient.isDischarging(s.chargingStatus)) : ctrl == VehicleClient.CTRL_START;
+        boolean preparing = ctrl == VehicleClient.CTRL_PREPARING;
+        final java.util.List<String> opts = new java.util.ArrayList<>();
+        final java.util.List<Runnable> acts = new java.util.ArrayList<>();
+        if (showLimit(s)) {
+            opts.add("Charge limit  \u00b7  " + (s.chargeLimitCode >= 1 ? LIMIT_LABELS[s.chargeLimitCode - 1] : "\u2014"));
+            acts.add(this::pickLimit);
+        }
+        opts.add("Charging current  \u00b7  " + (s.currentLimit >= 1 ? VehicleClient.CURRENT_LABELS[s.currentLimit - 1] : "\u2014"));
+        acts.add(this::pickCurrent);
+        if (mode != 0 && !preparing && s.bmsAvailable) {
+            opts.add((v2l ? (running ? "Stop V2L" : "Start V2L") : (running ? "Stop charging" : "Start charging")));
+            acts.add(this::startStop);
+        }
+        opts.add("Unlock socket" + (s.chargeLock == 1 ? "  \u00b7  locked" : s.chargeLock == 2 ? "  \u00b7  unlocked" : ""));
+        acts.add(this::unlockSocket);
+        if (s.reserveSupported) {
+            boolean resOn = s.reserve == VehicleClient.RESERVE_ON || s.reserve == VehicleClient.RESERVE_ON_CONTINUE;
+            opts.add("Scheduled charge  \u00b7  " + (resOn ? reserveRange(s) : L.s(R.string.cb_reserve_off)));
+            acts.add(this::pickReserve);
+        }
+        Confirm.pick(host.overlay(), t, L.s(R.string.cb_charge), "", opts.toArray(new String[0]), -1,
+                L.s(R.string.btn_cancel), i -> { if (i >= 0 && i < acts.size()) acts.get(i).run(); });
     }
 
     private void pickCurrent() {
@@ -2057,6 +2120,8 @@ public final class HomeView extends LinearLayout {
             phoneNavDist.setText(m.tbtDistance.isEmpty() ? L.s(R.string.next_maneuver) : m.tbtDistance);
             phoneNavRoad.setText(m.tbtRoad.isEmpty() ? L.s(R.string.nav_phone) : m.tbtRoad);
         }
+        if (m.playing) directAudio = false;   // una sorgente dell'auto che suona riprende il pannello
+        applyDirectToPanel();
     }
 
     // ---- 1.0.4 (punto F): animazione di ricarica -------------------------------------------------
@@ -2744,6 +2809,8 @@ public final class HomeView extends LinearLayout {
         private boolean directMode;
         private Subsonic directServer;
         private java.util.List<Subsonic.Song> directResults = new java.util.ArrayList<>();
+        private LinearLayout nowBar;
+        private Runnable directBack;   // azione \"indietro\" per viste album/playlist
         private android.widget.ProgressBar indexBar;
         private TextView indexLabel;
         private final java.util.List<String> songAlbumIds = new java.util.ArrayList<>();
@@ -2811,6 +2878,11 @@ public final class HomeView extends LinearLayout {
             indexLabel = Ui.oneLine(Ui.text(c, "", 14, t.sub, Ui.REGULAR));
             indexLabel.setVisibility(GONE);
             card.addView(indexLabel, Ui.margins(new LayoutParams(-2, -2), 0, dp(4), 0, 0));
+
+            nowBar = Ui.row(c);
+            nowBar.setGravity(Gravity.CENTER_VERTICAL);
+            nowBar.setVisibility(GONE);
+            card.addView(nowBar, Ui.margins(new LayoutParams(dp(640), -2), 0, dp(12), 0, 0));
 
             android.widget.ScrollView sv = new android.widget.ScrollView(c);
             listCol = Ui.column(c);
@@ -2919,34 +2991,167 @@ public final class HomeView extends LinearLayout {
 
         // ---- Calm Launcher: modalita' diretta Navidrome/Subsonic (catalogo intero, ricerca offline) ----
         private void ensurePlayer() {
-            if (musicPlayer == null) musicPlayer = new MusicPlayer(getContext(), directServer);
+            if (musicPlayer == null) {
+                musicPlayer = new MusicPlayer(getContext(), directServer);
+                musicPlayer.setListener((song, playing) -> onDirectChanged(song, playing));
+            }
+        }
+        private void playFrom(java.util.List<Subsonic.Song> list, int idx) {
+            ensurePlayer();
+            directAudio = true;
+            if (idx >= 0 && idx < list.size() && directServer != null) directServer.notePlayed(list.get(idx).id);
+            musicPlayer.play(list, idx);
+        }
+
+        void updateNowBar() {
+            if (nowBar == null) return;
+            Context c = getContext();
+            Subsonic.Song s = musicPlayer != null ? musicPlayer.current() : null;
+            nowBar.removeAllViews();
+            if (s == null || directServer == null) { nowBar.setVisibility(GONE); return; }
+            nowBar.setVisibility(VISIBLE);
+            nowBar.setPadding(dp(12), dp(10), dp(8), dp(10));
+            nowBar.setBackground(Ui.round(t.chip, dp(14)));
+            ImageView thumb = new ImageView(c);
+            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.setBackground(Ui.round(t.panel, dp(8)));
+            thumb.setImageResource(R.drawable.ic_music); thumb.setColorFilter(t.sub); thumb.setPadding(dp(8),dp(8),dp(8),dp(8));
+            int ts = tp(big ? 48 : 40);
+            loadArtUrl(thumb, "sub:" + s.coverArt, directServer.coverUrl(s.coverArt, 160));
+            nowBar.addView(thumb, Ui.margins(new LayoutParams(ts, ts), 0, 0, dp(12), 0));
+            LinearLayout tx = Ui.column(c);
+            tx.addView(Ui.oneLine(Ui.text(c, s.title, big ? 19 : 16, t.text, Ui.MEDIUM)));
+            tx.addView(Ui.oneLine(Ui.text(c, s.artist, big ? 15 : 13, t.sub, Ui.REGULAR)));
+            nowBar.addView(tx, Ui.lpWeight(0, -2, 1));
+            TextView prev = pill(c, "\u23EE"); prev.setOnClickListener(v -> { if (musicPlayer != null) musicPlayer.prev(); });
+            TextView pp = pill(c, musicPlayer != null && musicPlayer.isPlaying() ? "\u23F8" : "\u25B6");
+            pp.setOnClickListener(v -> { if (musicPlayer != null) musicPlayer.toggle(); });
+            TextView next = pill(c, "\u23ED"); next.setOnClickListener(v -> { if (musicPlayer != null) musicPlayer.next(); });
+            nowBar.addView(prev); nowBar.addView(pp); nowBar.addView(next);
         }
 
         private void showDirectHome() {
+            updateNowBar();
             listCol.removeAllViews();
-            int n = directServer == null ? 0 : directServer.size();
-            Subsonic.Song cur = musicPlayer != null ? musicPlayer.current() : null;
-            if (cur != null) addNowPlaying(cur);
-            TextView info = Ui.text(getContext(), n + " tracks ready \u2013 type to search your whole library.", big ? 20 : 17, t.sub, Ui.REGULAR);
-            info.setPadding(dp(14), dp(18), dp(14), dp(10));
-            listCol.addView(info);
+            Context c = getContext();
+            LinearLayout btns = Ui.row(c);
+            btns.setPadding(dp(8), dp(6), dp(8), dp(8));
+            btns.addView(browseButton(c, "Albums", this::showAlbums));
+            btns.addView(browseButton(c, "Playlists", this::showPlaylists));
+            listCol.addView(btns);
+            java.util.List<Subsonic.Song> rec = directServer != null ? directServer.recent(20) : new java.util.ArrayList<>();
+            if (!rec.isEmpty()) {
+                listCol.addView(sectionLabel(c, "RECENTLY PLAYED"));
+                for (int i = 0; i < rec.size(); i++) addSongRow(rec, i);
+            } else {
+                TextView info = Ui.text(c, (directServer != null ? directServer.size() : 0) + " tracks ready \u2013 type to search, or browse albums & playlists.", big ? 19 : 16, t.sub, Ui.REGULAR);
+                info.setPadding(dp(14), dp(16), dp(14), dp(10));
+                listCol.addView(info);
+            }
         }
 
         private void directSearch(String q) {
             if (directServer == null) return;
-            directResults = directServer.search(q);
+            updateNowBar();
             listCol.removeAllViews();
-            if (directResults.isEmpty()) { message("No matches"); return; }
-            int cap = 200;
-            for (int i = 0; i < directResults.size() && i < cap; i++) addSongRow(directResults.get(i), i);
-            if (directResults.size() > cap) {
-                TextView more = Ui.text(getContext(), "+ " + (directResults.size() - cap) + " more \u2013 type more to narrow", big ? 18 : 15, t.sub, Ui.REGULAR);
-                more.setPadding(dp(14), dp(10), dp(14), dp(10));
-                listCol.addView(more);
+            Context c = getContext();
+            java.util.List<Subsonic.Album> al = directServer.searchAlbums(q);
+            directResults = directServer.search(q);
+            if (al.isEmpty() && directResults.isEmpty()) { message("No matches"); return; }
+            if (!al.isEmpty()) {
+                listCol.addView(sectionLabel(c, "ALBUMS"));
+                int cap = Math.min(al.size(), 30);
+                for (int i = 0; i < cap; i++) addAlbumRow(al.get(i));
+            }
+            if (!directResults.isEmpty()) {
+                listCol.addView(sectionLabel(c, "TRACKS"));
+                int cap = 200;
+                for (int i = 0; i < directResults.size() && i < cap; i++) addSongRow(directResults, i);
+                if (directResults.size() > cap) {
+                    TextView more = Ui.text(c, "+ " + (directResults.size() - cap) + " more \u2013 type more to narrow", big ? 16 : 14, t.sub, Ui.REGULAR);
+                    more.setPadding(dp(14), dp(10), dp(14), dp(10));
+                    listCol.addView(more);
+                }
             }
         }
 
-        private void addSongRow(final Subsonic.Song s, final int idx) {
+        private void showAlbums() {
+            if (directServer == null) return;
+            updateNowBar();
+            listCol.removeAllViews();
+            Context c = getContext();
+            listCol.addView(headerRow(c, "Albums", this::showDirectHome));
+            java.util.List<Subsonic.Album> al = directServer.albums();
+            int cap = Math.min(al.size(), 600);
+            for (int i = 0; i < cap; i++) addAlbumRow(al.get(i));
+        }
+
+        private void openAlbum(final Subsonic.Album a) {
+            if (directServer == null) return;
+            updateNowBar();
+            final java.util.List<Subsonic.Song> songs = directServer.songsOfAlbum(a.id, a.name);
+            listCol.removeAllViews();
+            Context c = getContext();
+            listCol.addView(headerRow(c, a.name, this::showAlbums));
+            LinearLayout pr = Ui.row(c);
+            pr.setPadding(dp(8), dp(2), dp(8), dp(8));
+            pr.addView(browseButton(c, "\u25B6  Play album", () -> playFrom(songs, 0)));
+            listCol.addView(pr);
+            for (int i = 0; i < songs.size(); i++) addSongRow(songs, i);
+        }
+
+        private void showPlaylists() {
+            if (directServer == null) return;
+            updateNowBar();
+            listCol.removeAllViews();
+            final Context c = getContext();
+            listCol.addView(headerRow(c, "Playlists", this::showDirectHome));
+            final TextView load = Ui.text(c, "Loading playlists\u2026", big ? 18 : 15, t.sub, Ui.REGULAR);
+            load.setPadding(dp(14), dp(14), dp(14), dp(10));
+            listCol.addView(load);
+            new Thread(() -> {
+                final java.util.List<Subsonic.Playlist> pls = directServer.playlists();
+                post(() -> {
+                    load.setVisibility(GONE);
+                    if (pls.isEmpty()) {
+                        TextView e = Ui.text(c, "No playlists on the server.", big ? 18 : 15, t.sub, Ui.REGULAR);
+                        e.setPadding(dp(14), dp(10), dp(14), dp(10));
+                        listCol.addView(e);
+                        return;
+                    }
+                    for (Subsonic.Playlist pl : pls) addPlaylistRow(pl);
+                });
+            }, "subsonic-playlists").start();
+        }
+
+        private void openPlaylist(final Subsonic.Playlist pl) {
+            if (directServer == null) return;
+            updateNowBar();
+            listCol.removeAllViews();
+            final Context c = getContext();
+            listCol.addView(headerRow(c, pl.name, this::showPlaylists));
+            final TextView load = Ui.text(c, "Loading\u2026", big ? 18 : 15, t.sub, Ui.REGULAR);
+            load.setPadding(dp(14), dp(14), dp(14), dp(10));
+            listCol.addView(load);
+            new Thread(() -> {
+                final java.util.List<Subsonic.Song> songs = directServer.playlistSongs(pl.id);
+                post(() -> {
+                    load.setVisibility(GONE);
+                    if (songs.isEmpty()) {
+                        TextView e = Ui.text(c, "Empty playlist.", big ? 18 : 15, t.sub, Ui.REGULAR);
+                        e.setPadding(dp(14), dp(10), dp(14), dp(10)); listCol.addView(e); return;
+                    }
+                    LinearLayout pr = Ui.row(c);
+                    pr.setPadding(dp(8), dp(2), dp(8), dp(8));
+                    pr.addView(browseButton(c, "\u25B6  Play all", () -> playFrom(songs, 0)));
+                    listCol.addView(pr);
+                    for (int i = 0; i < songs.size(); i++) addSongRow(songs, i);
+                });
+            }, "subsonic-playlist").start();
+        }
+
+        private void addSongRow(final java.util.List<Subsonic.Song> list, final int idx) {
+            final Subsonic.Song s = list.get(idx);
             Context c = getContext();
             LinearLayout row = Ui.row(c);
             row.setGravity(Gravity.CENTER_VERTICAL);
@@ -2967,28 +3172,79 @@ public final class HomeView extends LinearLayout {
             String sub = s.artist + (s.album == null || s.album.isEmpty() ? "" : "  \u00b7  " + s.album);
             tx.addView(Ui.oneLine(Ui.text(c, sub, big ? 16 : 14, t.sub, Ui.REGULAR)));
             row.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
-            row.setOnClickListener(v -> { Sfx.click(); ensurePlayer(); musicPlayer.play(directResults, idx); showDirectHome(); });
+            row.setOnClickListener(v -> { Sfx.click(); playFrom(list, idx); });
             listCol.addView(row, new LayoutParams(-1, -2));
         }
 
-        private void addNowPlaying(Subsonic.Song s) {
+        private void addAlbumRow(final Subsonic.Album a) {
+            Context c = getContext();
+            LinearLayout row = Ui.row(c);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(10), dp(8), dp(10), dp(8));
+            row.setClickable(true);
+            row.setBackground(Ui.pressable(c, 0, dp(12), t));
+            ImageView thumb = new ImageView(c);
+            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.setBackground(Ui.round(t.chip, dp(8)));
+            thumb.setImageResource(R.drawable.ic_music);
+            thumb.setColorFilter(t.sub);
+            thumb.setPadding(dp(8), dp(8), dp(8), dp(8));
+            int ts = tp(big ? 56 : 48);
+            loadArtUrl(thumb, "sub:" + a.coverArt, directServer.coverUrl(a.coverArt, 160));
+            row.addView(thumb, new LayoutParams(ts, ts));
+            LinearLayout tx = Ui.column(c);
+            tx.addView(Ui.oneLine(Ui.text(c, a.name, big ? 22 : 18, t.text, Ui.MEDIUM)));
+            tx.addView(Ui.oneLine(Ui.text(c, a.artist + "  \u00b7  " + a.count + (a.count == 1 ? " track" : " tracks"), big ? 16 : 14, t.sub, Ui.REGULAR)));
+            row.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
+            TextView play = pill(c, "\u25B6");
+            play.setOnClickListener(v -> { Sfx.click(); playFrom(directServer.songsOfAlbum(a.id, a.name), 0); });
+            row.addView(play);
+            row.setOnClickListener(v -> { Sfx.click(); openAlbum(a); });
+            listCol.addView(row, new LayoutParams(-1, -2));
+        }
+
+        private void addPlaylistRow(final Subsonic.Playlist pl) {
             Context c = getContext();
             LinearLayout row = Ui.row(c);
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(dp(14), dp(12), dp(14), dp(12));
-            row.setBackground(Ui.round(t.chip, dp(14)));
+            row.setClickable(true);
+            row.setBackground(Ui.pressable(c, 0, dp(12), t));
             LinearLayout tx = Ui.column(c);
-            tx.addView(Ui.oneLine(Ui.text(c, s.title, big ? 20 : 17, t.text, Ui.MEDIUM)));
-            tx.addView(Ui.oneLine(Ui.text(c, s.artist, big ? 16 : 14, t.sub, Ui.REGULAR)));
+            tx.addView(Ui.oneLine(Ui.text(c, pl.name, big ? 22 : 18, t.text, Ui.MEDIUM)));
+            tx.addView(Ui.oneLine(Ui.text(c, pl.count + (pl.count == 1 ? " track" : " tracks"), big ? 16 : 14, t.sub, Ui.REGULAR)));
             row.addView(tx, Ui.lpWeight(0, -2, 1));
-            TextView prev = pill(c, "\u23EE");
-            prev.setOnClickListener(v -> { if (musicPlayer != null) { musicPlayer.prev(); post(this::showDirectHome); } });
-            TextView pp = pill(c, musicPlayer != null && musicPlayer.isPlaying() ? "\u23F8" : "\u25B6");
-            pp.setOnClickListener(v -> { if (musicPlayer != null) { musicPlayer.toggle(); post(this::showDirectHome); } });
-            TextView next = pill(c, "\u23ED");
-            next.setOnClickListener(v -> { if (musicPlayer != null) { musicPlayer.next(); post(this::showDirectHome); } });
-            row.addView(prev); row.addView(pp); row.addView(next);
-            listCol.addView(row, Ui.margins(new LayoutParams(-1, -2), 0, dp(4), 0, dp(12)));
+            row.setOnClickListener(v -> { Sfx.click(); openPlaylist(pl); });
+            listCol.addView(row, new LayoutParams(-1, -2));
+        }
+
+        private LinearLayout headerRow(Context c, String title, final Runnable back) {
+            LinearLayout row = Ui.row(c);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(6), dp(6), dp(10), dp(10));
+            TextView b = pill(c, "\u2039");
+            b.setOnClickListener(v -> { Sfx.click(); if (back != null) back.run(); });
+            row.addView(b);
+            row.addView(Ui.oneLine(Ui.text(c, title, big ? 24 : 19, t.text, Ui.MEDIUM)), Ui.margins(Ui.lpWeight(0, -2, 1), dp(12), 0, 0, 0));
+            return row;
+        }
+
+        private TextView browseButton(Context c, String label, final Runnable onClick) {
+            TextView b = Ui.text(c, label, big ? 20 : 17, t.text, Ui.MEDIUM);
+            b.setGravity(Gravity.CENTER);
+            b.setPadding(dp(22), dp(12), dp(22), dp(12));
+            b.setClickable(true);
+            b.setBackground(Ui.round(t.chip, dp(14)));
+            b.setOnClickListener(v -> { Sfx.click(); if (onClick != null) onClick.run(); });
+            b.setLayoutParams(Ui.margins(new LayoutParams(-2, -2), 0, 0, dp(10), 0));
+            return b;
+        }
+
+        private TextView sectionLabel(Context c, String txt) {
+            TextView l = Ui.text(c, txt, big ? 15 : 13, t.sub, Ui.MEDIUM);
+            l.setPadding(dp(14), dp(14), dp(14), dp(6));
+            l.setLetterSpacing(0.08f);
+            return l;
         }
 
         private TextView pill(Context c, String glyph) {
@@ -3001,17 +3257,27 @@ public final class HomeView extends LinearLayout {
             return b;
         }
 
+        private java.io.File artDir() { return new java.io.File(getContext().getFilesDir(), "artcache"); }
+        private String sanKey(String k) { return k.replaceAll("[^A-Za-z0-9_]", "_"); }
+        private android.graphics.Bitmap diskArtGet(String key) {
+            try { java.io.File f = new java.io.File(artDir(), sanKey(key) + ".jpg"); if (!f.isFile() || f.length() == 0) return null; return android.graphics.BitmapFactory.decodeFile(f.getAbsolutePath()); } catch (Exception e) { return null; }
+        }
+        private void diskArtPut(String key, android.graphics.Bitmap b) {
+            try { java.io.File d = artDir(); d.mkdirs(); java.io.FileOutputStream o = new java.io.FileOutputStream(new java.io.File(d, sanKey(key) + ".jpg")); b.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, o); o.close(); } catch (Exception ignored) {}
+        }
+
         private void loadArtUrl(final ImageView iv, final String key, final String url) {
             if (key == null || key.isEmpty() || url == null || url.isEmpty()) return;
             android.graphics.Bitmap cached = ART_CACHE.get(key);
             if (cached != null) { showArt(iv, cached); return; }
             iv.setTag(key);
-            final Context ac = getContext().getApplicationContext();
             artExec().execute(() -> {
-                final android.graphics.Bitmap bmp = decodeArt(ac, key);
+                android.graphics.Bitmap bmp = diskArtGet(key);
+                if (bmp == null) { bmp = decodeArt(getContext().getApplicationContext(), url); if (bmp != null) diskArtPut(key, bmp); }
                 if (bmp == null) return;
                 ART_CACHE.put(key, bmp);
-                post(() -> { if (key.equals(iv.getTag())) showArt(iv, bmp); });
+                final android.graphics.Bitmap fb = bmp;
+                post(() -> { if (key.equals(iv.getTag())) showArt(iv, fb); });
             });
         }
 
@@ -3249,6 +3515,7 @@ public final class HomeView extends LinearLayout {
                 post(() -> { if (key.equals(iv.getTag())) showArt(iv, bmp); });
             });
         }
+
 
         private void showArt(ImageView iv, android.graphics.Bitmap b) {
             iv.clearColorFilter();

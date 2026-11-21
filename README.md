@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.58
+- **Musica**: la ricerca mostra gli album in cima (toccali per riprodurre tutto l'album); la prima schermata mostra gli ascoltati di recente (max 20) con i tasti Albums e Playlists per sfogliare tutto; copertine salvate su disco; comandi play/pausa che si aggiornano dal vivo (pannello e popup).
+- **Comandi ricarica**: toccando la percentuale della batteria si apre il pannello (limite, corrente, avvia/ferma, sblocca presa, ricarica programmata), come il progetto originale.
+- **Animazione d'avvio**: logo che pulsa con un anello di colori che ruota.
+- **Sfumatura mappa riparata** (il canvas copriva la sfumatura: ora e' sopra). Il nome della via dalla mappa non e' recuperabile da questi tile.
+
 #### 1.0.5-calm.57
 - **Riprendi lo schermo da DiPlay all'avvio**: se DiPlay occupa lo schermo nei primi 30 secondi dall'accensione, il launcher ripreme Home e torna davanti. Mira SOLO a DiPlay (mai la retrocamera o altre app) e se apri DiPlay di proposito lo lascia stare. Si puo' spegnere in Impostazioni - Home.
 
@@ -1108,6 +1114,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.58
+- **Music**: search shows albums at the top (tap to play the whole album); the first screen shows recently played (max 20) with Albums and Playlists buttons to browse everything; artwork cached to disk; play/pause controls update live (panel and popup).
+- **Charge controls**: tapping the battery percentage opens the panel (limit, current, start/stop, unlock socket, scheduled charge), like the original project.
+- **Boot animation**: pulsing logo with a swirling colour ring.
+- **Map gradient fixed** (the canvas was covering it: now it sits above). The street name can't be recovered from these tiles.
 
 #### 1.0.5-calm.57
 - **Reclaim screen from DiPlay at startup**: if DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Targets ONLY DiPlay (never the reverse camera or other apps) and leaves it alone if you open DiPlay yourself. Toggle in Settings - Home.
