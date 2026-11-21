@@ -565,15 +565,27 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     // Calm Launcher: il menu clima di sistema (com.saicmotor.hmi.hvac) a volte si apre da solo quando si tocca
     // un comando di riscaldamento. Dopo un comando clima lo sorveglio per qualche secondo e, se compare senza
     // che l'utente l'abbia aperto apposta (userLaunchAt recente = apertura voluta, non tocco), torno al launcher.
-    private static final String HVAC_PKG = "com.saicmotor.hmi.hvac";
+    // Il menu clima di sistema può arrivare da più pacchetti SAIC (hvac, climate, il servizio veicolo).
+    private static boolean isClimatePkg(String p) {
+        if (p == null) return false;
+        return p.contains("hvac") || p.contains("climate") || p.contains("aircond")
+                || "com.saicmotor.hmi.hvac".equals(p);
+    }
     private int climateGuardTicks;
+    private String climateSeen;   // ultimo pacchetto estraneo visto durante la sorveglianza, per il log
     private final Runnable climateGuard = new Runnable() {
         @Override public void run() {
             try {
                 if (prefs != null && prefs.reclaimScreen()) {
                     long now = android.os.SystemClock.elapsedRealtime();
-                    if (now - userLaunchAt >= 2500L && HVAC_PKG.equals(topPackage())) {
-                        com.mg4.launcher.svc.Diag.put("ripresa.clima", "menu clima di sistema comparso da solo: torno al launcher");
+                    String top = topPackage();
+                    // registra che cosa compare in primo piano (diverso dal launcher), così si vede nel log il pacchetto vero
+                    if (top != null && !getPackageName().equals(top) && !top.equals(climateSeen)) {
+                        climateSeen = top;
+                        com.mg4.launcher.svc.Diag.put("clima.sorveglia", "in primo piano: " + top);
+                    }
+                    if (now - userLaunchAt >= 2500L && isClimatePkg(top)) {
+                        com.mg4.launcher.svc.Diag.put("ripresa.clima", "menu clima di sistema (" + top + ") comparso da solo: torno al launcher");
                         startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
                                 .setComponent(new ComponentName(MainActivity.this, MainActivity.class))
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
@@ -590,6 +602,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     public void guardClimateMenu() {
         if (root == null || prefs == null || !prefs.reclaimScreen()) return;
         climateGuardTicks = 14;   // ~14 × 300 ms ≈ 4 s di sorveglianza
+        climateSeen = null;
         root.removeCallbacks(climateGuard);
         root.postDelayed(climateGuard, 250);
     }

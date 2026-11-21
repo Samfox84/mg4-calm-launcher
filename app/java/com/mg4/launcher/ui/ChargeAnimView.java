@@ -306,7 +306,6 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
      * sola, poi onPhaseEnd decide il seguito.
      */
     private void showDrawable(final android.graphics.drawable.AnimatedImageDrawable aid, final int phase, final int g) {
-        boolean fromPhoto = getVisibility() != VISIBLE || getAlpha() < 1f;
         clearDrawable();
         current = aid;
         int repeat;
@@ -339,10 +338,24 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
                 }
             });
         }
+        // Niente animazione di alpha: metterebbe un layer hardware sulla vista e su API 28 il layer
+        // "congela" il primo fotogramma dell'AnimatedImageDrawable (gira ma non si vede). Alpha diretta.
+        animate().cancel();
+        setLayerType(View.LAYER_TYPE_NONE, null);
+        iv.setLayerType(View.LAYER_TYPE_NONE, null);
+        setAlpha(1f);
+        android.widget.FrameLayout.LayoutParams ivlp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
         com.mg4.launcher.svc.Diag.put("ricarica.gif", NAMES[phase] + ": dst " + dst.width() + "x" + dst.height()
-                + " view " + getWidth() + "x" + getHeight() + " running=" + aid.isRunning());
-        if (fromPhoto) { animate().cancel(); animate().alpha(1f).setDuration(300).start(); }
-        else setAlpha(1f);
+                + " @" + dst.left + "," + dst.top + " view " + getWidth() + "x" + getHeight()
+                + " alpha " + getAlpha() + " ivlp " + ivlp.width + "x" + ivlp.height
+                + " drawable " + (iv.getDrawable() != null) + " running=" + aid.isRunning());
+        final int gg = g;
+        main.postDelayed(() -> {
+            if (gg != gen) return;
+            com.mg4.launcher.svc.Diag.put("ricarica.gif2", "assestata: vista alpha " + getAlpha() + " vis " + getVisibility()
+                    + " · iv " + iv.getWidth() + "x" + iv.getHeight() + " vis " + iv.getVisibility()
+                    + " · drawable " + (iv.getDrawable() != null));
+        }, 600);
     }
 
     private void clearDrawable() {

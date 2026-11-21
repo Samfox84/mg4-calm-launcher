@@ -2391,21 +2391,14 @@ public final class HomeView extends LinearLayout {
         fanBox.setClickable(true);
         fanBox.setContentDescription(L.s(R.string.climate));
         fanBox.setBackground(Ui.pressable(c, 0, 16, t));
-        // 1.0.0: app Clima (o MG4 Clima); se l'auto non ha l'app clima, il pannello clima di sistema; altrimenti spento
+        // Tocco sulla ventola = accendi/spegni il clima (niente menu di sistema). Tieni premuto = apri l'app Clima.
         boolean hvacApp = host.canLaunch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity");
         boolean sysPanel = !hvacApp && com.mg4.launcher.svc.SysHvacPanel.supported(c);
-        com.mg4.launcher.svc.Diag.put("clima.tastoApre", hvacApp ? "app Clima (o MG4 Clima se installata)"
-                : sysPanel ? "pannello clima di sistema (app clima assente)" : "niente: app clima e pannello assenti, tasto spento");
-        if (hvacApp) fanBox.setOnClickListener(v -> { Sfx.play(Sfx.S.OPEN); host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"); });
-        else if (sysPanel) fanBox.setOnClickListener(v -> { Sfx.play(Sfx.S.OPEN); com.mg4.launcher.svc.SysHvacPanel.open(getContext()); });
-        else {
-            fanBox.setClickable(false);
-            fanIc.setAlpha(0.35f);
-        }
-        fanBox.setOnLongClickListener(v -> {
-            vehicle.setHvacPower(vehicle.last().hvacPower != 1);
-            return true;
-        });
+        com.mg4.launcher.svc.Diag.put("clima.tastoApre", "tocco: accendi/spegni clima · tieni premuto: "
+                + (hvacApp ? "app Clima" : sysPanel ? "pannello clima di sistema" : "niente"));
+        fanBox.setOnClickListener(v -> { Sfx.click(); vehicle.setHvacPower(vehicle.last().hvacPower != 1); host.guardClimateMenu(); });
+        if (hvacApp) fanBox.setOnLongClickListener(v -> { Sfx.play(Sfx.S.OPEN); host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"); return true; });
+        else if (sysPanel) fanBox.setOnLongClickListener(v -> { Sfx.play(Sfx.S.OPEN); com.mg4.launcher.svc.SysHvacPanel.open(getContext()); return true; });
         fanGroup.addView(fanBox, new LayoutParams(-2, arrow));
         fanGroup.addView(barIcon(c, R.drawable.ic_chev_right, t.text, 0, arrow, arrowIcon, rad, L.s(R.string.fan_up), v -> changeFan(1)));
         bar.addView(fanGroup, Ui.margins(new LayoutParams(-2, btn), dp(10), 0, 0, 0));
@@ -4592,6 +4585,7 @@ public final class HomeView extends LinearLayout {
         localTempUntil = SystemClock.uptimeMillis() + 4000;
         tempTv.setText(tempLabel(acTemp));
         vehicle.setDriverTemp(acTemp);
+        host.guardClimateMenu();
     }
 
     private static String fanLabel(int v) {
@@ -4602,6 +4596,12 @@ public final class HomeView extends LinearLayout {
 
     /** Come l'originale: da spenta o automatico il primo tocco parte dal minimo/massimo. */
     private void changeFan(int delta) {
+        // Clima spento: il primo tocco su ‹ › lo accende; i tocchi successivi cambiano la velocità.
+        if (vehicle.last().hvacPower != 1) {
+            vehicle.setHvacPower(true);
+            host.guardClimateMenu();
+            return;
+        }
         if (fanLevel < 0) fanLevel = vehicle.last().fanLevel;
         int cur = fanLevel;
         int next;
@@ -4615,5 +4615,6 @@ public final class HomeView extends LinearLayout {
         localFanUntil = SystemClock.uptimeMillis() + 4000;
         fanTv.setText(fanLabel(fanLevel));
         vehicle.setFanLevel(fanLevel);
+        host.guardClimateMenu();
     }
 }

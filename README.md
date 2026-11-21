@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.70
+- **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
+- **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
+- **Ventola – ‹ ›**: a clima spento il primo tocco lo accende; poi i tocchi cambiano la velocità.
+- **Menu clima di sistema**: la sorveglianza ora copre ventola e temperatura, riconosce più pacchetti clima SAIC e scrive nel log quale compare.
+
 #### 1.0.5-calm.69
 - **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
 
@@ -338,12 +344,24 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
 
+#### 1.0.5-calm.70
+- **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
+- **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
+- **Ventola – ‹ ›**: a clima spento il primo tocco lo accende; poi i tocchi cambiano la velocità.
+- **Menu clima di sistema**: la sorveglianza ora copre ventola e temperatura, riconosce più pacchetti clima SAIC e scrive nel log quale compare.
+
 #### 1.0.5-calm.69
 - **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
 
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.70
+- **Charging animation**: removed the alpha fade (on API 28 it put a hardware layer that "froze" the GIF: running but invisible). Direct alpha now, no layer. More diagnostics (alpha, position, iv size).
+- **Fan – tap**: tapping the fan = turn climate on/off (no more system climate menu). Long-press = open the Climate app.
+- **Fan – ‹ ›**: with climate off the first tap turns it on; after that taps change the speed.
+- **System climate menu**: the watch now covers fan and temperature, recognises more SAIC climate packages, and logs which one appears.
 
 #### 1.0.5-calm.69
 - **Startup self-test**: the launcher checks itself and writes to the log whether the charging animation is ready (view sized + clip decodable) and which side the panels are on. One log confirms everything, no need to test in the car.
@@ -1194,12 +1212,24 @@ Even just **€2** is a great help to keep developing and testing new versions i
 
 ### Changelog
 
+#### 1.0.5-calm.70
+- **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
+- **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
+- **Ventola – ‹ ›**: a clima spento il primo tocco lo accende; poi i tocchi cambiano la velocità.
+- **Menu clima di sistema**: la sorveglianza ora copre ventola e temperatura, riconosce più pacchetti clima SAIC e scrive nel log quale compare.
+
 #### 1.0.5-calm.69
 - **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
 
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.70
+- **Charging animation**: removed the alpha fade (on API 28 it put a hardware layer that "froze" the GIF: running but invisible). Direct alpha now, no layer. More diagnostics (alpha, position, iv size).
+- **Fan – tap**: tapping the fan = turn climate on/off (no more system climate menu). Long-press = open the Climate app.
+- **Fan – ‹ ›**: with climate off the first tap turns it on; after that taps change the speed.
+- **System climate menu**: the watch now covers fan and temperature, recognises more SAIC climate packages, and logs which one appears.
 
 #### 1.0.5-calm.69
 - **Startup self-test**: the launcher checks itself and writes to the log whether the charging animation is ready (view sized + clip decodable) and which side the panels are on. One log confirms everything, no need to test in the car.
