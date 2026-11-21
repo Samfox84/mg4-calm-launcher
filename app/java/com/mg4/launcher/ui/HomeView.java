@@ -3767,7 +3767,9 @@ public final class HomeView extends LinearLayout {
         com.mg4.launcher.svc.WheelKeys.setAction((code, down, lp) -> {
             if (!down || (code != 3 && code != 4 && code != 5)) return;
             post(() -> {
-                if (!libShowing || musicCtl == null) return;   // solo quando suona la libreria; sennò lascia fare all'auto
+                // Funziona sia col lettore diretto Navidrome sia con la libreria dell'auto; altrimenti lascia fare all'auto.
+                boolean direct = directAudio && musicPlayer != null;
+                if (!direct && (!libShowing || musicCtl == null)) return;
                 if (code == 3) musicTogglePlay();
                 else if (code == 4) musicSkip(false);
                 else musicSkip(true);
