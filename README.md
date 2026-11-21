@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.74
+- **Animazione ricarica senza reticolo**: riconvertite le clip dai video originali a colori (MP4) con una palette nuova a 250 colori e dithering a diffusione d'errore (niente più trama "a quadretti"). Auto liscia e pulita. Dimensione contenuta (1000px, 25 fps): combacia con lo schermo senza sprecare spazio.
+
 #### 1.0.5-calm.73
 - **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
 - **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
@@ -1250,6 +1253,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.74
+- **Charging animation, no cross-hatching**: clips re-encoded from the original full-colour videos (MP4) with a fresh 250-colour palette and error-diffusion dithering (no more grid pattern). Smooth, clean car. Right-sized (1000px, 25 fps): matches the screen without wasting space.
 
 #### 1.0.5-calm.73
 - **High-quality charging animation**: clips replaced with the 1312×400 originals (were 984×300, heavily dithered). Sharper, far less cross-hatching, and they match the wheel geometry exactly. The app is also smaller.
