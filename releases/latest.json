@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.69",
-  "apk": "releases/MG4Launcher-1.0.5-calm.69.apk",
+  "version": "1.0.5-calm.70",
+  "apk": "releases/MG4Launcher-1.0.5-calm.70.apk",
   "size": 9527330,
-  "notes": "Startup self-test writes animation-ready and layout status to the log, so one log confirms everything."
+  "notes": "Animation: removed alpha fade (hardware-layer froze the GIF on API 28). Fan tap toggles climate power; up/down turns on if off. Climate-menu guard now covers fan/temp and logs the package."
 }
