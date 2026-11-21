@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.62
+- **Mappa: si mostra appena i riquadri sono pronti**, senza aspettare il GPS (prima restava bloccata su "Finding your position" se il segnale GPS era lento, nascondendo mappa, sfumatura e pulsanti). Il puntino blu compare quando il GPS aggancia.
+- **Sfumatura**: sintassi del gradiente semplificata (quella vecchia veniva ignorata dalla WebView).
+- **Animazione GIF**: decodifica software + errore dettagliato nel log (la GIF hardware non si leggeva su questo chip).
+
 #### 1.0.5-calm.61
 - Il pulsante di prova dell'animazione ora riproduce le GIF in modo nativo (niente piu' preparazione fotogrammi).
 - Sulla mappa dal vivo tolta l'etichetta "scorciatoia · tocca per aprire il navigatore" (non serve).
@@ -1125,6 +1130,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.62
+- **Map shows as soon as tiles are ready**, without waiting for GPS (it used to stay stuck on "Finding your position" when the GPS fix was slow, hiding the map, gradient and buttons). The blue dot appears once GPS locks on.
+- **Gradient**: simplified gradient syntax (the old one was being ignored by the WebView).
+- **GIF animation**: software decode + detailed error in the log (hardware GIF decode was failing on this chip).
 
 #### 1.0.5-calm.61
 - The animation test button now plays GIFs natively (no more frame-prep step).

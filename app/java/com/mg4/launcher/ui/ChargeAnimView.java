@@ -269,17 +269,26 @@ public final class ChargeAnimView extends View {
         final int ph = phase;
         ensurePlayer().h.post(() -> {
             android.graphics.drawable.Drawable d;
+            String err = null;
             try {
-                d = android.graphics.ImageDecoder.decodeDrawable(android.graphics.ImageDecoder.createSource(clip));
-            } catch (Throwable e) { d = null; }
+                // allocazione software: su questo chip vecchio la GIF hardware a volte non si decodifica
+                d = android.graphics.ImageDecoder.decodeDrawable(
+                        android.graphics.ImageDecoder.createSource(clip),
+                        (decoder, info, isrc) -> decoder.setAllocator(android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE));
+            } catch (Throwable e) {
+                d = null;
+                err = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
+            }
             final android.graphics.drawable.Drawable dd = d;
+            final String fe = err;
             main.post(() -> {
                 if (g != gen) return;
-                if (!(dd instanceof android.graphics.drawable.AnimatedImageDrawable)) {
-                    fail("gif " + NAMES[ph] + " non leggibile");
-                    return;
+                if (dd instanceof android.graphics.drawable.AnimatedImageDrawable) {
+                    showDrawable((android.graphics.drawable.AnimatedImageDrawable) dd, ph, g);
+                } else {
+                    fail("gif " + NAMES[ph] + " non leggibile ("
+                            + (fe != null ? fe : (dd == null ? "null" : "tipo " + dd.getClass().getSimpleName())) + ")");
                 }
-                showDrawable((android.graphics.drawable.AnimatedImageDrawable) dd, ph, g);
             });
         });
     }

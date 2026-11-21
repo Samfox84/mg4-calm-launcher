@@ -169,10 +169,10 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             if ("page-ready".equals(s)) { pageReady = true; if (lastLoc != null) post(() -> onLocationChanged(lastLoc)); }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }
-            else if ("engine-ok".equals(s)) { mapReady = true; Diag.put("map.engine", "MapLibre offline ok"); post(() -> { if (haveFix) status.setVisibility(GONE); }); }
+            else if ("engine-ok".equals(s)) { mapReady = true; Diag.put("map.engine", "mappa offline ok"); post(() -> status.setVisibility(GONE)); }
             else if (s != null && s.startsWith("engine-error")) { Diag.put("map.engine", "MapLibre ERRORE: " + s); post(() -> { status.setText("Offline map failed – see log"); status.setVisibility(VISIBLE); }); }
             else if (s != null && s.startsWith("style-error")) { Diag.put("map.engine", "stile ERRORE: " + s); }
-            else if ("tiles-ok".equals(s)) { mapReady = true; Diag.put("map.stato", "riquadri ok (internet auto)"); post(() -> { if (haveFix) status.setVisibility(GONE); }); }
+            else if ("tiles-ok".equals(s)) { mapReady = true; Diag.put("map.stato", "riquadri ok (internet auto)"); post(() -> status.setVisibility(GONE)); }
             else if ("tiles-error".equals(s)) { Diag.put("map.stato", "riquadri OFFLINE (niente internet)"); post(() -> { status.setText(offline ? "" : "Map offline – no data signal"); status.setVisibility(offline ? GONE : VISIBLE); }); }
             else if (s != null && s.startsWith("size:")) { Diag.put("map.size", s.substring(5)); }
             else if (s != null && s.startsWith("query:")) { Diag.put("map.query", s.substring(6)); }
