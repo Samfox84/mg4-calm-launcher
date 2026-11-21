@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.79",
-  "apk": "releases/MG4Launcher-1.0.5-calm.79.apk",
-  "size": 8642594,
-  "notes": "Download DiPlay from Settings - Home section, under Reclaim screen from DiPlay. Installs our DiPlay straight from GitHub, no USB stick."
+  "version": "1.0.5-calm.80",
+  "apk": "releases/MG4Launcher-1.0.5-calm.80.apk",
+  "size": 8646690,
+  "notes": "Launcher and DiPlay now update from two matching boxes at the bottom of Settings. DiPlay version is detected automatically; tap Update or Install there, no USB stick."
 }
