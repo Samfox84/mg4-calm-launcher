@@ -841,8 +841,10 @@ public final class MediaClient {
                     s.subtitle = join(a.artist, onlineName);
                     s.durationMs = a.duration;
                 }
-                if (s.title.isEmpty()) s.title = com.mg4.launcher.L.s(com.mg4.launcher.R.string.online_music);
-                if (s.subtitle.isEmpty()) s.subtitle = onlineName;
+                // Solo se sta davvero suonando si mostra "Musica online / Amazon Music"; da fermo (es. all'avvio)
+                // il riquadro resta senza titolo, così non sembra che stia riproducendo qualcosa.
+                if (s.title.isEmpty() && s.playing) s.title = com.mg4.launcher.L.s(com.mg4.launcher.R.string.online_music);
+                if (s.subtitle.isEmpty() && s.playing) s.subtitle = onlineName;
                 break;
             }
             case SRC_RADIO: {

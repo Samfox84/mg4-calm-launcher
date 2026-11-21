@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.73
+- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
+- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
+- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
+
 #### 1.0.5-calm.72
 - **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
 - **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
@@ -352,6 +357,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
 
+#### 1.0.5-calm.73
+- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
+- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
+- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
+
 #### 1.0.5-calm.72
 - **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
 - **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
@@ -372,6 +382,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.73
+- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
+- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
+- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
 
 #### 1.0.5-calm.72
 - **Bug hunt**: a song that fails no longer stops the album (skips to the next, with a cap so it can't spin if the network is down). The self-test decodes the GIF off the UI thread (no boot hitch).
@@ -1236,6 +1251,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 
 ### Changelog
 
+#### 1.0.5-calm.73
+- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
+- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
+- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
+
 #### 1.0.5-calm.72
 - **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
 - **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
@@ -1256,6 +1276,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.73
+- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
+- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
+- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
 
 #### 1.0.5-calm.72
 - **Bug hunt**: a song that fails no longer stops the album (skips to the next, with a cap so it can't spin if the network is down). The self-test decodes the GIF off the UI thread (no boot hitch).

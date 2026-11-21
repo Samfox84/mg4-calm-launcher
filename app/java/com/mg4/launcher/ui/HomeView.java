@@ -1154,7 +1154,8 @@ public final class HomeView extends LinearLayout {
     private void selectTab(int which, boolean byUser) {
         tab = which;
         if (byUser) userPickedTab = true;
-        mapPanel.setVisibility(which == TAB_MAP ? VISIBLE : GONE);
+        // La mappa resta visibile anche sotto il Media (fa da sfondo vivo); sotto CarPlay invece si spegne.
+        mapPanel.setVisibility(which == TAB_MAP || which == TAB_MEDIA ? VISIBLE : GONE);
         mediaPanel.setVisibility(which == TAB_MEDIA ? VISIBLE : GONE);
         phonePanel.setVisibility(which == TAB_PHONE ? VISIBLE : GONE);
         styleTab(tabMap, which == TAB_MAP);
@@ -1501,6 +1502,10 @@ public final class HomeView extends LinearLayout {
         LinearLayout col = Ui.column(c);
         col.setPadding(dp(28), dp(20), dp(20), dp(20));
         mediaCol = col;
+        // Velo semitrasparente: sotto il Media resta la mappa viva, così il pannello non è un rettangolo grigio vuoto.
+        // Consuma i tocchi (niente trascinamenti accidentali della mappa) e tiene leggibili testo e comandi.
+        col.setClickable(true);
+        col.setBackgroundColor((t.panel & 0x00FFFFFF) | 0xA8000000);
 
         // sorgenti: un pulsante per ciascuna (Radio, USB, Bluetooth, Online, + CarPlay/Android Auto se collegato)
         // 1.0.4 (punto E4): pulsanti più grandi (+15%), ognuno con il suo fondo e un bordo leggero; niente riquadro comune
