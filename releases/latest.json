@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.65",
-  "apk": "releases/MG4Launcher-1.0.5-calm.65.apk",
+  "version": "1.0.5-calm.66",
+  "apk": "releases/MG4Launcher-1.0.5-calm.66.apk",
   "size": 9523234,
-  "notes": "More calm-pack sounds (startup chime, charge-cable connected, charge controls open). Boot animation: colour ring is now a halo around the logo and pulses with it."
+  "notes": "Charge GIF now actually animates (ImageView-hosted). Albums advance to the next track. Map: smooth blue dot, street name queried at the tile data zoom, darker visible edge gradient."
 }
