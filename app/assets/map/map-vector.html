@@ -40,7 +40,7 @@
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
-        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:0.5}).setView([52.5,-2.5],16);
+        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:1}).setView([52.5,-2.5],16);
     L.control.zoom({position:'bottomright'}).addTo(map);
     var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane'});
     var tileN=0, reported=false;
@@ -52,7 +52,7 @@
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
-    function zoomForSpeed(ms){ var k=ms*3.6; if(k<5)return 16.5; if(k<25)return 16; if(k<50)return 15.5; if(k<80)return 15; if(k<110)return 14.5; return 14; }
+    function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 17; if(k<50)return 16; if(k<80)return 15; return 14; }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
@@ -62,22 +62,20 @@
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
 
+    function roadName(props){
+      if(!props) return '';
+      return props.name || props['name:en'] || props['name:latin'] || props.ref || '';
+    }
     function streetAt(lat,lon){
       if(!layer.queryTileFeaturesDebug) return;
-      var zCur=Math.floor(map.getZoom());
-      var zooms=[zCur,16,15,14], orders=[[lon,lat],[lat,lon]], nm='', dbg=[];
-      for(var zi=0; zi<zooms.length && !nm; zi++){
-        for(var oi=0; oi<orders.length && !nm; oi++){
-          try{
-            var fm=layer.queryTileFeaturesDebug(orders[oi][0],orders[oi][1],zooms[zi]);
-            var cnt=0, lset={};
-            fm.forEach(function(arr){ arr.forEach(function(e){ cnt++; lset[e.layerName]=1;
-              if(!nm && e.layerName==='roads' && e.feature && e.feature.props && e.feature.props.name) nm=e.feature.props.name; }); });
-            if(cnt>0 && dbg.length<4) dbg.push('z'+zooms[zi]+(oi?'/latlon':'/lonlat')+':'+Object.keys(lset).join('+'));
-          }catch(e){ if(dbg.length<4) dbg.push('err'); }
-        }
-      }
-      if(!loggedQ){ loggedQ=true; try{AndroidMap.status('query:'+(dbg.length?dbg.join(' ; '):'vuoto')+' road='+nm);}catch(e){} }
+      var nm='', lset={}, cnt=0;
+      try{
+        var fm=layer.queryTileFeaturesDebug(lat,lon);   // punto costruito come [lon,lat] dentro la libreria; zoom intero = cache ok
+        fm.forEach(function(arr){ arr.forEach(function(e){ cnt++; lset[e.layerName]=1;
+          if(!nm && e.layerName==='roads'){ var n=roadName(e.feature&&e.feature.props); if(n) nm=n; } }); });
+      }catch(e){}
+      if(!loggedQ || (!lastStreet && nm)){ loggedQ=true;
+        try{AndroidMap.status('query:'+(cnt?('n='+cnt+' layers='+Object.keys(lset).slice(0,8).join('+')):'vuoto')+' road='+nm);}catch(e){} }
       if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
     }
 
