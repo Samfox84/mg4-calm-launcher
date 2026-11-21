@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.71",
-  "apk": "releases/MG4Launcher-1.0.5-calm.71.apk",
+  "version": "1.0.5-calm.72",
+  "apk": "releases/MG4Launcher-1.0.5-calm.72.apk",
   "size": 9527330,
-  "notes": "Charging animation now hand-drawn on a Canvas (Movie/onDraw), same method as the boot splash that works on the car, instead of the system GIF player that never rendered."
+  "notes": "Bug-hunt pass: failed song skips instead of stopping; self-test decode off the UI thread. Map: resting zoom one step closer and more tiles pre-loaded so speed-zoom doesn't pop in."
 }
