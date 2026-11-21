@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.80
+- **Aggiornamenti uniti per launcher e DiPlay**: in fondo alle Impostazioni ci sono due riquadri uguali, "MG4 Launcher" e "DiPlay". Ognuno mostra la versione installata e, se c'è una versione più nuova nella fork, un pulsante "Aggiorna" (o "Installa" se DiPlay non c'è ancora). DiPlay si rileva e si aggiorna da qui come il launcher, senza chiavetta. La vecchia voce separata "Download / install DiPlay" è stata rimossa: ora è tutto nei due riquadri in basso.
+
 #### 1.0.5-calm.79
 - **Scarica DiPlay dalle Impostazioni**: Impostazioni → sezione "Home" → "Download / install DiPlay" (sotto "Reclaim screen from DiPlay"). Tocca "Install" e il launcher scarica e installa la nostra DiPlay da GitHub, senza chiavetta. Lo stato compare nel riquadro aggiornamenti in basso.
 
@@ -1268,6 +1271,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.80
+- **Unified updates for launcher and DiPlay**: the bottom of Settings now has two matching boxes, "MG4 Launcher" and "DiPlay". Each shows the installed version and, when the fork has a newer one, an "Update" button (or "Install" if DiPlay isn't on the car yet). DiPlay is detected and updated from here just like the launcher, no USB stick. The old separate "Download / install DiPlay" row was removed — it's all in the two boxes now.
 
 #### 1.0.5-calm.79
 - **Download DiPlay from Settings**: Settings → "Home" section → "Download / install DiPlay" (under "Reclaim screen from DiPlay"). Tap "Install" and the launcher downloads and installs our DiPlay from GitHub — no USB stick. Progress shows in the update box at the bottom.

@@ -85,6 +85,9 @@ public final class SettingsView extends FrameLayout {
     private static Updater.Release lastRelease;
     private static long lastQuietCheck;
     private static String lastStatus;
+    /** Ultimo esito del controllo DiPlay + eventuale testo di stato (installazione in corso). */
+    private static Updater.Release lastDiPlay;
+    private static String lastDiPlayStatus;
 
     private final Theme t;
     private final Prefs prefs;
@@ -177,6 +180,12 @@ public final class SettingsView extends FrameLayout {
             lastStatus = text;
             refreshUpdateViews(busy);
         });
+        // DiPlay: stesso meccanismo del launcher, riquadro separato in fondo al menu.
+        up.setDiPlayListener((text, r, busy) -> {
+            lastDiPlay = r;
+            lastDiPlayStatus = busy ? text : null;
+            buildFooter(up.isBusy());
+        });
         if (SystemClock.elapsedRealtime() - lastQuietCheck > QUIET_CHECK_MS || lastQuietCheck == 0) {
             lastQuietCheck = SystemClock.elapsedRealtime();
             up.checkSilent(prefs.updateRepo(), prefs.githubToken(), r -> {
@@ -184,6 +193,8 @@ public final class SettingsView extends FrameLayout {
                 refreshUpdateViews(up.isBusy());
             });
         }
+        // Controlla DiPlay a ogni apertura del menu (sola lettura, veloce).
+        up.checkDiPlay();
 
         buildMenu();
         buildFooter(up.isBusy());
@@ -270,39 +281,79 @@ public final class SettingsView extends FrameLayout {
         Context c = getContext();
         footer.removeAllViews();
         Updater up = host.updater();
+        LinearLayout col = Ui.column(c);
+
+        // --- MG4 Launcher (aggiorna sé stesso, come prima) ---
         Updater.Release r = lastRelease;
-        boolean newer = r != null && r.newer && r.apkUrl != null;
+        boolean lnNewer = r != null && r.newer && r.apkUrl != null;
+        col.addView(appBox(c,
+                "MG4 Launcher " + up.currentVersion(),
+                lnNewer, busy, r != null,
+                lnNewer ? L.f(R.string.upd_new_short, r.tag) : null,
+                busy && lastStatus != null ? lastStatus : L.f(R.string.upd_installed_ver, up.currentVersion()),
+                L.s(R.string.btn_install),
+                () -> up.install(r, prefs.githubToken()),
+                busy && lastStatus != null ? lastStatus : L.s(r != null ? R.string.upd_current : R.string.upd_unknown)),
+            new LinearLayout.LayoutParams(-1, -2));
+
+        // --- DiPlay (stessa fork, stesso stile: rileva versione e aggiorna da qui) ---
+        Updater.Release d = lastDiPlay;
+        String instVer = d != null ? d.installed : null;
+        boolean dpOffer = d == null || d.newer;              // offre installa/aggiorna finché non è confermata aggiornata
+        String dpTitle = "DiPlay " + (instVer != null ? instVer : "(not installed)");
+        String dpHeader = instVer == null
+                ? (d != null ? "Install DiPlay " + d.tag : "Install DiPlay")
+                : "New version " + (d != null ? d.tag : "");
+        String dpSub = lastDiPlayStatus != null ? lastDiPlayStatus
+                : instVer == null ? "Tap Install — no USB stick needed"
+                : "Installed: " + instVer;
+        col.addView(appBox(c,
+                dpTitle,
+                dpOffer, busy, d != null,
+                dpHeader, dpSub,
+                instVer == null ? "Install" : "Update",
+                () -> up.installDiPlay(),
+                "Up to date"),
+            Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, dp(8), 0, 0));
+
+        footer.addView(col, new LayoutParams(-1, -2));
+    }
+
+    /**
+     * Un riquadro app uniforme per il footer (launcher o DiPlay). offer = c'è qualcosa da installare/aggiornare:
+     * sfondo pieno, header + sottotitolo + pulsante. Altrimenti sfondo neutro: titolo + stato (aggiornata/sconosciuta).
+     */
+    private LinearLayout appBox(Context c, String title, boolean offer, boolean busy, boolean known,
+                                String offerHeader, String offerSub, String btnLabel, Runnable onInstall,
+                                String currentSub) {
         LinearLayout box = Ui.row(c);
         box.setPadding(dp(18), dp(14), dp(14), dp(14));
         box.setMinimumHeight(dp(70));
-        if (newer) {
+        if (offer) {
             box.setBackground(Ui.round(t.text, dp(20)));
             box.addView(Ui.icon(c, R.drawable.ic_download, t.panel, 28));
             LinearLayout tx = Ui.column(c);
-            tx.addView(Ui.oneLine(Ui.text(c, L.f(R.string.upd_new_short, r.tag), 18, t.panel, Ui.MEDIUM)));
-            String sub = busy && lastStatus != null ? lastStatus : L.f(R.string.upd_installed_ver, up.currentVersion());
-            tx.addView(Ui.oneLine(Ui.text(c, sub, 14, t.panel, Ui.REGULAR)), Ui.margins(new LinearLayout.LayoutParams(-2, -2), 0, dp(4), 0, 0));
+            tx.addView(Ui.oneLine(Ui.text(c, offerHeader, 18, t.panel, Ui.MEDIUM)));
+            tx.addView(Ui.oneLine(Ui.text(c, offerSub, 14, t.panel, Ui.REGULAR)), Ui.margins(new LinearLayout.LayoutParams(-2, -2), 0, dp(4), 0, 0));
             tx.getChildAt(1).setAlpha(0.75f);
             box.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, dp(10), 0));
-            TextView inst = Ui.text(c, L.s(R.string.btn_install), Ui.ts(18), t.text, Ui.MEDIUM);
+            TextView inst = Ui.text(c, btnLabel, Ui.ts(18), t.text, Ui.MEDIUM);
             inst.setGravity(Gravity.CENTER);
             inst.setPadding(tp(20), 0, tp(20), 0);
             inst.setBackground(Ui.pressable(c, t.panel, 14 * Ui.K, t));
             inst.setClickable(!busy);
             inst.setAlpha(busy ? 0.5f : 1f);
-            inst.setOnClickListener(v -> up.install(r, prefs.githubToken()));
+            inst.setOnClickListener(v -> onInstall.run());
             box.addView(inst, Ui.lp(-2, tp(52)));
         } else {
             box.setBackground(Ui.round(t.chip, dp(20)));
-            boolean known = r != null;
             box.addView(Ui.icon(c, known ? R.drawable.ic_check : R.drawable.ic_info, known ? t.battery : t.sub, 26));
             LinearLayout tx = Ui.column(c);
-            tx.addView(Ui.oneLine(Ui.text(c, "MG4 Launcher " + up.currentVersion(), 18, t.text, Ui.MEDIUM)));
-            String sub = busy && lastStatus != null ? lastStatus : L.s(known ? R.string.upd_current : R.string.upd_unknown);
-            tx.addView(Ui.oneLine(Ui.text(c, sub, 14, t.sub, Ui.REGULAR)), Ui.margins(new LinearLayout.LayoutParams(-2, -2), 0, dp(4), 0, 0));
+            tx.addView(Ui.oneLine(Ui.text(c, title, 18, t.text, Ui.MEDIUM)));
+            tx.addView(Ui.oneLine(Ui.text(c, currentSub, 14, t.sub, Ui.REGULAR)), Ui.margins(new LinearLayout.LayoutParams(-2, -2), 0, dp(4), 0, 0));
             box.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
         }
-        footer.addView(box, new LayoutParams(-1, -2));
+        return box;
     }
 
     private void refreshUpdateViews(boolean busy) {
@@ -533,22 +584,7 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Reclaim screen from DiPlay at startup",
                 "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
                 toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
-        // Scarica e installa DiPlay direttamente da GitHub (niente chiavetta). Lo stato compare nel riquadro aggiornamenti in basso.
-        TextView diplayBtn = Ui.text(c, "Install", Ui.ts(18), t.text, Ui.MEDIUM);
-        diplayBtn.setGravity(Gravity.CENTER);
-        diplayBtn.setPadding(tp(22), 0, tp(22), 0);
-        diplayBtn.setBackground(Ui.pressable(c, t.chip, 14 * Ui.K, t));
-        diplayBtn.setClickable(true);
-        diplayBtn.setLayoutParams(new LinearLayout.LayoutParams(-2, tp(54)));
-        diplayBtn.setOnClickListener(v -> {
-            host.updater().installDiPlay();
-            diplayBtn.setText("Installing…");
-            diplayBtn.setClickable(false);
-            diplayBtn.setAlpha(0.6f);
-        });
-        card.addView(row(c, "Download / install DiPlay",
-                "Downloads our DiPlay build straight from GitHub and installs it — no USB stick. Delete the official DiPlay first. Progress shows in the update box at the bottom of the menu.",
-                diplayBtn, false));
+        // DiPlay si scarica/aggiorna dal riquadro "DiPlay" in fondo al menu, uguale al launcher.
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);

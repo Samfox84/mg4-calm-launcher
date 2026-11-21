@@ -42,6 +42,8 @@ public final class Updater {
         public String apkName = "";
         public long apkSize;
         public boolean newer;
+        public long code;             // versionCode (per DiPlay: confronto robusto)
+        public String installed;      // versione installata sul dispositivo, null se non c'è (DiPlay)
         boolean raw;                // file del repository (API contents) invece di allegato di release
         String repo = "", path = "";  // per il download di riserva da raw.githubusercontent.com
     }
@@ -49,6 +51,11 @@ public final class Updater {
     public interface Listener {
         /** Messaggio di stato da mostrare (sul thread principale). */
         void onUpdateStatus(String text, Release r, boolean busy);
+    }
+
+    /** Stato del controllo/aggiornamento di DiPlay (sul thread principale). Separato dal launcher. */
+    public interface DiPlayListener {
+        void onDiPlayStatus(String text, Release r, boolean busy);
     }
 
     private final Context ctx;
@@ -426,6 +433,75 @@ public final class Updater {
         return OWN_RAW + "releases/DiPlay.apk";
     }
 
+    // ===== DiPlay: rilevamento versione e aggiornamento dalla stessa fork, uniforme col launcher =====
+
+    /** Pacchetti possibili della nostra DiPlay installata (prima la build che installiamo noi). */
+    private static final String[] DIPLAY_PKGS = {
+        "com.shihab.diplay.hudtest", "com.shihab.diplay", "com.shilapi.xcertplay"
+    };
+
+    private DiPlayListener dpListener;
+    public void setDiPlayListener(DiPlayListener l) { dpListener = l; }
+    private void dpStatus(String s, Release r, boolean busy) {
+        main.post(() -> { if (dpListener != null) dpListener.onDiPlayStatus(s, r, busy); });
+    }
+
+    /** Ultimo esito del controllo di DiPlay, condiviso tra le aperture del menu. */
+    private volatile Release lastDiPlay;
+    public Release lastDiPlay() { return lastDiPlay; }
+
+    /** Versione di DiPlay installata: {installed = nome versione, code = versionCode}, o null se non c'è. */
+    public Release installedDiPlay() {
+        PackageManager pm = ctx.getPackageManager();
+        for (String p : DIPLAY_PKGS) {
+            try {
+                PackageInfo pi = pm.getPackageInfo(p, 0);
+                Release r = new Release();
+                r.installed = pi.versionName != null ? pi.versionName : "?";
+                r.code = android.os.Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+                r.repo = p;
+                return r;
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    /** Legge il segnaposto versione DiPlay.json dalla fork. */
+    private Release latestDiPlay() throws Exception {
+        JSONObject o = new JSONObject(get(OWN_RAW + "releases/DiPlay.json"));
+        Release r = new Release();
+        r.tag = o.optString("version", "?");
+        r.code = o.optLong("code", 0);
+        r.apkName = "DiPlay";
+        String apk = o.optString("apk", "releases/DiPlay.apk");
+        r.apkUrl = OWN_RAW + (apk.startsWith("/") ? apk.substring(1) : apk);
+        r.apkSize = o.optLong("size", 0);
+        r.raw = true;
+        return r;
+    }
+
+    /** Controllo di sola lettura: confronta DiPlay installata con la fork. Non blocca (niente busy). */
+    public void checkDiPlay() {
+        bg.post(() -> {
+            Release inst = installedDiPlay();                 // null se non installata
+            try {
+                Release r = latestDiPlay();                   // da DiPlay.json
+                r.installed = inst != null ? inst.installed : null;
+                r.newer = inst == null || r.code > inst.code; // non installata = da installare
+                lastDiPlay = r;
+                Diag.put("diplay.controllo", "fork " + r.tag + " (code " + r.code + "), installata "
+                        + (inst != null ? inst.installed + " (code " + inst.code + ")" : "nessuna")
+                        + (r.newer ? " → aggiornamento" : " → aggiornata"));
+                dpStatus(r.newer ? (inst == null ? "install" : "update") : "current", r, false);
+            } catch (Exception e) {
+                // Niente rete o niente segnaposto: mostriamo comunque la versione installata, se c'è.
+                lastDiPlay = inst;
+                Diag.put("diplay.controllo", "non riuscito: " + e.getClass().getSimpleName());
+                dpStatus("error", inst, false);
+            }
+        });
+    }
+
     /** Scarica e installa DiPlay (pacchetto diverso dal launcher) direttamente, senza chiavetta. */
     public void installDiPlay() {
         if (busy) return;
@@ -437,21 +513,21 @@ public final class Updater {
         r.repo = "";
         bg.post(() -> {
             try {
-                status(L.f(R.string.upd_downloading, "DiPlay"), r, true);
+                dpStatus(L.f(R.string.upd_downloading, "DiPlay"), r, true);
                 byte[] apk = download(r.apkUrl, r, "", "application/octet-stream");
                 if (!isApk(apk)) {
-                    status(L.f(R.string.upd_invalid_apk, apk.length), r, false);
+                    dpStatus(L.f(R.string.upd_invalid_apk, apk.length), r, false);
                     return;
                 }
                 String pkg = archivePackage(apk);
-                status(L.f(R.string.upd_installing, pkg != null ? pkg : "DiPlay"), r, true);
+                dpStatus(L.f(R.string.upd_installing, pkg != null ? pkg : "DiPlay"), r, true);
                 installForeign(apk);
                 Diag.put("diplay.install", "avviata installazione " + (pkg != null ? pkg : "?") + " (" + apk.length + " byte)");
             } catch (HttpError e) {
-                status(e.getMessage(), r, false);
+                dpStatus(e.getMessage(), r, false);
                 Diag.error("diplay.install", e.getMessage());
             } catch (Exception e) {
-                status(L.f(R.string.upd_download_failed, describe(e)), r, false);
+                dpStatus(L.f(R.string.upd_download_failed, describe(e)), r, false);
                 Diag.error("diplay.install", Diag.trace(e));
             } finally {
                 busy = false;
@@ -521,6 +597,8 @@ public final class Updater {
             }
             if (st == PackageInstaller.STATUS_SUCCESS) {
                 status(L.s(R.string.upd_installed), null, false);
+                // Aggiorna anche il riquadro DiPlay (se era un'installazione di DiPlay, ora risulta aggiornata).
+                checkDiPlay();
             } else {
                 String msg = i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
                 Diag.error("aggiornamenti.installazione", "stato " + st + ": " + msg);
