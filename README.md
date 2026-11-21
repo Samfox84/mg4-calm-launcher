@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.63
+- **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
+
+#### 1.0.5-calm.63
+- **Charge animation bundled in the app (Camden Grey)**: the GIF clips (984×300, quality C) are inside the APK, ready from install, no download. Falls back to the night clip when a day one is missing.
+
 #### 1.0.5-calm.62
 - **Mappa: si mostra appena i riquadri sono pronti**, senza aspettare il GPS (prima restava bloccata su "Finding your position" se il segnale GPS era lento, nascondendo mappa, sfumatura e pulsanti). Il puntino blu compare quando il GPS aggancia.
 - **Sfumatura**: sintassi del gradiente semplificata (quella vecchia veniva ignorata dalla WebView).
@@ -1130,6 +1136,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.63
+- **Charge animation bundled in the app (Camden Grey)**: the GIF clips (984×300, quality C) are inside the APK, ready from install, no download. Falls back to the night clip when a day one is missing.
 
 #### 1.0.5-calm.62
 - **Map shows as soon as tiles are ready**, without waiting for GPS (it used to stay stuck on "Finding your position" when the GPS fix was slow, hiding the map, gradient and buttons). The blue dot appears once GPS locks on.

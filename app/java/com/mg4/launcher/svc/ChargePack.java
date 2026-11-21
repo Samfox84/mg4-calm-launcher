@@ -54,7 +54,9 @@ public final class ChargePack {
 
     /** Clip di una fase, null se il pacchetto del colore non è completo. */
     public static File clip(Context c, String color, boolean day, String phase) {
-        return pick(dir(c, color), "carica-" + slug(color) + "-" + (day ? "giorno" : "notte") + "-" + phase);
+        File f = pick(dir(c, color), "carica-" + slug(color) + "-" + (day ? "giorno" : "notte") + "-" + phase);
+        if (f == null && day) f = pick(dir(c, color), "carica-" + slug(color) + "-notte-" + phase); // ripiego: notte se manca il giorno
+        return f;
     }
 
     /** GIF se c'e' (riproduzione nativa), altrimenti il vecchio MP4. */
@@ -97,6 +99,12 @@ public final class ChargePack {
         // tutto (cartelle, controllo, download) fuori dal thread principale
         new Thread(() -> {
             try {
+                if (installBundled(c, color)) {
+                    state = "pacchetto " + color + " incluso nell'app";
+                    failed = false;
+                    generation++;
+                    return;
+                }
                 removeOthers(c, color);
                 boolean have = complete(c, color);
                 long last = sp.getLong("animControllo." + slug(color), 0);
@@ -373,4 +381,54 @@ public final class ChargePack {
     public static File clipIn(File dir, String slug, boolean day, String phase) {
         return pick(dir, "carica-" + slug + "-" + (day ? "giorno" : "notte") + "-" + phase);
     }
+
+    /** Se il colore ha le clip incluse nell'APK (assets/animazione/<slug>/), le installa e salta il download. */
+    private static boolean installBundled(Context c, String color) {
+        String slug = slug(color);
+        String base = "animazione/" + slug;
+        String[] files;
+        try { files = c.getAssets().list(base); } catch (Exception e) { return false; }
+        if (files == null || files.length == 0) return false;
+        File dir = dir(c, color);
+        String ver = appVer(c);
+        File marker = new File(dir, "bundled.ver");
+        if (ver.equals(readText(marker)) && complete(c, color)) { removeOthers(c, color); return true; }
+        deleteTree(dir);
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        int n = 0;
+        for (String f : files) {
+            if (!f.toLowerCase(Locale.ROOT).endsWith(".gif")) continue;
+            try (InputStream in = c.getAssets().open(base + "/" + f);
+                 OutputStream out = new FileOutputStream(new File(dir, f))) {
+                byte[] buf = new byte[65536];
+                int r;
+                while ((r = in.read(buf)) > 0) out.write(buf, 0, r);
+                n++;
+            } catch (Exception e) {
+                Diag.put("ricarica.pacchetto", "bundle " + f + " KO: " + e.getMessage());
+                return false;
+            }
+        }
+        writeText(marker, ver);
+        removeOthers(c, color);
+        Diag.put("ricarica.pacchetto", "pacchetto " + color + " incluso nell'app (" + n + " clip)");
+        return complete(c, color);
+    }
+
+    private static String appVer(Context c) {
+        try { return c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionName; }
+        catch (Exception e) { return "?"; }
+    }
+
+    private static String readText(File f) {
+        try { return new String(java.nio.file.Files.readAllBytes(f.toPath()), "UTF-8").trim(); }
+        catch (Exception e) { return ""; }
+    }
+
+    private static void writeText(File f, String t) {
+        try (OutputStream o = new FileOutputStream(f)) { o.write(t.getBytes("UTF-8")); }
+        catch (Exception ignored) {}
+    }
+
 }
