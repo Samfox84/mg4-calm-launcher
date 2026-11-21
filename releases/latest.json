@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.72",
-  "apk": "releases/MG4Launcher-1.0.5-calm.72.apk",
-  "size": 9527330,
-  "notes": "Bug-hunt pass: failed song skips instead of stopping; self-test decode off the UI thread. Map: resting zoom one step closer and more tiles pre-loaded so speed-zoom doesn't pop in."
+  "version": "1.0.5-calm.73",
+  "apk": "releases/MG4Launcher-1.0.5-calm.73.apk",
+  "size": 5488674,
+  "notes": "High-quality 1312x400 charging animation (less hatching). Live map now shows behind the Media panel. Media bar no longer shows Online music when nothing is playing."
 }

@@ -1252,9 +1252,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 ### Changelog
 
 #### 1.0.5-calm.73
-- **Animazione ricarica in alta qualità**: sostituite le clip con quelle 1312×400 (prima 984×300 molto retinate). Più definite e meno "a reticolo"; combaciano esattamente con la geometria delle ruote. L'app pesa anche meno.
-- **Riquadro Media con la mappa dietro**: sotto Media ora resta la mappa viva come sfondo (velo scuro per leggibilità), niente più rettangolo grigio vuoto.
-- **Barra media all'avvio**: se non sta suonando niente non mostra più "Musica online / Amazon Music" (restava come se stesse riproducendo).
+- **High-quality charging animation**: clips replaced with the 1312×400 originals (were 984×300, heavily dithered). Sharper, far less cross-hatching, and they match the wheel geometry exactly. The app is also smaller.
+- **Media panel over the map**: the live map now stays as the background under Media (dark scrim for readability) instead of a blank grey panel.
+- **Media bar at startup**: when nothing is playing it no longer shows "Online music / Amazon Music" (it used to look like it was playing).
 
 #### 1.0.5-calm.72
 - **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
