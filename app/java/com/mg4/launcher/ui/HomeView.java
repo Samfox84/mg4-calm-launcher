@@ -779,6 +779,7 @@ public final class HomeView extends LinearLayout {
             opts.add("Scheduled charge  \u00b7  " + (resOn ? reserveRange(s) : L.s(R.string.cb_reserve_off)));
             acts.add(this::pickReserve);
         }
+        Sfx.play(Sfx.S.OPEN);
         Confirm.pick(host.overlay(), t, L.s(R.string.cb_charge), "", opts.toArray(new String[0]), -1,
                 L.s(R.string.btn_cancel), i -> { if (i >= 0 && i < acts.size()) acts.get(i).run(); });
     }
@@ -824,6 +825,7 @@ public final class HomeView extends LinearLayout {
     }
 
     private final long createdAt = System.currentTimeMillis();
+    private int lastPlugMode = -1;   // per il suono quando si collega il cavo
 
     public void onVehicle(VehicleClient.State s) {
         if (!s.connected) {
@@ -834,6 +836,9 @@ public final class HomeView extends LinearLayout {
             return;
         }
         lastVehicle = s;
+        int plug = VehicleClient.plugMode(s);
+        if (plug != 0 && lastPlugMode == 0) Sfx.play(Sfx.S.DONE);   // cavo appena collegato: suono di conferma
+        lastPlugMode = plug;
         // 1.0.0: l'autonomia arriva sempre in km; in miglia si converte (prima cambiava solo la scritta)
         boolean mi = Units.miles(prefs, s.distUnit);
         String km = s.rangeKm > 0 && s.rangeKm < 2000 ? String.valueOf(Units.range(s.rangeKm, mi)) : "—";

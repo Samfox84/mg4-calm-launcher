@@ -121,6 +121,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             final StartupSplash sp = new StartupSplash(this, theme.bg, theme.battery, theme.accent);
             root.addView(sp, new FrameLayout.LayoutParams(-1, -1));
             sp.play(() -> { try { root.removeView(sp); } catch (Exception ignored) {} });
+            com.mg4.launcher.svc.Sfx.play(com.mg4.launcher.svc.Sfx.S.OPEN);   // suono d'avvio
         }
         // primo avvio dopo un aggiornamento: popup "Novità" (una sola volta per versione)
         root.postDelayed(this::showNewsIfUpdated, 1500);

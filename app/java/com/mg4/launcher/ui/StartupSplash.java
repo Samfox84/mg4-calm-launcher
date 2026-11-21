@@ -62,11 +62,12 @@ public final class StartupSplash extends View {
 
         float R = Math.min(w, h) * 0.17f;
         float appear = Math.min(1f, el / 420f);              // entrata morbida
-        float pulse = 1f + 0.05f * (float) Math.sin(t * 3.0f);
+        float pulse = 1f + 0.06f * (float) Math.sin(t * 3.0f);
         float rot = (el / 1300f) * 360f;                      // anello che ruota
 
-        // anello di colori rotante (gradiente a spazzata, due archi)
-        ring.setStrokeWidth(R * 0.085f);
+        // anello di colori come ALONE intorno al logo: raggio piu' grande del logo, pulsa insieme a lui
+        float rr = R * 1.18f * pulse * (0.9f + 0.1f * appear);
+        ring.setStrokeWidth(R * 0.11f);
         int clear = c1 & 0x00FFFFFF;
         SweepGradient sg = new SweepGradient(cx, cy, new int[]{clear, c1, c2, c1, clear},
                 new float[]{0f, 0.25f, 0.5f, 0.75f, 1f});
@@ -75,13 +76,12 @@ public final class StartupSplash extends View {
         sg.setLocalMatrix(m);
         ring.setShader(sg);
         ring.setAlpha((int) (235 * appear));
-        float rr = R * (0.92f + 0.08f * appear);
-        cv.drawArc(new RectF(cx - rr, cy - rr, cx + rr, cy + rr), 0, 300, false, ring);
+        cv.drawArc(new RectF(cx - rr, cy - rr, cx + rr, cy + rr), 0, 360, false, ring);
         ring.setShader(null);
 
-        // logo che pulsa
+        // logo piu' piccolo dell'anello, al centro: l'alone resta visibile tutt'intorno e pulsa insieme
         if (logo != null) {
-            float lw = R * 1.05f * pulse * (0.85f + 0.15f * appear);
+            float lw = R * 0.82f * pulse * (0.85f + 0.15f * appear);
             cv.drawBitmap(logo, null, new RectF(cx - lw, cy - lw, cx + lw, cy + lw), null);
         }
 
