@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.61",
-  "apk": "releases/MG4Launcher-1.0.5-calm.61.apk",
+  "version": "1.0.5-calm.62",
+  "apk": "releases/MG4Launcher-1.0.5-calm.62.apk",
   "size": 1384037,
-  "notes": "Animation test button plays GIFs natively; removed the redundant 'tap to open navigator' label on the live map."
+  "notes": "Map now shows as soon as tiles load instead of waiting for GPS (fixes 'stuck on finding position'). Simpler gradient syntax the old WebView accepts. GIF animation uses software decode with detailed error logging."
 }
