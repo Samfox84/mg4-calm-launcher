@@ -316,7 +316,10 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         iv.setImageDrawable(aid);          // la ImageView gestisce invalidazione e avanzamento fotogrammi
         setVisibility(VISIBLE);
         iv.setVisibility(VISIBLE);
+        aid.setVisible(true, true);
         aid.start();
+        com.mg4.launcher.svc.Diag.put("ricarica.gif", NAMES[phase] + ": dst " + dst.width() + "x" + dst.height()
+                + " view " + getWidth() + "x" + getHeight() + " running=" + aid.isRunning());
         if (fromPhoto) { animate().cancel(); animate().alpha(1f).setDuration(300).start(); }
         else setAlpha(1f);
     }

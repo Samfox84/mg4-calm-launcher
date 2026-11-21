@@ -279,9 +279,9 @@ public final class HomeView extends LinearLayout {
             top.addView(carPanel, new LayoutParams(dp(720), LayoutParams.MATCH_PARENT));
             top.addView(right, Ui.margins(Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f), dp(16), 0, 0, 0));
         } else {
-            // auto e clima dal lato del guidatore
-            top.addView(right, Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f));
-            top.addView(carPanel, Ui.margins(new LayoutParams(dp(720), LayoutParams.MATCH_PARENT), dp(16), 0, 0, 0));
+            // guida a destra: mappa/media/CarPlay dal lato del guidatore (destra), auto a sinistra - piu' comodo da raggiungere
+            top.addView(carPanel, new LayoutParams(dp(720), LayoutParams.MATCH_PARENT));
+            top.addView(right, Ui.margins(Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f), dp(16), 0, 0, 0));
         }
         addView(buildBottomBar(c), Ui.margins(new LayoutParams(LayoutParams.MATCH_PARENT, big ? dp(BIG_BAR) : tp(100)), 0, dp(14), 0, 0));
 
@@ -3184,8 +3184,17 @@ public final class HomeView extends LinearLayout {
             String sub = s.artist + (s.album == null || s.album.isEmpty() ? "" : "  \u00b7  " + s.album);
             tx.addView(Ui.oneLine(Ui.text(c, sub, big ? 16 : 14, t.sub, Ui.REGULAR)));
             row.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
-            row.setOnClickListener(v -> { Sfx.click(); playFrom(list, idx); });
+            row.setOnClickListener(v -> { Sfx.click(); playSong(s, list, idx); });
             listCol.addView(row, new LayoutParams(-1, -2));
+        }
+
+        /** Tocco su un brano: riproduce TUTTO il suo album da quel brano (cosi' prosegue), altrimenti la lista mostrata. */
+        private void playSong(Subsonic.Song s, java.util.List<Subsonic.Song> fallback, int fbIdx) {
+            java.util.List<Subsonic.Song> album = directServer.songsOfAlbum(s.albumId, s.album);
+            int start = -1;
+            for (int i = 0; i < album.size(); i++) if (album.get(i).id.equals(s.id)) { start = i; break; }
+            if (album.size() > 1 && start >= 0) playFrom(album, start);
+            else playFrom(fallback, fbIdx);
         }
 
         private void addAlbumRow(final Subsonic.Album a) {

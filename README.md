@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.67
+- **Album**: toccando un brano ora parte TUTTO il suo album da quel punto (prima la coda aveva un solo brano e ripeteva il primo).
+- **Cache locale dei brani (fino a 500 MB)**: i brani ascoltati si salvano sul dispositivo; la volta dopo si riproducono dal file locale senza ristreammare. I piu' vecchi si cancellano da soli.
+- **Guida a destra**: scambiati i pannelli - mappa/media/CarPlay dal lato del guidatore (destra), auto a sinistra.
+- Diagnostica aggiunta all'animazione (dimensioni e stato) per capire perche' non si vede.
+
 #### 1.0.5-calm.66
 - **Animazione di ricarica**: ora la GIF gira davvero (riprodotta tramite ImageView, avanzamento fotogrammi affidabile). Prima si decodificava ma non si animava.
 - **Musica**: l'album ora avanza al brano successivo (prima ripeteva il primo): l'avanzamento esce dal callback di fine brano.
@@ -324,6 +330,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
+
+#### 1.0.5-calm.67
+- **Albums**: tapping a track now plays its WHOLE album from that point (the queue used to hold a single track and repeat the first).
+- **Local song cache (up to 500 MB)**: played songs are saved on the device; next time they play from the local file with no re-streaming. Oldest are evicted automatically.
+- **Right-hand drive**: swapped panels - Map/Media/CarPlay on the driver's side (right), car on the left.
+- Added animation diagnostics (size and state) to pinpoint why it isn't showing.
 
 #### 1.0.5-calm.66
 - **Charge animation**: the GIF actually plays now (hosted in an ImageView for reliable frame advance). It decoded before but didn't animate.
@@ -1160,6 +1172,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.67
+- **Albums**: tapping a track now plays its WHOLE album from that point (the queue used to hold a single track and repeat the first).
+- **Local song cache (up to 500 MB)**: played songs are saved on the device; next time they play from the local file with no re-streaming. Oldest are evicted automatically.
+- **Right-hand drive**: swapped panels - Map/Media/CarPlay on the driver's side (right), car on the left.
+- Added animation diagnostics (size and state) to pinpoint why it isn't showing.
 
 #### 1.0.5-calm.66
 - **Charge animation**: the GIF actually plays now (hosted in an ImageView for reliable frame advance). It decoded before but didn't animate.

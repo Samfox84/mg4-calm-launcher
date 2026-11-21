@@ -29,6 +29,7 @@ public final class MusicPlayer {
     private final Subsonic server;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final AudioManager am;
+    private final MusicCache cache;
 
     private MediaPlayer mp;
     private MediaSession session;
@@ -49,6 +50,7 @@ public final class MusicPlayer {
         this.app = c.getApplicationContext();
         this.server = server;
         this.am = (AudioManager) app.getSystemService(Context.AUDIO_SERVICE);
+        this.cache = new MusicCache(app);
     }
 
     public void setListener(Listener l) { this.listener = l; }
@@ -96,7 +98,15 @@ public final class MusicPlayer {
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
             prepared = false;
-            mp.setDataSource(server.streamUrl(s.id));
+            java.io.File local = cache.cached(s.id);
+            String streamUrl = server.streamUrl(s.id);
+            if (local != null) {
+                mp.setDataSource(local.getAbsolutePath());
+                Diag.put("musica.player", "da cache: " + s.title);
+            } else {
+                mp.setDataSource(streamUrl);
+                cache.fetch(s.id, streamUrl);   // scarica in background per la prossima volta
+            }
             mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override public void onPrepared(MediaPlayer m) { prepared = true; m.start(); setPlaying(true); }
             });
