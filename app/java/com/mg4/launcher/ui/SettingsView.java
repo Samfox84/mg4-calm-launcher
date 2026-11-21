@@ -530,6 +530,9 @@ public final class SettingsView extends FrameLayout {
             HomeView.forceLibResync = true;
             host.closeSettings();
         }), top(14));
+        card.addView(row(c, "Reclaim screen from DiPlay at startup",
+                "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
+                toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);

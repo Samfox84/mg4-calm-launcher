@@ -36,6 +36,10 @@ public final class Prefs {
     public void setMusicPass(String v) { sp.edit().putString("msPass", v == null ? "" : v).apply(); }
     public boolean musicDirect() { return !musicUrl().isEmpty() && !musicUser().isEmpty(); }
 
+    // Calm Launcher: riprendi lo schermo se DiPlay lo occupa nei primi 30s dall'avvio
+    public boolean reclaimScreen() { return sp.getBoolean("reclaimScreen", true); }
+    public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
+
     public Prefs(Context c) {
         sp = c.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE);
     }

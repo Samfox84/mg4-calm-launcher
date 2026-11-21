@@ -63,6 +63,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        bootAt = android.os.SystemClock.elapsedRealtime();
         prefs = new Prefs(this);
         L.init(this, prefs.language());
         // schermo intero dal primo disegno: niente ridimensionamento della finestra all'avvio
@@ -534,10 +535,53 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     /** 1.0.0: true mentre il launcher è davanti (onResume..onPause), per sapere se Home arriva "da dentro". */
     private boolean inFront;
 
+    // Calm Launcher: se DiPlay (com.shilapi.xcertplay) prende lo schermo nei primi 30s dall'avvio, ripremi Home e torna al launcher.
+    // Mira SOLO a DiPlay: la retrocamera e ogni altra app non vengono mai toccate. Rispetta le aperture volute dall'utente.
+    private static final long RECLAIM_WINDOW_MS = 30_000L;
+    private static final String DIPLAY_PKG = "com.shilapi.xcertplay";
+    private long bootAt, userLaunchAt;
+    private int reclaimCount;
+
+    private void noteUserLaunch() { userLaunchAt = android.os.SystemClock.elapsedRealtime(); }
+
+    private String topPackage() {
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            java.util.List<android.app.ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+            if (tasks != null && !tasks.isEmpty() && tasks.get(0).topActivity != null)
+                return tasks.get(0).topActivity.getPackageName();
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private final Runnable reclaim = new Runnable() {
+        @Override public void run() {
+            try {
+                if (prefs == null || !prefs.reclaimScreen()) return;
+                long now = android.os.SystemClock.elapsedRealtime();
+                if (now - bootAt > RECLAIM_WINDOW_MS) return;   // solo finestra iniziale
+                if (inFront) return;                            // gia' tornato davanti
+                if (now - userLaunchAt < 2500L) return;         // l'utente ha aperto qualcosa apposta
+                if (reclaimCount >= 3) return;                  // niente ping-pong infinito
+                if (!DIPLAY_PKG.equals(topPackage())) return;   // SOLO DiPlay (mai retrocamera o altro)
+                reclaimCount++;
+                com.mg4.launcher.svc.Diag.put("ripresa.schermo", "DiPlay in primo piano all'avvio: torno al launcher (" + reclaimCount + ")");
+                startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                        .setComponent(new ComponentName(MainActivity.this, MainActivity.class))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+            } catch (Exception ignored) {}
+        }
+    };
+
     @Override
     protected void onPause() {
         inFront = false;
         super.onPause();
+        if (!wrongFirmware && prefs != null && prefs.reclaimScreen() && root != null
+                && android.os.SystemClock.elapsedRealtime() - bootAt <= RECLAIM_WINDOW_MS) {
+            root.removeCallbacks(reclaim);
+            root.postDelayed(reclaim, 900);
+        }
     }
 
     @Override
@@ -634,6 +678,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         root.removeCallbacks(autoCheck);
         root.removeCallbacks(hidePopup);
         root.removeCallbacks(forceRetry);
+        root.removeCallbacks(reclaim);
         vehicle.stop();
         conn.stop();
         try {
@@ -766,12 +811,14 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
 
     @Override
     public void launch(String pkg, String cls) {
+        noteUserLaunch();
         catalog.launchComponent(pkg, cls);
     }
 
     /** Come la home originale (EnergyView): ChargeManagementActivity con l'extra "module" = scheda da aprire. */
     @Override
     public void openEnergy(String module) {
+        noteUserLaunch();
         // se ChargeManagementActivity non esiste su questo firmware si apre l'app Impostazioni veicolo
         Intent i = catalog.resolveLaunch("com.saicmotor.hmi.vehiclesettings",
                 "com.saicmotor.hmi.vehiclesettings.chargemanagement.ui.ChargeManagementActivity");
@@ -801,6 +848,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     /** Apre il navigatore scelto: MG, quello del telefono (CarPlay/Android Auto) o un'app installata. */
     @Override
     public void launchNavigator(String which) {
+        noteUserLaunch();
         // 1.0.5: il navigatore non deve restare (o finire) nel riquadro mentre lo si apre a tutto schermo
         com.mg4.launcher.ui.NavWindow.releaseActive("navigatore aperto a tutto schermo");
         boolean phone = media.last().deviceType != 0;

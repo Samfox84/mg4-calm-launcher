@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.57
+- **Riprendi lo schermo da DiPlay all'avvio**: se DiPlay occupa lo schermo nei primi 30 secondi dall'accensione, il launcher ripreme Home e torna davanti. Mira SOLO a DiPlay (mai la retrocamera o altre app) e se apri DiPlay di proposito lo lascia stare. Si puo' spegnere in Impostazioni - Home.
+
 #### 1.0.5-calm.56
 - **Server musica diretto (Navidrome/Subsonic)**: nuova pagina in Impostazioni - Home ("Music server") dove metti indirizzo, utente e password. Scarica UNA volta tutto il catalogo, lo salva sull'auto e cerca in locale (istantaneo, offline). Aggira il limite di Ultrasonic: ora si vede TUTTA la libreria.
 - Lettore proprio (streaming diretto dal server) con sessione media: titolo/artista sull'auto e tasti al volante.
@@ -1105,6 +1108,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.57
+- **Reclaim screen from DiPlay at startup**: if DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Targets ONLY DiPlay (never the reverse camera or other apps) and leaves it alone if you open DiPlay yourself. Toggle in Settings - Home.
 
 #### 1.0.5-calm.56
 - **Direct music server (Navidrome/Subsonic)**: new "Music server" page in Settings - Home for address, username, password. Downloads your WHOLE catalogue once, caches it on the car, searches locally (instant, offline). Bypasses Ultrasonic's cap - your full library is finally browsable.
