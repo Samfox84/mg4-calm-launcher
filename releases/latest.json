@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.64",
-  "apk": "releases/MG4Launcher-1.0.5-calm.64.apk",
+  "version": "1.0.5-calm.65",
+  "apk": "releases/MG4Launcher-1.0.5-calm.65.apk",
   "size": 9523234,
-  "notes": "Driving mode now opens by tapping the car image/animation, not the whole panel - so the battery percentage tap opens charge controls. Includes bundled Camden Grey GIF animation and the map/gradient/GIF-decode fixes."
+  "notes": "More calm-pack sounds (startup chime, charge-cable connected, charge controls open). Boot animation: colour ring is now a halo around the logo and pulses with it."
 }
