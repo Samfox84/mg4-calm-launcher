@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.61
+- Il pulsante di prova dell'animazione ora riproduce le GIF in modo nativo (niente piu' preparazione fotogrammi).
+- Sulla mappa dal vivo tolta l'etichetta "scorciatoia · tocca per aprire il navigatore" (non serve).
+
 #### 1.0.5-calm.60
 - **Animazione di ricarica in GIF (riproduzione nativa)**: niente piu' decodifica fotogramma per fotogramma (era quella a far "lampeggiare" lo schermo). Ora la GIF la riproduce Android stesso. La fase "loop" gira all'infinito, aggancio/finita/sgancio una volta sola. Pacchetto Camden Grey in GIF incluso.
 - **Cerchi che girano con la velocita'**: con un cerchio personalizzato (non quello del render) le ruote ruotano mentre l'auto si muove.
@@ -1121,6 +1125,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.61
+- The animation test button now plays GIFs natively (no more frame-prep step).
+- Removed the "shortcut - tap to open the navigator" label on the live map (not needed).
 
 #### 1.0.5-calm.60
 - **GIF charge animation (native playback)**: no more per-frame decoding (that was the cause of the on-screen flashing). Android now plays the GIF itself. The "loop" phase repeats forever; plug-in/done/unplug play once. Camden Grey GIF pack included.

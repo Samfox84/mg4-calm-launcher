@@ -1271,8 +1271,8 @@ public final class HomeView extends LinearLayout {
         navCard.setVisibility(GONE);
         navEta.setVisibility(GONE);
 
-        // non è una mappa in miniatura ma una scorciatoia: lo dice un'etichetta in basso a destra
-        f.addView(shortcutHint(c, L.s(R.string.map_shortcut_hint)), hintLp());
+        // con la mappa dal vivo non serve l'etichetta "scorciatoia" (la mappa e' gia' quella vera)
+        if (!prefs.liveMap()) f.addView(shortcutHint(c, L.s(R.string.map_shortcut_hint)), hintLp());
         return f;
     }
 
