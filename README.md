@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.69
+- **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
+
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
@@ -335,9 +338,15 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
 
+#### 1.0.5-calm.69
+- **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
+
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.69
+- **Startup self-test**: the launcher checks itself and writes to the log whether the charging animation is ready (view sized + clip decodable) and which side the panels are on. One log confirms everything, no need to test in the car.
 
 #### 1.0.5-calm.68
 - **Charging animation (and test) FIXED**: the view was GONE so it measured 0×0 (the GIF was running but had no space to draw). It now stays INVISIBLE, sized and ready; the test works.
@@ -1185,9 +1194,15 @@ Even just **€2** is a great help to keep developing and testing new versions i
 
 ### Changelog
 
+#### 1.0.5-calm.69
+- **Autotest all'avvio**: il launcher controlla da solo e scrive nel log se l'animazione di ricarica è pronta (vista dimensionata + clip decodificabile) e da che lato sono i pannelli. Un solo log conferma tutto, senza provare in auto.
+
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.69
+- **Startup self-test**: the launcher checks itself and writes to the log whether the charging animation is ready (view sized + clip decodable) and which side the panels are on. One log confirms everything, no need to test in the car.
 
 #### 1.0.5-calm.68
 - **Charging animation (and test) FIXED**: the view was GONE so it measured 0×0 (the GIF was running but had no space to draw). It now stays INVISIBLE, sized and ready; the test works.

@@ -669,6 +669,10 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         int keepPage = pager != null ? pager.page() : 0;
         pager = new Pager(this);
         home = new HomeView(this, theme, prefs, this, vehicle, media, nav);
+        // Autotest passivo: dopo il layout, il launcher scrive nel log se l'animazione è pronta e da che lato
+        // sono i pannelli, così un solo log conferma tutto senza doverlo provare in auto.
+        final HomeView homeForTest = home;
+        if (root != null) root.postDelayed(() -> { if (home == homeForTest) homeForTest.selfTest(); }, 6000);
         apps = new AppsView(this, theme, catalog, prefs, this);
         pager.addView(home);
         pager.addView(apps);

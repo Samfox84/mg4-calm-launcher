@@ -311,6 +311,41 @@ public final class HomeView extends LinearLayout {
         return rhd;
     }
 
+    /**
+     * Autotest passivo all'avvio: scrive nel log se l'animazione di ricarica è pronta a disegnarsi
+     * (vista dimensionata + clip presente e decodificabile) e da che lato sono i pannelli. Non tocca
+     * nulla a schermo: serve solo a confermare lo stato senza dover provare in auto.
+     */
+    public void selfTest() {
+        try {
+            com.mg4.launcher.svc.Diag.put("autotest.layout", "guida " + (rhd ? "destra" : "sinistra")
+                    + " · mappa/media a " + (rhd ? "destra" : "sinistra") + " (lato guidatore)"
+                    + " · riquadro auto " + (carShown ? "mostrato" : "nascosto"));
+            if (!carShown) { com.mg4.launcher.svc.Diag.put("autotest.animazione", "riquadro auto nascosto: nessuna animazione"); return; }
+            if (chargeAnim == null) { com.mg4.launcher.svc.Diag.put("autotest.animazione", "DA CONTROLLARE: vista non creata"); return; }
+            int w = chargeAnim.getWidth(), h = chargeAnim.getHeight();
+            String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
+            java.io.File clip = com.mg4.launcher.svc.ChargePack.clip(getContext(), color, t.day, ChargeAnimView.name(ChargeAnimView.LOOP));
+            boolean decoded = false; String err = "";
+            if (clip != null && clip.exists()) {
+                try {
+                    android.graphics.ImageDecoder.Source isrc = android.graphics.ImageDecoder.createSource(clip);
+                    android.graphics.drawable.Drawable d = android.graphics.ImageDecoder.decodeDrawable(isrc,
+                            (dec, info, s) -> dec.setAllocator(android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE));
+                    decoded = d instanceof android.graphics.drawable.AnimatedImageDrawable;
+                } catch (Throwable e) { err = e.getClass().getSimpleName(); }
+            }
+            boolean ok = w > 0 && h > 0 && decoded;
+            com.mg4.launcher.svc.Diag.put("autotest.animazione", (ok ? "OK: pronta" : "DA CONTROLLARE")
+                    + " · vista " + w + "x" + h
+                    + " · clip " + (clip != null && clip.exists() ? "trovata" : "assente")
+                    + " · decodifica " + (decoded ? "ok" : "no" + (err.isEmpty() ? "" : " (" + err + ")"))
+                    + " · pacchetto " + color);
+        } catch (Throwable e) {
+            com.mg4.launcher.svc.Diag.put("autotest.animazione", "errore autotest: " + e.getClass().getSimpleName());
+        }
+    }
+
     public void refreshNav() {
         buildNavWith(getContext(), navWithPhone);
     }
