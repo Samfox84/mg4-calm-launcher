@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.75",
-  "apk": "releases/MG4Launcher-1.0.5-calm.75.apk",
-  "size": 8638498,
-  "notes": "Clean bottom media bar: no Online/Amazon Music label when nothing is playing, and the empty wavy-icon box is hidden when there is no cover art."
+  "version": "1.0.5-calm.76",
+  "apk": "releases/MG4Launcher-1.0.5-calm.76.apk",
+  "size": 8642594,
+  "notes": "Auto car hotspot: the launcher turns the car hotspot on at launch (if off) so wireless DiPlay/CarPlay connects without doing it by hand. Result is logged under 'hotspot'."
 }
