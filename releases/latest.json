@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.77",
-  "apk": "releases/MG4Launcher-1.0.5-calm.77.apk",
+  "version": "1.0.5-calm.78",
+  "apk": "releases/MG4Launcher-1.0.5-calm.78.apk",
   "size": 8642594,
-  "notes": "Steering-wheel joystick now controls the direct Navidrome player too (left/right skip, centre play-pause)."
+  "notes": "DiPlay screen-reclaim now matches the correct package (com.shihab.diplay and .hudtest), not just the old com.shilapi.xcertplay."
 }
