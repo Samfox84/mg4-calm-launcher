@@ -310,8 +310,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.64
+- **Modalita' guida** ora si apre toccando l'immagine/animazione dell'auto, non tutto il pannello: cosi' il tocco sulla percentuale della batteria apre i comandi di ricarica senza aprire per sbaglio la modalita' guida.
+
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
+
+#### 1.0.5-calm.64
+- **Driving mode** now opens by tapping the car image/animation, not the whole panel - so tapping the battery percentage opens the charge controls instead of driving mode.
 
 #### 1.0.5-calm.63
 - **Charge animation bundled in the app (Camden Grey)**: the GIF clips (984×300, quality C) are inside the APK, ready from install, no download. Falls back to the night clip when a day one is missing.
@@ -1136,6 +1142,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.64
+- **Driving mode** now opens by tapping the car image/animation, not the whole panel - so tapping the battery percentage opens the charge controls instead of driving mode.
 
 #### 1.0.5-calm.63
 - **Charge animation bundled in the app (Camden Grey)**: the GIF clips (984×300, quality C) are inside the APK, ready from install, no download. Falls back to the night clip when a day one is missing.

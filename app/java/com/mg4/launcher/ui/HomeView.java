@@ -324,8 +324,8 @@ public final class HomeView extends LinearLayout {
         LinearLayout p = Ui.column(c);
         p.setBackground(Ui.pressable(c, t.panel, 24, t));
         p.setPadding(dp(32), dp(28), dp(32), dp(24));
-        p.setClickable(true);
-        p.setOnClickListener(v -> openGroup(DRIVE));   // Calm Launcher: apre il picker modalita' guida
+        // Calm Launcher: la modalita' guida si apre toccando l'immagine/animazione dell'auto (vedi carFrame piu' sotto),
+        // non tutto il pannello: cosi' il tocco sulla percentuale batteria apre i comandi di ricarica senza conflitti.
         p.setOnLongClickListener(v -> {
             host.openSettings();
             return true;
@@ -395,10 +395,16 @@ public final class HomeView extends LinearLayout {
             chargeAnim = new ChargeAnimView(c);
             carFrame.addView(chargeAnim, new FrameLayout.LayoutParams(-1, -1));
             carFrame.setClipChildren(true);
+            carFrame.setClickable(true);
+            carFrame.setBackground(Ui.pressable(c, 0, dp(16), t));
+            carFrame.setOnClickListener(v -> openGroup(DRIVE));   // modalita' guida: tocca l'auto (immagine o animazione)
             p.addView(carFrame, Ui.margins(Ui.lpWeight(-1, 0, 1), 0, dp(4), 0, dp(4)));
         } else {
             // 1.0.5 (issue SWI132 #4): riquadro auto nascosto, al suo posto il widget scelto (niente animazione di ricarica)
-            p.addView(buildSideWidget(c), Ui.margins(Ui.lpWeight(-1, 0, 1), 0, dp(14), 0, dp(6)));
+            View side = buildSideWidget(c);
+            side.setClickable(true);
+            side.setOnClickListener(v -> openGroup(DRIVE));   // senza auto, la modalita' guida si apre dal widget al suo posto
+            p.addView(side, Ui.margins(Ui.lpWeight(-1, 0, 1), 0, dp(14), 0, dp(6)));
         }
 
         // pressione pneumatici sotto le ruote dell'auto (anteriori a sinistra, posteriori a destra)
