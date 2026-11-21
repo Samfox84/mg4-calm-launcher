@@ -562,6 +562,38 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         return null;
     }
 
+    // Calm Launcher: il menu clima di sistema (com.saicmotor.hmi.hvac) a volte si apre da solo quando si tocca
+    // un comando di riscaldamento. Dopo un comando clima lo sorveglio per qualche secondo e, se compare senza
+    // che l'utente l'abbia aperto apposta (userLaunchAt recente = apertura voluta, non tocco), torno al launcher.
+    private static final String HVAC_PKG = "com.saicmotor.hmi.hvac";
+    private int climateGuardTicks;
+    private final Runnable climateGuard = new Runnable() {
+        @Override public void run() {
+            try {
+                if (prefs != null && prefs.reclaimScreen()) {
+                    long now = android.os.SystemClock.elapsedRealtime();
+                    if (now - userLaunchAt >= 2500L && HVAC_PKG.equals(topPackage())) {
+                        com.mg4.launcher.svc.Diag.put("ripresa.clima", "menu clima di sistema comparso da solo: torno al launcher");
+                        startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                                .setComponent(new ComponentName(MainActivity.this, MainActivity.class))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+                        climateGuardTicks = 0;
+                        return;
+                    }
+                }
+                if (climateGuardTicks-- > 0 && root != null) root.postDelayed(this, 300);
+            } catch (Exception ignored) {}
+        }
+    };
+
+    @Override
+    public void guardClimateMenu() {
+        if (root == null || prefs == null || !prefs.reclaimScreen()) return;
+        climateGuardTicks = 14;   // ~14 × 300 ms ≈ 4 s di sorveglianza
+        root.removeCallbacks(climateGuard);
+        root.postDelayed(climateGuard, 250);
+    }
+
     private final Runnable reclaim = new Runnable() {
         @Override public void run() {
             try {

@@ -81,7 +81,9 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         iv = new android.widget.ImageView(c);
         iv.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
         addView(iv, new android.widget.FrameLayout.LayoutParams(0, 0));
-        setVisibility(GONE);
+        // INVISIBILE, non GONE: una vista GONE non viene mai misurata, quindi resterebbe 0x0 e l'animazione
+        // (pur girando) non avrebbe spazio in cui disegnare. INVISIBLE la tiene dimensionata e pronta.
+        setVisibility(INVISIBLE);
         setAlpha(0f);
     }
 
@@ -103,17 +105,21 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int ow, int oh) {
         super.onSizeChanged(w, h, ow, oh);
-        if (w > 0 && h > 0) {
-            float s = CarView.photoScale(w, h);
-            float[] wc = CarView.wheelCenter(w, h);   // centro della ruota anteriore della foto, in px della vista
-            float k = s * CarView.wheelDistance() / (CLIP_WHEEL_X2 - CLIP_WHEEL_X1);
-            int cw = Math.round(CLIP_W * k), ch = Math.round(CLIP_H * k);
-            int cx = Math.round(wc[0] - CLIP_WHEEL_X1 * k), cy = Math.round(wc[1] - CLIP_WHEEL_Y * k);
-            dst.set(cx, cy, cx + cw, cy + ch);
-            android.widget.FrameLayout.LayoutParams lp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
-            lp.width = cw; lp.height = ch; lp.leftMargin = cx; lp.topMargin = cy;
-            iv.setLayoutParams(lp);
-        }
+        layoutClip(w, h);
+    }
+
+    /** Calcola il riquadro della clip (dst) e dimensiona la ImageView, usando gli stessi centri ruota di CarView. */
+    private void layoutClip(int w, int h) {
+        if (w <= 0 || h <= 0) return;
+        float s = CarView.photoScale(w, h);
+        float[] wc = CarView.wheelCenter(w, h);   // centro della ruota anteriore della foto, in px della vista
+        float k = s * CarView.wheelDistance() / (CLIP_WHEEL_X2 - CLIP_WHEEL_X1);
+        int cw = Math.round(CLIP_W * k), ch = Math.round(CLIP_H * k);
+        int cx = Math.round(wc[0] - CLIP_WHEEL_X1 * k), cy = Math.round(wc[1] - CLIP_WHEEL_Y * k);
+        dst.set(cx, cy, cx + cw, cy + ch);
+        android.widget.FrameLayout.LayoutParams lp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
+        lp.width = cw; lp.height = ch; lp.leftMargin = cx; lp.topMargin = cy;
+        iv.setLayoutParams(lp);
     }
 
     // ---- logica delle fasi ---------------------------------------------------------------------
@@ -318,6 +324,21 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         iv.setVisibility(VISIBLE);
         aid.setVisible(true, true);
         aid.start();
+        // Rete di sicurezza: se la vista ha dimensioni ma dst non è stato ancora calcolato, calcolalo ora;
+        // se la vista è ancora 0x0 (layout non eseguito, es. launcher non in primo piano), riprova dopo il layout.
+        if (dst.isEmpty() && getWidth() > 0 && getHeight() > 0) layoutClip(getWidth(), getHeight());
+        if (getWidth() == 0 || getHeight() == 0) {
+            final int fg = g;
+            requestLayout();
+            main.post(() -> {
+                if (fg != gen) return;
+                if (getWidth() > 0 && getHeight() > 0) {
+                    layoutClip(getWidth(), getHeight());
+                    iv.requestLayout();
+                    iv.invalidate();
+                }
+            });
+        }
         com.mg4.launcher.svc.Diag.put("ricarica.gif", NAMES[phase] + ": dst " + dst.width() + "x" + dst.height()
                 + " view " + getWidth() + "x" + getHeight() + " running=" + aid.isRunning());
         if (fromPhoto) { animate().cancel(); animate().alpha(1f).setDuration(300).start(); }
@@ -366,7 +387,8 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         gen++;
         animate().cancel();
         setAlpha(0f);
-        setVisibility(GONE);
+        // INVISIBLE (non GONE): la vista resta misurata, così la prossima animazione parte già dimensionata.
+        setVisibility(INVISIBLE);
         clearDrawable();
         Player p = player;
         player = null;

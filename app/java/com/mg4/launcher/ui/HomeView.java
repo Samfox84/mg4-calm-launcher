@@ -47,6 +47,9 @@ public final class HomeView extends LinearLayout {
         /** False se l'app originale non esiste su questo firmware (il pulsante si disattiva). */
         boolean canLaunch(String pkg, String cls);
 
+        /** Dopo un comando clima: se il menu clima di sistema compare da solo, riportalo via (torna al launcher). */
+        void guardClimateMenu();
+
         /** Contenitore a tutto schermo per le conferme. */
         FrameLayout overlay();
     }
@@ -2374,13 +2377,14 @@ public final class HomeView extends LinearLayout {
 
         // A/C, AUTO e ricircolo (lo sbrinamento ha il tasto fisico); riscaldamento: sedile sinistro, volante, sedile destro
         // 1.0.0 (punto 10): icone ufficiali MG4 Clima 1.4.0, colore+sfondo secondo lo stato (non solo il testo)
-        acBtn = climaBtn(c, R.drawable.clima_ac, bs(44, 64), L.s(R.string.ac_desc), v -> vehicle.toggleAc());
-        autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> vehicle.toggleAuto());
-        recircBtn = climaBtn(c, R.drawable.clima_ricircolo_interno, bs(32, BIG_ICON), L.s(R.string.recirc_desc), v -> vehicle.toggleRecirc());
+        // Dopo ogni comando clima: sorveglia e, se il menu clima di sistema compare da solo, torna al launcher.
+        acBtn = climaBtn(c, R.drawable.clima_ac, bs(44, 64), L.s(R.string.ac_desc), v -> { vehicle.toggleAc(); host.guardClimateMenu(); });
+        autoBtn = climaBtn(c, R.drawable.clima_auto, bs(44, 64), L.s(R.string.auto_desc), v -> { vehicle.toggleAuto(); host.guardClimateMenu(); });
+        recircBtn = climaBtn(c, R.drawable.clima_ricircolo_interno, bs(32, BIG_ICON), L.s(R.string.recirc_desc), v -> { vehicle.toggleRecirc(); host.guardClimateMenu(); });
         recircBtn.setVisibility(GONE);   // compare quando l'auto dice di supportarlo
-        seatLeftBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, false, L.s(R.string.seat_left), v -> vehicle.pressSeatLeft());
-        wheelBtn = climaBtn(c, R.drawable.clima_volante_riscaldato, bs(32, BIG_ICON), L.s(R.string.wheel_heat), v -> vehicle.toggleWheelHeat());
-        seatRightBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, true, L.s(R.string.seat_right), v -> vehicle.pressSeatRight());
+        seatLeftBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, false, L.s(R.string.seat_left), v -> { vehicle.pressSeatLeft(); host.guardClimateMenu(); });
+        wheelBtn = climaBtn(c, R.drawable.clima_volante_riscaldato, bs(32, BIG_ICON), L.s(R.string.wheel_heat), v -> { vehicle.toggleWheelHeat(); host.guardClimateMenu(); });
+        seatRightBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, true, L.s(R.string.seat_right), v -> { vehicle.pressSeatRight(); host.guardClimateMenu(); });
         grouped = prefs.groupedButtons();
         if (grouped) {
             // un pulsante per gruppo: il tocco apre il riquadro sopra la barra, la pressione lunga fa il comando principale

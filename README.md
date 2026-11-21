@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.68
+- **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
+- **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
 #### 1.0.5-calm.67
 - **Album**: toccando un brano ora parte TUTTO il suo album da quel punto (prima la coda aveva un solo brano e ripeteva il primo).
 - **Cache locale dei brani (fino a 500 MB)**: i brani ascoltati si salvano sul dispositivo; la volta dopo si riproducono dal file locale senza ristreammare. I piu' vecchi si cancellano da soli.
@@ -330,6 +334,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
+
+#### 1.0.5-calm.68
+- **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
+- **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.68
+- **Charging animation (and test) FIXED**: the view was GONE so it measured 0×0 (the GIF was running but had no space to draw). It now stays INVISIBLE, sized and ready; the test works.
+- **System climate menu**: after a heating command, if the system climate menu pops up on its own, the launcher comes back to the front (same watch used for DiPlay). Deliberately opening climate via the fan button still works.
 
 #### 1.0.5-calm.67
 - **Albums**: tapping a track now plays its WHOLE album from that point (the queue used to hold a single track and repeat the first).
@@ -1172,6 +1184,14 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.68
+- **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
+- **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.68
+- **Charging animation (and test) FIXED**: the view was GONE so it measured 0×0 (the GIF was running but had no space to draw). It now stays INVISIBLE, sized and ready; the test works.
+- **System climate menu**: after a heating command, if the system climate menu pops up on its own, the launcher comes back to the front (same watch used for DiPlay). Deliberately opening climate via the fan button still works.
 
 #### 1.0.5-calm.67
 - **Albums**: tapping a track now plays its WHOLE album from that point (the queue used to hold a single track and repeat the first).
