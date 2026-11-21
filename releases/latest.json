@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.66",
-  "apk": "releases/MG4Launcher-1.0.5-calm.66.apk",
-  "size": 9523234,
-  "notes": "Charge GIF now actually animates (ImageView-hosted). Albums advance to the next track. Map: smooth blue dot, street name queried at the tile data zoom, darker visible edge gradient."
+  "version": "1.0.5-calm.67",
+  "apk": "releases/MG4Launcher-1.0.5-calm.67.apk",
+  "size": 9527330,
+  "notes": "Albums play all tracks from the tapped song. Local 500MB song cache (no re-streaming on replay). RHD: Map/Media/CarPlay swapped to the driver's side. Animation diagnostics added."
 }
