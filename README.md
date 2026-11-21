@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.71
+- **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
+
 #### 1.0.5-calm.70
 - **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
 - **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
@@ -344,6 +347,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
 
+#### 1.0.5-calm.71
+- **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
+
 #### 1.0.5-calm.70
 - **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
 - **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
@@ -356,6 +362,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.71
+- **Charging animation HAND-DRAWN**: the GIF is now painted onto a Canvas in onDraw (Movie on a software layer), exactly like the boot splash and wheels that work on the car. It previously used the system GIF player (AnimatedImageDrawable), which on this head unit ran but never pushed frames to the screen. Diagnostic: ricarica.gif2 = drawn=yes/no.
 
 #### 1.0.5-calm.70
 - **Charging animation**: removed the alpha fade (on API 28 it put a hardware layer that "froze" the GIF: running but invisible). Direct alpha now, no layer. More diagnostics (alpha, position, iv size).
@@ -1212,6 +1221,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 
 ### Changelog
 
+#### 1.0.5-calm.71
+- **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
+
 #### 1.0.5-calm.70
 - **Animazione ricarica**: tolta la dissolvenza alpha (su API 28 metteva un layer hardware che "congelava" la GIF: girava ma non si vedeva). Ora alpha diretta, nessun layer. Più diagnostica (alpha, posizione, dimensione iv).
 - **Ventola – tocco**: tocco sulla ventola = accendi/spegni il clima (niente più menu clima di sistema). Tieni premuto = apri l'app Clima.
@@ -1224,6 +1236,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.71
+- **Charging animation HAND-DRAWN**: the GIF is now painted onto a Canvas in onDraw (Movie on a software layer), exactly like the boot splash and wheels that work on the car. It previously used the system GIF player (AnimatedImageDrawable), which on this head unit ran but never pushed frames to the screen. Diagnostic: ricarica.gif2 = drawn=yes/no.
 
 #### 1.0.5-calm.70
 - **Charging animation**: removed the alpha fade (on API 28 it put a hardware layer that "froze" the GIF: running but invisible). Direct alpha now, no layer. More diagnostics (alpha, position, iv size).

@@ -1,10 +1,8 @@
 package com.mg4.launcher.ui;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
+import android.graphics.Movie;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -12,10 +10,11 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
 
-import com.mg4.launcher.svc.ChargeFrames;
 import com.mg4.launcher.svc.Diag;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * 1.0.4 (punto F): animazione di ricarica sopra l'auto disegnata.
@@ -23,21 +22,20 @@ import java.io.File;
  * Quattro fasi: aggancio (una volta) → loop "in carica" (ripetuto) → finita (una volta, l'ultimo fotogramma resta
  * fermo) → sgancio (al distacco del cavo, poi torna l'immagine ferma). Se il cavo è già inserito quando si accende lo
  * schermo si parte dal loop (o dalla fase finita). Mai in READY o con l'auto in movimento: si torna subito all'immagine
- * ferma. Foto → clip e clip → foto con dissolvenza di 0,3 s.
+ * ferma.
  * <p>
- * Riproduzione (correzione 1.0.4, prova in auto del 15/11): niente più MediaPlayer su TextureView, che sull'auto
- * restava fermo sul primo fotogramma con il riquadro nero. Le clip vengono trasformate una volta sola in fotogrammi
- * JPEG ({@link ChargeFrames}); un thread li decodifica a 30 al secondo in tre bitmap che si alternano e questa vista
- * normale li disegna. Il fotogramma finale di una fase è uguale al primo della successiva, quindi il passaggio non si vede.
+ * Riproduzione (1.0.5-calm.70+): la GIF viene disegnata a mano su Canvas in {@link #onDraw}, come fa la schermata
+ * d'avvio e le ruote (che sull'auto funzionano). Si usa {@link Movie} su un layer software: su questo head unit
+ * (Android 9, GPU SAIC) l'AnimatedImageDrawable "girava" ma non mandava i fotogrammi a schermo. Movie + onDraw li
+ * disegna direttamente, un fotogramma a ogni vsync, senza affidarsi al lettore GIF di sistema.
  * <p>
- * Posizione: la clip (1312×400) è il doppio del riquadro dell'auto nel layout di ricarica (circa 656×200); i centri
- * ruota della clip (x 358 e 973, y 288) si allineano a quelli della foto disegnata da CarView.
+ * Posizione: la clip (riferimento 1312×400) copre il riquadro dell'auto; i centri ruota della clip (x 358 e 973,
+ * y 288) si allineano a quelli della foto disegnata da CarView.
  */
-public final class ChargeAnimView extends android.widget.FrameLayout {
+public final class ChargeAnimView extends View {
     public static final int IDLE = 0, AGGANCIO = 1, LOOP = 2, FINITA = 3, SGANCIO = 4;
     private static final String[] NAMES = {"ferma", "aggancio", "loop", "finita", "sgancio"};
     private static final float CLIP_W = 1312, CLIP_H = 400, CLIP_WHEEL_X1 = 358, CLIP_WHEEL_X2 = 973, CLIP_WHEEL_Y = 288;
-    private static final long FRAME_MS = 1000 / 30;
 
     /** Dove prendere le clip: pacchetto del colore scelto oppure cartella di prova (chiavetta). */
     public interface Source {
@@ -45,46 +43,39 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
     }
 
     private final Handler main = new Handler(Looper.getMainLooper());
-    /** Thread di disegno con le sue tre bitmap: a ogni rilascio se ne crea uno nuovo (niente bitmap condivise). */
-    private static final class Player {
-        final HandlerThread thread = new HandlerThread("mg4-animazione-disegno", android.os.Process.THREAD_PRIORITY_DISPLAY);
-        final Handler h;
-        final Bitmap[] buf = new Bitmap[3];
+    private HandlerThread decodeThread;
+    private Handler decodeHandler;
 
-        Player() {
-            thread.start();
-            h = new Handler(thread.getLooper());
-        }
-    }
-
-    private Player player;
-    private final android.widget.ImageView iv;
     private final Rect dst = new Rect();
-    private final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
-    private android.graphics.drawable.AnimatedImageDrawable current;
-    /** Cresce a ogni nuova sequenza: il thread smette di disegnare quelle vecchie. */
+    /** Cresce a ogni nuova sequenza: i decode in corso delle vecchie vengono scartati. */
     private volatile int gen;
+
+    // --- riproduzione corrente (Movie disegnato in onDraw) ---
+    private Movie movie;
+    private int movieDur = 1;        // durata di un giro, ms
+    private long phaseStart;         // uptime di inizio fase
+    private int loopsTarget;         // 0 = loop infinito; >0 = numero di giri poi fine fase
+    private int curPhase = IDLE;
+    private boolean endFired;
+    private volatile boolean drewOnce;
 
     private int state = IDLE;
     private boolean day = true;
     private boolean fresh = true;            // prima valutazione dopo l'accensione dello schermo
-    private volatile boolean finishAfterLoop;
+    private boolean finishAfterLoop;
     private Source source;
     private String reason = "";
     private Runnable afterTest;
     private boolean lastPlugged, lastDone, failedThisPlug;
-    private boolean preparing;
 
     public ChargeAnimView(Context c) {
         super(c);
         setClickable(false);
-        iv = new android.widget.ImageView(c);
-        iv.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
-        addView(iv, new android.widget.FrameLayout.LayoutParams(0, 0));
-        // INVISIBILE, non GONE: una vista GONE non viene mai misurata, quindi resterebbe 0x0 e l'animazione
-        // (pur girando) non avrebbe spazio in cui disegnare. INVISIBLE la tiene dimensionata e pronta.
+        setWillNotDraw(false);
+        // Movie.draw() funziona solo su canvas software: tengo la vista su un layer software.
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
+        // INVISIBLE (non GONE): viene misurata e dimensionata, ma non disegnata finché non parte un'animazione.
         setVisibility(INVISIBLE);
-        setAlpha(0f);
     }
 
     public int state() {
@@ -108,7 +99,7 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         layoutClip(w, h);
     }
 
-    /** Calcola il riquadro della clip (dst) e dimensiona la ImageView, usando gli stessi centri ruota di CarView. */
+    /** Calcola il riquadro della clip (dst), usando gli stessi centri ruota di CarView. */
     private void layoutClip(int w, int h) {
         if (w <= 0 || h <= 0) return;
         float s = CarView.photoScale(w, h);
@@ -117,9 +108,6 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         int cw = Math.round(CLIP_W * k), ch = Math.round(CLIP_H * k);
         int cx = Math.round(wc[0] - CLIP_WHEEL_X1 * k), cy = Math.round(wc[1] - CLIP_WHEEL_Y * k);
         dst.set(cx, cy, cx + cw, cy + ch);
-        android.widget.FrameLayout.LayoutParams lp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
-        lp.width = cw; lp.height = ch; lp.leftMargin = cx; lp.topMargin = cy;
-        iv.setLayoutParams(lp);
     }
 
     // ---- logica delle fasi ---------------------------------------------------------------------
@@ -138,21 +126,18 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         lastDone = done;
         if (!stopWhy.isEmpty()) {
             reason = stopWhy;
-            // con il cavo già inserito, alla ripartenza si va dritti al loop; l'aggancio solo per un inserimento nuovo
             fresh = plugged;
             if (!plugged) failedThisPlug = false;
             if (state != IDLE) toPhoto();
             else writeLog();
             return;
         }
-        // dopo un errore l'animazione resta ferma fino al distacco del cavo (niente tentativi a ripetizione)
         if (!plugged) failedThisPlug = false;
         if (failedThisPlug) {
             if (state != IDLE) toPhoto();
             writeLog();
             return;
         }
-        if (preparing) return;   // fotogrammi in preparazione: si decide quando sono pronti
         reason = "";
         boolean wasFresh = fresh;
         fresh = false;
@@ -191,7 +176,7 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         release();
     }
 
-    /** Fine di una fase (dal thread di disegno, riportata sul principale). */
+    /** Fine di una fase (riportata dal ciclo di disegno sul thread principale). */
     private void onPhaseEnd(int phase) {
         if (afterTest != null) {
             testNext(phase);
@@ -202,7 +187,7 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
                 if (!lastPlugged) play(SGANCIO);
                 else play(lastDone ? FINITA : LOOP);
                 break;
-            case LOOP:   // solo con il loop non più ripetuto: arriva la fase "finita"
+            case LOOP:
                 finishAfterLoop = false;
                 if (!lastPlugged) play(SGANCIO);
                 else play(FINITA);
@@ -217,15 +202,12 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
 
     // ---- prova dalle impostazioni --------------------------------------------------------------
 
-    private int testLoops;
-
     /** Prova: aggancio → loop (3 giri) → finita → sgancio, poi di nuovo la foto. */
     public void playTest(Source src, boolean dayTheme, Runnable done) {
         release();
         source = src;
         day = dayTheme;
         afterTest = done;
-        testLoops = 0;
         failedThisPlug = false;
         play(AGGANCIO);
     }
@@ -257,12 +239,16 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
     /** Errori di riproduzione dall'avvio (per il Controllo funzioni). */
     public static int errors;
 
-    private Player ensurePlayer() {
-        if (player == null) player = new Player();
-        return player;
+    private Handler decoder() {
+        if (decodeThread == null) {
+            decodeThread = new HandlerThread("mg4-animazione-decode");
+            decodeThread.start();
+            decodeHandler = new Handler(decodeThread.getLooper());
+        }
+        return decodeHandler;
     }
 
-    /** Fa partire una fase. Se i fotogrammi non sono ancora pronti li prepara (una volta sola) e poi parte. */
+    /** Fa partire una fase: decodifica la clip in un Movie (fuori dal thread UI) e poi la disegna in onDraw. */
     private void play(int phase) {
         state = phase;
         writeLog();
@@ -274,97 +260,85 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         }
         final int g = ++gen;
         final int ph = phase;
-        ensurePlayer().h.post(() -> {
-            android.graphics.drawable.Drawable d;
+        decoder().post(() -> {
+            Movie mv = null;
             String err = null;
             try {
-                // allocazione software: su questo chip vecchio la GIF hardware a volte non si decodifica
-                d = android.graphics.ImageDecoder.decodeDrawable(
-                        android.graphics.ImageDecoder.createSource(clip),
-                        (decoder, info, isrc) -> decoder.setAllocator(android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE));
+                byte[] bytes = readAll(clip);
+                mv = Movie.decodeByteArray(bytes, 0, bytes.length);
+                if (mv == null) err = "Movie null";
             } catch (Throwable e) {
-                d = null;
                 err = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
             }
-            final android.graphics.drawable.Drawable dd = d;
+            final Movie fmv = mv;
             final String fe = err;
             main.post(() -> {
                 if (g != gen) return;
-                if (dd instanceof android.graphics.drawable.AnimatedImageDrawable) {
-                    showDrawable((android.graphics.drawable.AnimatedImageDrawable) dd, ph, g);
-                } else {
-                    fail("gif " + NAMES[ph] + " non leggibile ("
-                            + (fe != null ? fe : (dd == null ? "null" : "tipo " + dd.getClass().getSimpleName())) + ")");
+                if (fmv == null) {
+                    fail("gif " + NAMES[ph] + " non leggibile (" + (fe != null ? fe : "null") + ")");
+                    return;
                 }
+                startMovie(fmv, ph);
             });
         });
     }
 
-    /**
-     * Mostra una GIF con riproduzione nativa (AnimatedImageDrawable): nessuna decodifica fotogramma per fotogramma,
-     * quindi niente scatti. Solo la fase LOOP si ripete all'infinito; le altre (aggancio, finita, sgancio) una volta
-     * sola, poi onPhaseEnd decide il seguito.
-     */
-    private void showDrawable(final android.graphics.drawable.AnimatedImageDrawable aid, final int phase, final int g) {
-        clearDrawable();
-        current = aid;
-        int repeat;
-        if (phase == LOOP) repeat = (afterTest != null) ? 2 : android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE;
-        else repeat = 0;   // una volta sola; sovrascrive il loop scritto nella GIF
-        try { aid.setRepeatCount(repeat); } catch (Throwable ignored) {}
-        aid.registerAnimationCallback(new android.graphics.drawable.Animatable2.AnimationCallback() {
-            @Override public void onAnimationEnd(android.graphics.drawable.Drawable drawable) {
-                if (g != gen) return;
-                main.post(() -> { if (g == gen) onPhaseEnd(phase); });
-            }
-        });
-        iv.setImageDrawable(aid);          // la ImageView gestisce invalidazione e avanzamento fotogrammi
-        setVisibility(VISIBLE);
-        iv.setVisibility(VISIBLE);
-        aid.setVisible(true, true);
-        aid.start();
-        // Rete di sicurezza: se la vista ha dimensioni ma dst non è stato ancora calcolato, calcolalo ora;
-        // se la vista è ancora 0x0 (layout non eseguito, es. launcher non in primo piano), riprova dopo il layout.
+    private void startMovie(Movie mv, int phase) {
+        movie = mv;
+        int dur = mv.duration();
+        movieDur = dur > 0 ? dur : 1000;   // alcune GIF riportano durata 0
+        curPhase = phase;
+        loopsTarget = (phase == LOOP) ? (afterTest != null ? 3 : 0) : 1;   // loop reale = infinito; le altre un giro
+        endFired = false;
+        drewOnce = false;
+        phaseStart = SystemClock.uptimeMillis();
         if (dst.isEmpty() && getWidth() > 0 && getHeight() > 0) layoutClip(getWidth(), getHeight());
-        if (getWidth() == 0 || getHeight() == 0) {
-            final int fg = g;
-            requestLayout();
-            main.post(() -> {
-                if (fg != gen) return;
-                if (getWidth() > 0 && getHeight() > 0) {
-                    layoutClip(getWidth(), getHeight());
-                    iv.requestLayout();
-                    iv.invalidate();
-                }
-            });
-        }
-        // Niente animazione di alpha: metterebbe un layer hardware sulla vista e su API 28 il layer
-        // "congela" il primo fotogramma dell'AnimatedImageDrawable (gira ma non si vede). Alpha diretta.
-        animate().cancel();
-        setLayerType(View.LAYER_TYPE_NONE, null);
-        iv.setLayerType(View.LAYER_TYPE_NONE, null);
+        if (getWidth() == 0 || getHeight() == 0) requestLayout();
+        setVisibility(VISIBLE);
         setAlpha(1f);
-        android.widget.FrameLayout.LayoutParams ivlp = (android.widget.FrameLayout.LayoutParams) iv.getLayoutParams();
-        com.mg4.launcher.svc.Diag.put("ricarica.gif", NAMES[phase] + ": dst " + dst.width() + "x" + dst.height()
-                + " @" + dst.left + "," + dst.top + " view " + getWidth() + "x" + getHeight()
-                + " alpha " + getAlpha() + " ivlp " + ivlp.width + "x" + ivlp.height
-                + " drawable " + (iv.getDrawable() != null) + " running=" + aid.isRunning());
-        final int gg = g;
+        Diag.put("ricarica.gif", NAMES[phase] + ": movie " + mv.width() + "x" + mv.height() + " dur " + movieDur
+                + " · dst " + dst.width() + "x" + dst.height() + "@" + dst.left + "," + dst.top
+                + " · vista " + getWidth() + "x" + getHeight());
+        final int g = gen;
         main.postDelayed(() -> {
-            if (gg != gen) return;
-            com.mg4.launcher.svc.Diag.put("ricarica.gif2", "assestata: vista alpha " + getAlpha() + " vis " + getVisibility()
-                    + " · iv " + iv.getWidth() + "x" + iv.getHeight() + " vis " + iv.getVisibility()
-                    + " · drawable " + (iv.getDrawable() != null));
+            if (g == gen) Diag.put("ricarica.gif2", "assestata: disegnata=" + drewOnce + " · vista alpha " + getAlpha()
+                    + " vis " + getVisibility() + " · dst " + dst.width() + "x" + dst.height());
         }, 600);
+        invalidate();
     }
 
-    private void clearDrawable() {
-        android.graphics.drawable.AnimatedImageDrawable d = current;
-        current = null;
-        if (d != null) {
-            try { d.clearAnimationCallbacks(); d.stop(); } catch (Throwable ignored) {}
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Movie mv = movie;
+        if (mv == null || dst.isEmpty()) return;
+        int dur = movieDur > 0 ? movieDur : 1;
+        int elapsed = (int) (SystemClock.uptimeMillis() - phaseStart);
+        boolean ended = false;
+        int t;
+        if (loopsTarget == 0) {
+            t = elapsed % dur;                 // loop infinito
+        } else {
+            int total = dur * loopsTarget;
+            if (elapsed >= total) { t = dur - 1; ended = true; }   // ultimo fotogramma, poi fine fase
+            else t = elapsed % dur;
         }
-        iv.setImageDrawable(null);
+        mv.setTime(Math.max(0, Math.min(dur - 1, t)));
+        int mw = mv.width() > 0 ? mv.width() : 1, mh = mv.height() > 0 ? mv.height() : 1;
+        canvas.save();
+        canvas.translate(dst.left, dst.top);
+        canvas.scale(dst.width() / (float) mw, dst.height() / (float) mh);
+        try { mv.draw(canvas, 0, 0); drewOnce = true; } catch (Throwable ignored) {}
+        canvas.restore();
+        if (ended) {
+            if (!endFired) {
+                endFired = true;
+                final int ph = curPhase;
+                final int g = gen;
+                main.post(() -> { if (g == gen) onPhaseEnd(ph); });
+            }
+        } else {
+            postInvalidateOnAnimation();
+        }
     }
 
     private void fail(String why) {
@@ -378,43 +352,20 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         if (r != null) r.run();
     }
 
-    /** Torna all'immagine ferma (dissolvenza 0,3 s) e libera i fotogrammi. */
+    /** Torna all'immagine ferma e libera il Movie. */
     private void toPhoto() {
         state = IDLE;
         finishAfterLoop = false;
-        gen++;
         writeLog();
-        if (getVisibility() != VISIBLE) {
-            release();
-            return;
-        }
-        final int g = gen;
-        animate().cancel();
-        animate().alpha(0f).setDuration(300).withEndAction(() -> {
-            if (g == gen && state == IDLE) release();
-        }).start();
+        release();
     }
 
     /** Libera tutto (clip non visibile). */
     public void release() {
         gen++;
-        animate().cancel();
-        setAlpha(0f);
-        // INVISIBLE (non GONE): la vista resta misurata, così la prossima animazione parte già dimensionata.
+        movie = null;
+        endFired = false;
         setVisibility(INVISIBLE);
-        clearDrawable();
-        Player p = player;
-        player = null;
-        if (p != null) {
-            // le bitmap si liberano sul loro thread, dopo l'eventuale fotogramma in corso; il thread poi si chiude
-            p.h.post(() -> {
-                for (int i = 0; i < p.buf.length; i++) {
-                    if (p.buf[i] != null) p.buf[i].recycle();
-                    p.buf[i] = null;
-                }
-                p.thread.quitSafely();
-            });
-        }
         invalidate();
     }
 
@@ -424,6 +375,21 @@ public final class ChargeAnimView extends android.widget.FrameLayout {
         afterTest = null;
         state = IDLE;
         release();
+        HandlerThread dt = decodeThread;
+        decodeThread = null;
+        decodeHandler = null;
+        if (dt != null) dt.quitSafely();
+    }
+
+    // ---- lettura file --------------------------------------------------------------------------
+
+    private static byte[] readAll(File f) throws IOException {
+        try (FileInputStream in = new FileInputStream(f)) {
+            byte[] b = new byte[(int) f.length()];
+            int off = 0, n;
+            while (off < b.length && (n = in.read(b, off, b.length - off)) > 0) off += n;
+            return b;
+        }
     }
 
     private String lastLog = "";

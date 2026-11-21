@@ -326,20 +326,22 @@ public final class HomeView extends LinearLayout {
             int w = chargeAnim.getWidth(), h = chargeAnim.getHeight();
             String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
             java.io.File clip = com.mg4.launcher.svc.ChargePack.clip(getContext(), color, t.day, ChargeAnimView.name(ChargeAnimView.LOOP));
-            boolean decoded = false; String err = "";
+            boolean decoded = false; String err = ""; int dur = 0, mw = 0;
             if (clip != null && clip.exists()) {
                 try {
-                    android.graphics.ImageDecoder.Source isrc = android.graphics.ImageDecoder.createSource(clip);
-                    android.graphics.drawable.Drawable d = android.graphics.ImageDecoder.decodeDrawable(isrc,
-                            (dec, info, s) -> dec.setAllocator(android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE));
-                    decoded = d instanceof android.graphics.drawable.AnimatedImageDrawable;
+                    java.io.FileInputStream in = new java.io.FileInputStream(clip);
+                    byte[] b = new byte[(int) clip.length()];
+                    int off = 0, n; while (off < b.length && (n = in.read(b, off, b.length - off)) > 0) off += n;
+                    in.close();
+                    android.graphics.Movie mv = android.graphics.Movie.decodeByteArray(b, 0, b.length);
+                    if (mv != null) { decoded = true; dur = mv.duration(); mw = mv.width(); }
                 } catch (Throwable e) { err = e.getClass().getSimpleName(); }
             }
             boolean ok = w > 0 && h > 0 && decoded;
             com.mg4.launcher.svc.Diag.put("autotest.animazione", (ok ? "OK: pronta" : "DA CONTROLLARE")
                     + " · vista " + w + "x" + h
                     + " · clip " + (clip != null && clip.exists() ? "trovata" : "assente")
-                    + " · decodifica " + (decoded ? "ok" : "no" + (err.isEmpty() ? "" : " (" + err + ")"))
+                    + " · movie " + (decoded ? mw + "px dur " + dur + "ms" : "no" + (err.isEmpty() ? "" : " (" + err + ")"))
                     + " · pacchetto " + color);
         } catch (Throwable e) {
             com.mg4.launcher.svc.Diag.put("autotest.animazione", "errore autotest: " + e.getClass().getSimpleName());
