@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.70",
-  "apk": "releases/MG4Launcher-1.0.5-calm.70.apk",
+  "version": "1.0.5-calm.71",
+  "apk": "releases/MG4Launcher-1.0.5-calm.71.apk",
   "size": 9527330,
-  "notes": "Animation: removed alpha fade (hardware-layer froze the GIF on API 28). Fan tap toggles climate power; up/down turns on if off. Climate-menu guard now covers fan/temp and logs the package."
+  "notes": "Charging animation now hand-drawn on a Canvas (Movie/onDraw), same method as the boot splash that works on the car, instead of the system GIF player that never rendered."
 }
