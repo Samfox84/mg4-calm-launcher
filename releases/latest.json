@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.81",
-  "apk": "releases/MG4Launcher-1.0.5-calm.81.apk",
-  "size": 8646690,
-  "notes": "Cluster look controls (sliders/presets/Apply-reconnect) in Settings - Home, plus experimental full-screen map background. DiPlay reads the look from a shared config."
+  "version": "1.0.5-calm.82",
+  "apk": "releases/MG4Launcher-1.0.5-calm.82.apk",
+  "size": 8864453,
+  "notes": "Nine cluster presets with map thumbnails, plus the sliders/Apply and experimental full-screen map background."
 }
