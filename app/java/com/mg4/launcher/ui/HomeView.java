@@ -153,6 +153,7 @@ public final class HomeView extends LinearLayout {
     // barra
     private TextView tempTv, miniTitle, miniSub;
     private ImageView miniArt;
+    private View miniArtBox;   // il riquadro dell'icona/copertina nella barra in basso: nascosto se non c'è copertina vera
 
     private int acTemp = -1;
     private int fanLevel = -1, fanMin = 1, fanMax = 11;
@@ -2116,15 +2117,24 @@ public final class HomeView extends LinearLayout {
                 sideMediaArt.setImageResource(sourceIcon(m.source));
             }
         }
-        miniTitle.setText(m.title);
-        miniSub.setText(sourceLabel(m.source) + (m.subtitle.isEmpty() ? "" : " · " + m.subtitle));
-        if (radio && m.logo != null || !radio && m.art != null) {
+        // Niente in riproduzione (es. Online all'avvio): barra pulita, nessuna scritta "Online · Amazon Music".
+        if (m.title.isEmpty()) {
+            miniTitle.setText("");
+            miniSub.setText("");
+        } else {
+            miniTitle.setText(m.title);
+            miniSub.setText(sourceLabel(m.source) + (m.subtitle.isEmpty() ? "" : " · " + m.subtitle));
+        }
+        boolean realArt = (radio && m.logo != null) || (!radio && m.art != null);
+        if (realArt) {
             miniArt.clearColorFilter();
             miniArt.setImageBitmap(radio ? m.logo : m.art);
         } else {
             miniArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
             miniArt.setImageResource(sourceIcon(m.source));
         }
+        // Mostra il riquadro icona solo se c'è una copertina vera; altrimenti via (niente "scatola vuota" con l'onda).
+        if (miniArtBox != null) miniArtBox.setVisibility(realArt ? VISIBLE : GONE);
 
         if (libShowing) {
             android.media.MediaMetadata md = musicCtl.getMetadata();
@@ -2151,6 +2161,7 @@ public final class HomeView extends LinearLayout {
             miniSub.setText(subLine);
             setArt(artIcon, art);
             setArt(miniArt, art);
+            if (miniArtBox != null) miniArtBox.setVisibility(art != null ? VISIBLE : GONE);
             if (sideMediaTitle != null) {
                 sideMediaTitle.setText(tt);
                 sideMediaSub.setText(subLine);
@@ -2457,6 +2468,7 @@ public final class HomeView extends LinearLayout {
         mini.setPadding(dp(6), 0, dp(4), 0);
         miniArt = Ui.icon(c, R.drawable.ic_radio, t.sub, 26);
         FrameLayout artBox = new FrameLayout(c);
+        miniArtBox = artBox;
         artBox.setBackground(Ui.round(t.chip, big ? dp(16) : tp(12)));
         artBox.addView(miniArt, new FrameLayout.LayoutParams(bs(26, 40), bs(26, 40), Gravity.CENTER));
         // 1.0.4: in "Molto grande" il riquadro dell'icona lascia il posto al testo (prima "93.8…" troncato)
