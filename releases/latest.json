@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.59",
-  "apk": "releases/MG4Launcher-1.0.5-calm.59.apk",
+  "version": "1.0.5-calm.60",
+  "apk": "releases/MG4Launcher-1.0.5-calm.60.apk",
   "size": 1384037,
-  "notes": "Offline street name fixed: the road lookup failed on fractional zoom; now integer zooms + correct call read the street from the offline tiles' roads layer, no network needed."
+  "notes": "Charge animation now plays GIFs natively (fixes the flashing from per-frame decoding); loop repeats, plug-in/done/unplug play once. Your Camden Grey GIF pack included. Wheels spin with speed when a custom rim is selected."
 }
