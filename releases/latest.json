@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.74",
-  "apk": "releases/MG4Launcher-1.0.5-calm.74.apk",
+  "version": "1.0.5-calm.75",
+  "apk": "releases/MG4Launcher-1.0.5-calm.75.apk",
   "size": 8638498,
-  "notes": "Charging animation re-encoded from the original full-colour MP4 source with a 250-colour palette and error-diffusion dithering: no more cross-hatching, smooth car."
+  "notes": "Clean bottom media bar: no Online/Amazon Music label when nothing is playing, and the empty wavy-icon box is hidden when there is no cover art."
 }
