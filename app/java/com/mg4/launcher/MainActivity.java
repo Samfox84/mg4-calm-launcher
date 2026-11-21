@@ -641,6 +641,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     protected void onResume() {
         super.onResume();
         inFront = true;
+        // Calm Launcher: accende l'hotspot dell'auto (per DiPlay/CarPlay wireless) se è spento; una volta ogni 20s.
+        if (!wrongFirmware && prefs != null && prefs.carHotspot()) com.mg4.launcher.svc.CarHotspot.ensureOn(this);
         com.mg4.launcher.svc.RetroReturn.noteLauncherShown("ritorno nello stack (la telecamera era sopra il launcher)");
         // 1.0.3: tornando dall'app Radio l'elenco delle stazioni si rilegge subito
         if (media != null) media.refreshRadioLists("ritorno nel launcher");

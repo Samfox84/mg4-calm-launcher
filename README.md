@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.76
+- **Hotspot auto all'avvio**: il launcher accende da solo l'hotspot dell'auto quando va in primo piano (così DiPlay/CarPlay wireless si collega al telefono senza accenderlo a mano). Se è già acceso non fa niente; usa i permessi di sistema del launcher (niente ADB). Esito nel log (chiave "hotspot").
+
 #### 1.0.5-calm.75
 - **Barra media in basso pulita**: se non sta suonando niente non mostra più "Online · Amazon Music" ed è tolta la scatola con l'icona a onda quando non c'è una copertina vera (restava un riquadro vuoto).
 
@@ -1256,6 +1259,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.76
+- **Auto car hotspot on launch**: the launcher turns the car hotspot on by itself when it comes to the foreground (so wireless DiPlay/CarPlay connects to the phone without enabling it by hand). If it's already on it does nothing; uses the launcher's system permissions (no ADB). Result logged under "hotspot".
 
 #### 1.0.5-calm.75
 - **Clean bottom media bar**: when nothing is playing it no longer shows "Online · Amazon Music", and the wavy-icon box is removed when there's no real cover art (it used to be an empty box).

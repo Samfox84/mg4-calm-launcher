@@ -38,6 +38,9 @@ public final class Prefs {
 
     // Calm Launcher: riprendi lo schermo se DiPlay lo occupa nei primi 30s dall'avvio
     public boolean reclaimScreen() { return sp.getBoolean("reclaimScreen", true); }
+
+    /** Accende l'hotspot dell'auto all'avvio (per far collegare DiPlay/CarPlay wireless al telefono). */
+    public boolean carHotspot() { return sp.getBoolean("carHotspot", true); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {

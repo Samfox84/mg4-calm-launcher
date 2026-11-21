@@ -15,6 +15,9 @@
     <!-- 1.0.4: riportare davanti la finestra già aperta dopo la retromarcia -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.TETHER_PRIVILEGED" />
     <!-- CarService: pressione pneumatici (TPMS) e temperatura interna -->
     <uses-permission android:name="android.car.permission.CAR_TIRES" />
     <uses-permission android:name="android.car.permission.CAR_SPEED" />
