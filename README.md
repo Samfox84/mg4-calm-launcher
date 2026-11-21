@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.81
+- **Controlli del cruscotto DiPlay**: in Impostazioni → Home ci sono due cursori ("colore tenuto" e "luminosità") più dei preset (Grigio pieno / Evidenzia percorso / Morbido / Notte) e un pulsante **Applica** che riavvia DiPlay per applicare il filtro. Le impostazioni si salvano nel file che la DiPlay "grey" legge, così si regola tutto dal launcher senza ricompilare.
+- **Mappa a schermo intero (sperimentale)**: nuova opzione in Impostazioni → Home. Spenta = mappa nel pannello come adesso. Accesa = la mappa dal vivo riempie lo schermo dietro i riquadri, con il riquadro media opaco e senza la scheda Mappa.
+
 #### 1.0.5-calm.80
 - **Aggiornamenti uniti per launcher e DiPlay**: in fondo alle Impostazioni ci sono due riquadri uguali, "MG4 Launcher" e "DiPlay". Ognuno mostra la versione installata e, se c'è una versione più nuova nella fork, un pulsante "Aggiorna" (o "Installa" se DiPlay non c'è ancora). DiPlay si rileva e si aggiorna da qui come il launcher, senza chiavetta. La vecchia voce separata "Download / install DiPlay" è stata rimossa: ora è tutto nei due riquadri in basso.
 
@@ -1271,6 +1275,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.81
+- **DiPlay cluster controls**: Settings → Home now has two sliders ("colour kept" and "brightness"), presets (Full grey / Route hi-lite / Soft / Night) and an **Apply** button that restarts DiPlay to apply the filter. Settings are saved to the file the grey DiPlay build reads, so you tune it from the launcher with no rebuilds.
+- **Full-screen map (experimental)**: new toggle in Settings → Home. Off = map in its panel as now. On = the live map fills the screen behind the boxes, with the media box opaque and the Map tab hidden.
 
 #### 1.0.5-calm.80
 - **Unified updates for launcher and DiPlay**: the bottom of Settings now has two matching boxes, "MG4 Launcher" and "DiPlay". Each shows the installed version and, when the fork has a newer one, an "Update" button (or "Install" if DiPlay isn't on the car yet). DiPlay is detected and updated from here just like the launcher, no USB stick. The old separate "Download / install DiPlay" row was removed — it's all in the two boxes now.

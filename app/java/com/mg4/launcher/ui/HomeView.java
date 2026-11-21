@@ -101,6 +101,7 @@ public final class HomeView extends LinearLayout {
     private TextView connNet;
     private Bars.Signal connBars;
     private int tab = TAB_MAP;
+    private boolean bgMap;   // mappa a schermo intero come sfondo (opzione)
     private boolean userPickedTab;
     private boolean wasNavigating;
 
@@ -274,23 +275,31 @@ public final class HomeView extends LinearLayout {
         Sfx.setEnabled(prefs.calmSounds());
         carShown = prefs.carPanel();
 
+        bgMap = prefs.mapBackground() && prefs.liveMap();
+        android.view.ViewGroup dest = this;
+        if (bgMap) {
+            setPadding(0, 0, 0, 0);
+            FrameLayout stack = new FrameLayout(c);
+            boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
+            stack.addView(new LiveMap(c, mapNight), new FrameLayout.LayoutParams(-1, -1));
+            LinearLayout content = Ui.column(c);
+            content.setPadding(pad, pad, pad, pad);
+            stack.addView(content, new FrameLayout.LayoutParams(-1, -1));
+            addView(stack, Ui.lpWeight(LayoutParams.MATCH_PARENT, 0, 1f));
+            dest = content;
+        }
+
         LinearLayout top = Ui.row(c);
         top.setGravity(Gravity.FILL_VERTICAL);
-        addView(top, Ui.lpWeight(LayoutParams.MATCH_PARENT, 0, 1f));
+        dest.addView(top, Ui.lpWeight(LayoutParams.MATCH_PARENT, 0, 1f));
         View carPanel = buildCarPanel(c);
         right = buildRightPanel(c);
-        if (!rhd) {
-            top.addView(carPanel, new LayoutParams(dp(720), LayoutParams.MATCH_PARENT));
-            top.addView(right, Ui.margins(Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f), dp(16), 0, 0, 0));
-        } else {
-            // guida a destra: mappa/media/CarPlay dal lato del guidatore (destra), auto a sinistra - piu' comodo da raggiungere
-            top.addView(carPanel, new LayoutParams(dp(720), LayoutParams.MATCH_PARENT));
-            top.addView(right, Ui.margins(Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f), dp(16), 0, 0, 0));
-        }
-        addView(buildBottomBar(c), Ui.margins(new LayoutParams(LayoutParams.MATCH_PARENT, big ? dp(BIG_BAR) : tp(100)), 0, dp(14), 0, 0));
+        top.addView(carPanel, new LayoutParams(dp(720), LayoutParams.MATCH_PARENT));
+        top.addView(right, Ui.margins(Ui.lpWeight(0, LayoutParams.MATCH_PARENT, 1f), dp(16), 0, 0, 0));
+        dest.addView(buildBottomBar(c), Ui.margins(new LayoutParams(LayoutParams.MATCH_PARENT, big ? dp(BIG_BAR) : tp(100)), 0, dp(14), 0, 0));
 
         applyCarLook();
-        selectTab(TAB_MAP, false);
+        selectTab(bgMap ? TAB_MEDIA : TAB_MAP, false);
     }
 
     private int dp(float v) {
@@ -1049,6 +1058,7 @@ public final class HomeView extends LinearLayout {
         tabs.setBackground(Ui.round(t.overlay, dp(16)));
         tabs.setPadding(dp(6), dp(6), dp(6), dp(6));
         tabMap = addTab(c, tabs, L.s(R.string.tab_map), TAB_MAP);
+        if (bgMap) tabMap.setVisibility(GONE);
         tabMedia = addTab(c, tabs, L.s(R.string.tab_media), TAB_MEDIA);
         tabPhone = addTab(c, tabs, "CarPlay", TAB_PHONE);
         // 0.9.6: un solo tocco apre CarPlay / Android Auto (prima il primo tocco mostrava solo la scheda)
@@ -1156,7 +1166,7 @@ public final class HomeView extends LinearLayout {
         tab = which;
         if (byUser) userPickedTab = true;
         // La mappa resta visibile anche sotto il Media (fa da sfondo vivo); sotto CarPlay invece si spegne.
-        mapPanel.setVisibility(which == TAB_MAP || which == TAB_MEDIA ? VISIBLE : GONE);
+        mapPanel.setVisibility(!bgMap && (which == TAB_MAP || which == TAB_MEDIA) ? VISIBLE : GONE);
         mediaPanel.setVisibility(which == TAB_MEDIA ? VISIBLE : GONE);
         phonePanel.setVisibility(which == TAB_PHONE ? VISIBLE : GONE);
         styleTab(tabMap, which == TAB_MAP);
@@ -1506,7 +1516,7 @@ public final class HomeView extends LinearLayout {
         // Velo semitrasparente: sotto il Media resta la mappa viva, così il pannello non è un rettangolo grigio vuoto.
         // Consuma i tocchi (niente trascinamenti accidentali della mappa) e tiene leggibili testo e comandi.
         col.setClickable(true);
-        col.setBackgroundColor((t.panel & 0x00FFFFFF) | 0xA8000000);
+        col.setBackgroundColor(bgMap ? (t.panel | 0xFF000000) : ((t.panel & 0x00FFFFFF) | 0xA8000000));
 
         // sorgenti: un pulsante per ciascuna (Radio, USB, Bluetooth, Online, + CarPlay/Android Auto se collegato)
         // 1.0.4 (punto E4): pulsanti più grandi (+15%), ognuno con il suo fondo e un bordo leggero; niente riquadro comune

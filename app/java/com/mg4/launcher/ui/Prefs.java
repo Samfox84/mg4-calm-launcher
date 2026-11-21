@@ -41,6 +41,14 @@ public final class Prefs {
 
     /** Accende l'hotspot dell'auto all'avvio (per far collegare DiPlay/CarPlay wireless al telefono). */
     public boolean carHotspot() { return sp.getBoolean("carHotspot", true); }
+    // DiPlay cluster look (written to the shared config the grey build reads)
+    public int clusterColour() { return sp.getInt("clusterColour", 30); }   // 0..100 saturation kept
+    public int clusterDim()    { return sp.getInt("clusterDim", 60); }       // 0..100 brightness
+    public void setClusterColour(int v) { sp.edit().putInt("clusterColour", Math.max(0, Math.min(100, v))).apply(); }
+    public void setClusterDim(int v)    { sp.edit().putInt("clusterDim", Math.max(0, Math.min(100, v))).apply(); }
+    // Home: live map as full-screen background (default off = current panel layout)
+    public boolean mapBackground() { return sp.getBoolean("mapBackground", false); }
+    public void setMapBackground(boolean v) { sp.edit().putBoolean("mapBackground", v).apply(); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {

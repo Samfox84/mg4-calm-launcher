@@ -38,6 +38,9 @@ public final class SettingsView extends FrameLayout {
 
         void openOriginalHome();
 
+        /** Riavvia DiPlay per applicare il nuovo filtro del cruscotto. */
+        void reconnectDiplay();
+
         Updater updater();
 
         LogUploader logs();
@@ -584,6 +587,7 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Reclaim screen from DiPlay at startup",
                 "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
                 toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
+        buildClusterLook(c, card);
         // DiPlay si scarica/aggiorna dal riquadro "DiPlay" in fondo al menu, uguale al launcher.
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
@@ -1575,6 +1579,69 @@ public final class SettingsView extends FrameLayout {
         View v = new View(c);
         v.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
         return v;
+    }
+
+    /** Controlli del look del cruscotto DiPlay: colore tenuto, luminosità, preset, applica (riavvia DiPlay). */
+    private void buildClusterLook(Context c, LinearLayout card) {
+        final android.widget.SeekBar colour = new android.widget.SeekBar(c);
+        colour.setMax(100); colour.setProgress(prefs.clusterColour());
+        colour.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
+        final TextView colVal = Ui.text(c, prefs.clusterColour() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
+        final android.widget.SeekBar dim = new android.widget.SeekBar(c);
+        dim.setMax(100); dim.setProgress(prefs.clusterDim());
+        dim.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
+        final TextView dimVal = Ui.text(c, prefs.clusterDim() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
+
+        colour.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { colVal.setText(p + "%"); }
+            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterColour(sb.getProgress()); saveClusterCfg(); }
+        });
+        dim.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { dimVal.setText(p + "%"); }
+            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterDim(sb.getProgress()); saveClusterCfg(); }
+        });
+
+        LinearLayout colBox = Ui.row(c); colBox.setGravity(Gravity.CENTER_VERTICAL);
+        colBox.addView(colour); colBox.addView(colVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
+        card.addView(row(c, "Cluster: route colour kept",
+                "0 = full greyscale. Higher keeps more of the route's colour against the grey map.", colBox, false));
+
+        LinearLayout dimBox = Ui.row(c); dimBox.setGravity(Gravity.CENTER_VERTICAL);
+        dimBox.addView(dim); dimBox.addView(dimVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
+        card.addView(row(c, "Cluster: brightness", "Lower = dimmer, calmer map.", dimBox, false));
+
+        LinearLayout presets = Ui.row(c);
+        final int[][] pv = {{0, 55}, {30, 60}, {12, 70}, {25, 35}};
+        String[] pn = {"Full grey", "Route hi-lite", "Soft", "Night"};
+        for (int i = 0; i < pv.length; i++) {
+            final int cc = pv[i][0], dd = pv[i][1];
+            TextView b = Ui.text(c, pn[i], Ui.ts(16), t.text, Ui.MEDIUM);
+            b.setGravity(Gravity.CENTER); b.setPadding(tp(14), 0, tp(14), 0);
+            b.setBackground(Ui.pressable(c, t.chip, 12 * Ui.K, t)); b.setClickable(true);
+            b.setOnClickListener(v -> {
+                prefs.setClusterColour(cc); prefs.setClusterDim(dd);
+                colour.setProgress(cc); dim.setProgress(dd); saveClusterCfg();
+            });
+            presets.addView(b, Ui.margins(Ui.lp(-2, tp(46)), i == 0 ? 0 : dp(8), 0, 0, 0));
+        }
+        card.addView(row(c, "Presets", "Quick looks - then press Apply.", presets, false));
+
+        TextView apply = Ui.text(c, "Apply", Ui.ts(17), t.text, Ui.MEDIUM);
+        apply.setGravity(Gravity.CENTER); apply.setPadding(tp(22), 0, tp(22), 0);
+        apply.setBackground(Ui.pressable(c, t.chip, 14 * Ui.K, t)); apply.setClickable(true);
+        apply.setOnClickListener(v -> { saveClusterCfg(); host.reconnectDiplay(); });
+        card.addView(row(c, "Apply to the dash",
+                "Saves these and restarts DiPlay so the cluster picks them up.", apply, false));
+
+        card.addView(row(c, "Live map as full-screen background (experimental)",
+                "Off: the map stays in its panel, as now. On: the live map fills the whole screen behind the boxes.",
+                toggle(c, prefs.mapBackground(), on -> { prefs.setMapBackground(on); host.settingsChanged(true); }), false));
+    }
+
+    private void saveClusterCfg() {
+        com.mg4.launcher.svc.ClusterCfg.write(getContext(), prefs.clusterColour(), prefs.clusterDim());
     }
 
     private LinearLayout row(Context c, String title, String sub, View right, boolean last) {

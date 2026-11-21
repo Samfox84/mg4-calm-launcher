@@ -1030,6 +1030,39 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     // --- SettingsView.Host --------------------------------------------------------------------
 
     @Override
+    public void reconnectDiplay() {
+        new Thread(() -> {
+            String pkg = installedDiPlay();
+            if (pkg == null) { com.mg4.launcher.svc.Diag.put("diplay.reconnect", "nessuna DiPlay installata"); return; }
+            try {
+                android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                am.getClass().getMethod("forceStopPackage", String.class).invoke(am, pkg);
+                com.mg4.launcher.svc.Diag.put("diplay.reconnect", "force-stop " + pkg);
+            } catch (Throwable t) {
+                com.mg4.launcher.svc.Diag.error("diplay.reconnect", "force-stop: " + t);
+            }
+            try { Thread.sleep(1400); } catch (InterruptedException ignored) {}
+            try {
+                android.content.Intent li = getPackageManager().getLaunchIntentForPackage(pkg);
+                if (li != null) startActivity(li.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+                com.mg4.launcher.svc.Diag.put("diplay.reconnect", "riavviata " + pkg);
+            } catch (Throwable t) {
+                com.mg4.launcher.svc.Diag.error("diplay.reconnect", "launch: " + t);
+            }
+        }, "diplay-reconnect").start();
+    }
+
+    /** Pacchetto DiPlay installato (qualsiasi variante), o null. */
+    private String installedDiPlay() {
+        try {
+            for (android.content.pm.PackageInfo pi : getPackageManager().getInstalledPackages(0)) {
+                if (isDiPlay(pi.packageName)) return pi.packageName;
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    @Override
     public void closeSettings() {
         if (settings != null) {
             root.removeView(settings);
