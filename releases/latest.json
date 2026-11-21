@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.67",
-  "apk": "releases/MG4Launcher-1.0.5-calm.67.apk",
+  "version": "1.0.5-calm.68",
+  "apk": "releases/MG4Launcher-1.0.5-calm.68.apk",
   "size": 9527330,
-  "notes": "Albums play all tracks from the tapped song. Local 500MB song cache (no re-streaming on replay). RHD: Map/Media/CarPlay swapped to the driver's side. Animation diagnostics added."
+  "notes": "Charging animation and its test fixed (view was 0-size). System climate menu: if it pops up by itself after a heating command, the launcher returns to front."
 }
