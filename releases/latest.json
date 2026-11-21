@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.80",
-  "apk": "releases/MG4Launcher-1.0.5-calm.80.apk",
+  "version": "1.0.5-calm.81",
+  "apk": "releases/MG4Launcher-1.0.5-calm.81.apk",
   "size": 8646690,
-  "notes": "Launcher and DiPlay now update from two matching boxes at the bottom of Settings. DiPlay version is detected automatically; tap Update or Install there, no USB stick."
+  "notes": "Cluster look controls (sliders/presets/Apply-reconnect) in Settings - Home, plus experimental full-screen map background. DiPlay reads the look from a shared config."
 }
