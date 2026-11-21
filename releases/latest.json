@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.73",
-  "apk": "releases/MG4Launcher-1.0.5-calm.73.apk",
-  "size": 5488674,
-  "notes": "High-quality 1312x400 charging animation (less hatching). Live map now shows behind the Media panel. Media bar no longer shows Online music when nothing is playing."
+  "version": "1.0.5-calm.74",
+  "apk": "releases/MG4Launcher-1.0.5-calm.74.apk",
+  "size": 8638498,
+  "notes": "Charging animation re-encoded from the original full-colour MP4 source with a 250-colour palette and error-diffusion dithering: no more cross-hatching, smooth car."
 }
