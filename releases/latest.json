@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.68",
-  "apk": "releases/MG4Launcher-1.0.5-calm.68.apk",
+  "version": "1.0.5-calm.69",
+  "apk": "releases/MG4Launcher-1.0.5-calm.69.apk",
   "size": 9527330,
-  "notes": "Charging animation and its test fixed (view was 0-size). System climate menu: if it pops up by itself after a heating command, the launcher returns to front."
+  "notes": "Startup self-test writes animation-ready and layout status to the log, so one log confirms everything."
 }
