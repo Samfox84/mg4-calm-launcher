@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.82
+- **Più preset cruscotto, con anteprime**: nove preset (Grigio pieno, Grigio morbido, Grigio scuro, Percorso leggero/evidenziato/forte, Morbido, Notte, Molto scuro) mostrati come griglia con una miniatura della tua mappa per ciascuno.
+
 #### 1.0.5-calm.81
 - **Controlli del cruscotto DiPlay**: in Impostazioni → Home ci sono due cursori ("colore tenuto" e "luminosità") più dei preset (Grigio pieno / Evidenzia percorso / Morbido / Notte) e un pulsante **Applica** che riavvia DiPlay per applicare il filtro. Le impostazioni si salvano nel file che la DiPlay "grey" legge, così si regola tutto dal launcher senza ricompilare.
 - **Mappa a schermo intero (sperimentale)**: nuova opzione in Impostazioni → Home. Spenta = mappa nel pannello come adesso. Accesa = la mappa dal vivo riempie lo schermo dietro i riquadri, con il riquadro media opaco e senza la scheda Mappa.
@@ -1275,6 +1278,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.82
+- **More cluster presets, with previews**: nine presets (Full grey, Grey soft, Grey dark, Route subtle/hi-lite/bold, Soft calm, Night, Very dark) shown as a grid, each with a thumbnail preview made from your own map.
 
 #### 1.0.5-calm.81
 - **DiPlay cluster controls**: Settings → Home now has two sliders ("colour kept" and "brightness"), presets (Full grey / Route hi-lite / Soft / Night) and an **Apply** button that restarts DiPlay to apply the filter. Settings are saved to the file the grey DiPlay build reads, so you tune it from the launcher with no rebuilds.

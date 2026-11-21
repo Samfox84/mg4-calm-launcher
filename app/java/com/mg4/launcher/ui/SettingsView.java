@@ -1612,21 +1612,35 @@ public final class SettingsView extends FrameLayout {
         dimBox.addView(dim); dimBox.addView(dimVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
         card.addView(row(c, "Cluster: brightness", "Lower = dimmer, calmer map.", dimBox, false));
 
-        LinearLayout presets = Ui.row(c);
-        final int[][] pv = {{0, 55}, {30, 60}, {12, 70}, {25, 35}};
-        String[] pn = {"Full grey", "Route hi-lite", "Soft", "Night"};
+        final int[][] pv = {{0, 55}, {0, 78}, {0, 32}, {20, 60}, {35, 60}, {55, 62}, {12, 72}, {22, 34}, {14, 22}};
+        final String[] pn = {"Full grey", "Grey soft", "Grey dark", "Route subtle", "Route hi-lite", "Route bold", "Soft calm", "Night", "Very dark"};
+        card.addView(Ui.text(c, "Presets", Ui.ts(18), t.text, Ui.MEDIUM), top(16));
+        card.addView(Ui.text(c, "Tap a look (preview is your map), then press Apply.", Ui.ts(14), t.sub, Ui.REGULAR), top(4));
+        LinearLayout grid = Ui.column(c);
+        LinearLayout gr = null;
         for (int i = 0; i < pv.length; i++) {
+            if (i % 3 == 0) {
+                gr = Ui.row(c);
+                grid.addView(gr, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, i == 0 ? 0 : dp(8), 0, 0));
+            }
             final int cc = pv[i][0], dd = pv[i][1];
-            TextView b = Ui.text(c, pn[i], Ui.ts(16), t.text, Ui.MEDIUM);
-            b.setGravity(Gravity.CENTER); b.setPadding(tp(14), 0, tp(14), 0);
-            b.setBackground(Ui.pressable(c, t.chip, 12 * Ui.K, t)); b.setClickable(true);
-            b.setOnClickListener(v -> {
+            LinearLayout cell = Ui.column(c);
+            cell.setGravity(Gravity.CENTER_HORIZONTAL);
+            cell.setBackground(Ui.pressable(c, t.chip, 12 * Ui.K, t));
+            cell.setClickable(true);
+            cell.setPadding(dp(8), dp(8), dp(8), dp(10));
+            android.widget.ImageView iv = new android.widget.ImageView(c);
+            iv.setImageBitmap(asset(c, "cluster-presets/p" + i + ".png"));
+            iv.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            cell.addView(iv, new LinearLayout.LayoutParams(-1, dp(84)));
+            cell.addView(Ui.text(c, pn[i], Ui.ts(14), t.text, Ui.MEDIUM), Ui.margins(Ui.lp(-2, -2), 0, dp(6), 0, 0));
+            cell.setOnClickListener(v -> {
                 prefs.setClusterColour(cc); prefs.setClusterDim(dd);
                 colour.setProgress(cc); dim.setProgress(dd); saveClusterCfg();
             });
-            presets.addView(b, Ui.margins(Ui.lp(-2, tp(46)), i == 0 ? 0 : dp(8), 0, 0, 0));
+            gr.addView(cell, Ui.margins(Ui.lpWeight(0, -2, 1f), i % 3 == 0 ? 0 : dp(8), 0, 0, 0));
         }
-        card.addView(row(c, "Presets", "Quick looks - then press Apply.", presets, false));
+        card.addView(grid, top(10));
 
         TextView apply = Ui.text(c, "Apply", Ui.ts(17), t.text, Ui.MEDIUM);
         apply.setGravity(Gravity.CENTER); apply.setPadding(tp(22), 0, tp(22), 0);
@@ -1638,6 +1652,12 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Live map as full-screen background (experimental)",
                 "Off: the map stays in its panel, as now. On: the live map fills the whole screen behind the boxes.",
                 toggle(c, prefs.mapBackground(), on -> { prefs.setMapBackground(on); host.settingsChanged(true); }), false));
+    }
+
+    private android.graphics.Bitmap asset(Context c, String path) {
+        try (java.io.InputStream in = c.getAssets().open(path)) {
+            return android.graphics.BitmapFactory.decodeStream(in);
+        } catch (Exception e) { return null; }
     }
 
     private void saveClusterCfg() {
