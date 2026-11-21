@@ -35,6 +35,7 @@ public final class MusicPlayer {
     private MediaSession session;
     private final List<Subsonic.Song> queue = new ArrayList<>();
     private int index = -1;
+    private int errorStreak = 0;   // errori di riproduzione consecutivi (azzerato al primo brano che parte)
     private boolean playing, prepared;
     private Listener listener;
 
@@ -108,7 +109,7 @@ public final class MusicPlayer {
                 cache.fetch(s.id, streamUrl);   // scarica in background per la prossima volta
             }
             mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override public void onPrepared(MediaPlayer m) { prepared = true; m.start(); setPlaying(true); }
+                @Override public void onPrepared(MediaPlayer m) { prepared = true; errorStreak = 0; m.start(); setPlaying(true); }
             });
             mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override public void onCompletion(MediaPlayer m) { ui.post(() -> next()); }   // fuori dal callback: evita il reset del player dentro il suo stesso onCompletion
@@ -116,6 +117,13 @@ public final class MusicPlayer {
             mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override public boolean onError(MediaPlayer m, int what, int extra) {
                     Diag.put("musica.player", "errore riproduzione what=" + what + " extra=" + extra);
+                    // Un brano che non parte non deve fermare l'album: salta al successivo, ma con un tetto per non
+                    // ciclare all'infinito se la rete e' giu' (si riprende al primo brano che parte).
+                    if (!queue.isEmpty() && ++errorStreak <= Math.min(queue.size(), 5)) {
+                        ui.postDelayed(() -> next(), 1200);
+                    } else {
+                        Diag.put("musica.player", "troppi errori di fila (" + errorStreak + "): fermo");
+                    }
                     return true;
                 }
             });

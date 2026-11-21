@@ -323,26 +323,29 @@ public final class HomeView extends LinearLayout {
                     + " · riquadro auto " + (carShown ? "mostrato" : "nascosto"));
             if (!carShown) { com.mg4.launcher.svc.Diag.put("autotest.animazione", "riquadro auto nascosto: nessuna animazione"); return; }
             if (chargeAnim == null) { com.mg4.launcher.svc.Diag.put("autotest.animazione", "DA CONTROLLARE: vista non creata"); return; }
-            int w = chargeAnim.getWidth(), h = chargeAnim.getHeight();
-            String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
-            java.io.File clip = com.mg4.launcher.svc.ChargePack.clip(getContext(), color, t.day, ChargeAnimView.name(ChargeAnimView.LOOP));
-            boolean decoded = false; String err = ""; int dur = 0, mw = 0;
-            if (clip != null && clip.exists()) {
-                try {
-                    java.io.FileInputStream in = new java.io.FileInputStream(clip);
-                    byte[] b = new byte[(int) clip.length()];
-                    int off = 0, n; while (off < b.length && (n = in.read(b, off, b.length - off)) > 0) off += n;
-                    in.close();
-                    android.graphics.Movie mv = android.graphics.Movie.decodeByteArray(b, 0, b.length);
-                    if (mv != null) { decoded = true; dur = mv.duration(); mw = mv.width(); }
-                } catch (Throwable e) { err = e.getClass().getSimpleName(); }
-            }
-            boolean ok = w > 0 && h > 0 && decoded;
-            com.mg4.launcher.svc.Diag.put("autotest.animazione", (ok ? "OK: pronta" : "DA CONTROLLARE")
-                    + " · vista " + w + "x" + h
-                    + " · clip " + (clip != null && clip.exists() ? "trovata" : "assente")
-                    + " · movie " + (decoded ? mw + "px dur " + dur + "ms" : "no" + (err.isEmpty() ? "" : " (" + err + ")"))
-                    + " · pacchetto " + color);
+            final int w = chargeAnim.getWidth(), h = chargeAnim.getHeight();
+            final String color = Prefs.CAR_COLORS[prefs.carColorIndex()];
+            final java.io.File clip = com.mg4.launcher.svc.ChargePack.clip(getContext(), color, t.day, ChargeAnimView.name(ChargeAnimView.LOOP));
+            // decodifica fuori dal thread UI: non deve far scattare la home all'avvio
+            new Thread(() -> {
+                boolean decoded = false; String err = ""; int dur = 0, mw = 0;
+                if (clip != null && clip.exists()) {
+                    try {
+                        java.io.FileInputStream in = new java.io.FileInputStream(clip);
+                        byte[] b = new byte[(int) clip.length()];
+                        int off = 0, n; while (off < b.length && (n = in.read(b, off, b.length - off)) > 0) off += n;
+                        in.close();
+                        android.graphics.Movie mv = android.graphics.Movie.decodeByteArray(b, 0, b.length);
+                        if (mv != null) { decoded = true; dur = mv.duration(); mw = mv.width(); }
+                    } catch (Throwable e) { err = e.getClass().getSimpleName(); }
+                }
+                boolean ok = w > 0 && h > 0 && decoded;
+                com.mg4.launcher.svc.Diag.put("autotest.animazione", (ok ? "OK: pronta" : "DA CONTROLLARE")
+                        + " · vista " + w + "x" + h
+                        + " · clip " + (clip != null && clip.exists() ? "trovata" : "assente")
+                        + " · movie " + (decoded ? mw + "px dur " + dur + "ms" : "no" + (err.isEmpty() ? "" : " (" + err + ")"))
+                        + " · pacchetto " + color);
+            }, "autotest-anim").start();
         } catch (Throwable e) {
             com.mg4.launcher.svc.Diag.put("autotest.animazione", "errore autotest: " + e.getClass().getSimpleName());
         }

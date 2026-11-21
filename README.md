@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.72
+- **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
+- **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
+- **Mappa**: più tasselli tenuti caricati intorno alla vista (keepBuffer 4), così allo zoom con la velocità la mappa non compare "a scatti".
+
 #### 1.0.5-calm.71
 - **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
 
@@ -347,6 +352,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.63
 - **Animazione di ricarica inclusa nell'app (Camden Grey)**: le clip GIF (984×300, qualita' C) sono dentro l'APK, pronte dall'installazione, niente download. Se manca la versione "giorno" si usa quella "notte".
 
+#### 1.0.5-calm.72
+- **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
+- **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
+- **Mappa**: più tasselli tenuti caricati intorno alla vista (keepBuffer 4), così allo zoom con la velocità la mappa non compare "a scatti".
+
 #### 1.0.5-calm.71
 - **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
 
@@ -362,6 +372,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.72
+- **Bug hunt**: a song that fails no longer stops the album (skips to the next, with a cap so it can't spin if the network is down). The self-test decodes the GIF off the UI thread (no boot hitch).
+- **Map**: resting zoom a little closer (speed-zoom 18/17/16/15, start 17).
+- **Map**: more tiles kept loaded around the view (keepBuffer 4), so speed-zoom doesn't pop the map in suddenly.
 
 #### 1.0.5-calm.71
 - **Charging animation HAND-DRAWN**: the GIF is now painted onto a Canvas in onDraw (Movie on a software layer), exactly like the boot splash and wheels that work on the car. It previously used the system GIF player (AnimatedImageDrawable), which on this head unit ran but never pushed frames to the screen. Diagnostic: ricarica.gif2 = drawn=yes/no.
@@ -1221,6 +1236,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 
 ### Changelog
 
+#### 1.0.5-calm.72
+- **Bug hunt**: un brano che non parte non ferma più l'album (salta al successivo, con un tetto per non ciclare se la rete è giù). L'autotest decodifica la GIF fuori dal thread UI (niente scatto all'avvio).
+- **Mappa**: zoom di riposo un po' più vicino (speed-zoom 18/17/16/15, avvio 17).
+- **Mappa**: più tasselli tenuti caricati intorno alla vista (keepBuffer 4), così allo zoom con la velocità la mappa non compare "a scatti".
+
 #### 1.0.5-calm.71
 - **Animazione ricarica DISEGNATA A MANO**: ora la GIF si disegna su Canvas in onDraw (Movie su layer software), come la schermata d'avvio e le ruote che sull'auto funzionano. Prima usava il lettore GIF di sistema (AnimatedImageDrawable) che su questo head unit "girava" ma non mandava i fotogrammi a schermo. Diagnostica: ricarica.gif2 = disegnata=sì/no.
 
@@ -1236,6 +1256,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 #### 1.0.5-calm.68
 - **Animazione ricarica (e prova) RIPARATA**: la vista era GONE e quindi misurata 0×0 (la GIF girava ma non aveva spazio per disegnare). Ora resta INVISIBLE, dimensionata e pronta; la prova funziona.
 - **Menu clima di sistema**: dopo un comando di riscaldamento, se il menu clima di sistema compare da solo, il launcher torna davanti (usa la stessa sorveglianza di DiPlay). L'apertura voluta del clima col tasto ventola resta normale.
+
+#### 1.0.5-calm.72
+- **Bug hunt**: a song that fails no longer stops the album (skips to the next, with a cap so it can't spin if the network is down). The self-test decodes the GIF off the UI thread (no boot hitch).
+- **Map**: resting zoom a little closer (speed-zoom 18/17/16/15, start 17).
+- **Map**: more tiles kept loaded around the view (keepBuffer 4), so speed-zoom doesn't pop the map in suddenly.
 
 #### 1.0.5-calm.71
 - **Charging animation HAND-DRAWN**: the GIF is now painted onto a Canvas in onDraw (Movie on a software layer), exactly like the boot splash and wheels that work on the car. It previously used the system GIF player (AnimatedImageDrawable), which on this head unit ran but never pushed frames to the screen. Diagnostic: ricarica.gif2 = drawn=yes/no.

@@ -40,9 +40,9 @@
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
-        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:1}).setView([52.5,-2.5],16);
+        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:1}).setView([52.5,-2.5],17);
     L.control.zoom({position:'bottomright'}).addTo(map);
-    var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane'});
+    var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane',keepBuffer:4});
     var tileN=0, reported=false;
     function ok(){ if(!reported){reported=true; try{AndroidMap.status('engine-ok');}catch(e){}} }
     if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
@@ -53,7 +53,7 @@
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
-    function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 17; if(k<50)return 16; if(k<80)return 15; return 14; }
+    function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 18; if(k<50)return 17; if(k<80)return 16; return 15; }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
@@ -106,7 +106,7 @@
     }
     window.setPos=function(lat,lon,speed){
       var ll=[lat,lon];
-      if(!haveFix){ me.addTo(map); map.setView(ll,16); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
+      if(!haveFix){ me.addTo(map); map.setView(ll,17); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
       // scorrimento morbido verso il nuovo punto invece di saltare
       animFrom=curLL||ll; animTo=ll; curLL=ll; animStart=Date.now();
       if(!animReq){ animReq=true; requestAnimationFrame(lerpStep); }
