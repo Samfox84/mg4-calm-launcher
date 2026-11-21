@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.60",
-  "apk": "releases/MG4Launcher-1.0.5-calm.60.apk",
+  "version": "1.0.5-calm.61",
+  "apk": "releases/MG4Launcher-1.0.5-calm.61.apk",
   "size": 1384037,
-  "notes": "Charge animation now plays GIFs natively (fixes the flashing from per-frame decoding); loop repeats, plug-in/done/unplug play once. Your Camden Grey GIF pack included. Wheels spin with speed when a custom rim is selected."
+  "notes": "Animation test button plays GIFs natively; removed the redundant 'tap to open navigator' label on the live map."
 }
