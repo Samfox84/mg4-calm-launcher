@@ -1,0 +1,724 @@
+===============================================================================
+MG4 CALM LAUNCHER  COMPLETE TECHNICAL WRITE-UP
+A full rebuild / modification reference
+===============================================================================
+
+Author / owner:   Simon "Si" Marriott  (GitHub: Samfox84)
+Project:          Calm Launcher for the MG4 EV head unit
+Package name:     com.mg4.launcher
+Repository:       https://github.com/Samfox84/mg4-calm-launcher   (private)
+Document date:    November 2026
+Current version:  1.0.5-calm.96  (VERSION_CODE 136)
+
+-------------------------------------------------------------------------------
+HOW TO USE THIS DOCUMENT
+-------------------------------------------------------------------------------
+This is a standalone reference. If, a year from now, you (or an AI assistant you
+point at this file) need to rebuild, extend, or fix the MG4 Calm Launcher, this
+document explains WHAT it is, WHY it was built the way it is, HOW it is put
+together file-by-file, and HOW to build and publish it. Read the "ARCHITECTURE"
+and "FILE MAP" sections first, then the subsystem deep-dives for whatever you
+are changing. The "BUILD & RELEASE" section is everything needed to produce a
+new signed APK and push it so cars auto-update.
+
+An AI rebuilding this should clone the repo, read CLAUDE.md (project rules) and
+this file, then work subsystem by subsystem. The repo is the source of truth;
+this document is the map.
+
+
+===============================================================================
+1. WHAT THIS IS AND WHY IT EXISTS
+===============================================================================
+The MG4 (MG Motor's electric hatchback) ships with SAIC's stock Android head-
+unit software. The stock launcher/home screen is busy and visually noisy. This
+project replaces the HOME experience with a custom Android launcher ("Calm
+Launcher") designed around calm, low-stimulation, predictable UI  built by and
+for a driver with AuDHD who is easily overwhelmed by cluttered, flashing,
+inconsistent interfaces.
+
+Design philosophy (keep this in mind for any change):
+  * Calm, quiet, consistent. No flashing, no noise, minimal motion.
+  * Soft optional UI sounds (sonification channel  never ducks music).
+  * Everything in predictable places; grouping over density.
+  * The map can be a full-screen background with controls floating over it.
+  * Nothing should "pop up" and grab attention unless the driver asked for it
+    (hence the big effort to suppress the stock HVAC pop-up).
+  * Graceful degradation: if a feature's hardware/endpoint is missing, do
+    nothing silently rather than erroring.
+
+It is NOT a full OS replacement. It replaces the home/launcher surface and adds
+a set of conveniences that talk to the car's existing services. The instrument
+cluster is a separate module (see LIMITATIONS).
+
+
+===============================================================================
+2. TARGET HARDWARE & FIRMWARE
+===============================================================================
+  * Car:            MG4 EV (MG Motor / SAIC).
+  * Head unit OS:   Android 9 (API level 28).
+  * SoC:            MediaTek MT2712.
+  * Stock software: SAIClauncher.apk (SAIC infotainment HMI).
+  * Firmware baseline the main build targets: SWI68 (EU/UK, ~MY2022-23, R73).
+  * Variants also tracked: SWI69, SWI132, SWI133 (see VARIANTS).
+  * Instrument cluster: a separate IPK module, reachable only over SIPS. It is
+    NOT addressable from an Android app  see LIMITATIONS.
+
+The launcher runs as a privileged system app:
+  * sharedUserId = android.uid.system  (so it can talk to car services and
+    toggle system settings such as ADB).
+  * Because of the shared system UID, it MUST be signed with the platform key
+    (keys/platform.p12) and installed as a system/privileged app.
+
+
+===============================================================================
+3. REPOSITORY LAYOUT
+===============================================================================
+mg4-calm-launcher/
+  build.sh                  Build script (resources -> compile -> dex -> sign).
+  version.properties        VERSION_CODE (integer) + VERSION_NAME (string).
+  CLAUDE.md                 Project rules (read these before any change).
+  README.md                 Changelog (Italian "Versioni" + English "Changelog").
+  app/
+    AndroidManifest.xml     Permissions, launcher intent filters, system UID.
+    java/com/mg4/launcher/  All source (see FILE MAP).
+    res/                    Android resources:
+      drawable/             Vector icons and shapes.
+      drawable-nodpi/       Bitmaps that must not be density-scaled.
+      raw/                  UI sound effects (.mp3  the Pacely sound pack).
+      values/               Default strings/colours/dimens.
+      values-de, -es, -fr, -it, -pl, -pt, -tr   Localised strings.
+      values-night/         Night-mode colour overrides.
+      xml/                  Misc XML config.
+  keys/
+    platform.p12            PLATFORM SIGNING KEY. SECRET. Not in git.
+  tools/                    Build tools fetched on demand (all SECRET/ignored):
+    android.jar             API 28 platform jar.
+    d8.jar                  D8/R8 dexer.
+    apksig.jar              APK signer (if d8 lacks the signing lib).
+    log-token.txt           GitHub token for log/dashcam uploads.
+  releases/
+    MG4Launcher-1.0.5-calm.<N>.apk   Historical signed builds (kept forever).
+    latest.json             Update manifest the car reads (see UPDATER).
+
+Everything under com/mg4/launcher is grouped:
+  (root)   MainActivity, BootSplashActivity, L (localisation), etc.
+  apps/    App catalogue + icon styling for the Apps screen.
+  svc/     Services / clients / background logic (car, media, updates, etc.).
+  ui/      Views and screens (home, settings, apps, widgets, theme).
+
+
+===============================================================================
+4. BUILD & RELEASE PROCESS
+===============================================================================
+Build command:
+    ./build.sh
+
+Requirements: Java (JDK 17+), python3, zip, unzip, curl.
+
+What build.sh does, in order:
+  1. Reads the version from version.properties.
+  2. If tools/android.jar or tools/d8.jar are missing, downloads them from
+     dl.google.com (Android platform-28_r06) and Google Maven (R8/D8 8.5.35),
+     verifying SHA-256. If d8 lacks the signing library it also fetches
+     apksig.jar (apksig 8.5.2). If a download fails it stops and tells you
+     which file to supply manually.
+  3. aapt2   compiles/links resources.
+  4. javac   compiles Java to Java 8 bytecode.
+  5. D8      dexes to classes.dex.
+  6. Signs with v1 + v2 (+ v3) using keys/platform.p12.
+     p12 password: android   alias: platform
+  7. Output: build/MG4Launcher-<VERSION_NAME>.apk  (build/ is git-ignored).
+
+Note: if the log token is missing (no tools/log-token.txt and no MG4_LOG_TOKEN
+env var) the build still succeeds but warns that the APK will not upload logs.
+
+---- Releasing / publishing (THE STANDING RULE: ALWAYS PUBLISH, NEVER SIDELOAD)
+The car updates over-the-air by reading the repo's main branch. To ship a build:
+  1. Bump VERSION_CODE and VERSION_NAME in version.properties.
+  2. ./build.sh
+  3. Copy the APK into releases/ :
+        releases/MG4Launcher-<VERSION_NAME>.apk
+  4. Update releases/latest.json:
+        {
+          "version": "1.0.5-calm.<N>",
+          "apk":     "releases/MG4Launcher-1.0.5-calm.<N>.apk",
+          "size":    <bytes of the apk>,
+          "notes":   "<short human summary>"
+        }
+  5. Add a changelog entry to README.md (Italian "Versioni" + English
+     "Changelog"), version numbers only, no dates.
+  6. Commit and push to main.
+
+The in-app updater reads main via raw.githubusercontent.com and the GitHub
+contents API (default branch = main). Publishing to any other branch will NOT
+be seen by the car. Old APKs in releases/ and old GitHub Releases are kept.
+
+Commit convention (enforced by CLAUDE.md):
+  * Commit message is always the single word:  Aggiornamento
+  * Author:  a fixed author identity (defined in CLAUDE.md in the repo).
+  * All change detail lives only in the README changelog, never the commit msg.
+
+
+===============================================================================
+5. SECRETS AND EXCLUDED FILES  (never commit, never print, never embed)
+===============================================================================
+  tools/android.jar, tools/d8.jar, tools/apksig.jar   (build tools)
+  tools/log-token.txt  and any token                  (GitHub upload token)
+  keys/platform.p12                                    (platform signing key)
+  build/                                               (build output)
+
+The log/upload token is read from tools/log-token.txt OR the MG4_LOG_TOKEN
+environment variable. These are in .gitignore. If you ever rebuild the toolchain
+from scratch you must supply platform.p12 yourself  it is the car's platform
+key and cannot be regenerated from this repo.
+
+
+===============================================================================
+6. ARCHITECTURE OVERVIEW
+===============================================================================
+The launcher is a single privileged Activity-based Android app written in plain
+Java with hand-built views (no XML layouts for the screens  views are
+constructed in code via a small UI helper library, ui/Ui.java). There is no
+Gradle/AndroidX dependency graph; it compiles directly with aapt2 + javac + D8.
+
+Entry & lifecycle:
+  * BootSplashActivity / StartupSplash  shown at launch; a welcome sound plays
+    at startup (Sfx STARTUP = welcome.mp3).
+  * MainActivity  the launcher home Activity. It builds the HomeView, wires up
+    the service clients, starts watchers (dongle, dashcam auto-trigger, etc.),
+    and hosts the overlay root used for confirmation dialogs.
+  * HomeView  the main screen: map (as panel or full-screen background),
+    car/vehicle panel, climate tiles, charging, the media now-playing panel,
+    the Map/Media/CarPlay tab row, and the bottom bar.
+  * AppsView  the "Apps" screen (swipe), grouped app grid + top-row shortcuts
+    + a one-tap launcher-update bar.
+  * SettingsView  all launcher settings (comfort toggles, update boxes, etc.).
+
+Service/client layer (svc/) talks to the car:
+  * Rpc + ServiceLink + VehicleClient  bind SAIC's vehicle service hub and make
+    AIDL-style RPC calls (see CLIMATE/VEHICLE subsystem).
+  * MediaClient / MusicPlayer / Subsonic  media state + the launcher's own
+    library player (Navidrome/Subsonic).
+  * Updater / LogUploader  self-update and GitHub uploads.
+  * DashcamClient  360-camera-as-dashcam integration.
+  * SysHvacPanel, JoystickMedia, AdbToggle, etc.  individual features.
+
+UI state/preferences:
+  * ui/Prefs.java  a thin SharedPreferences wrapper with a static get(Context)
+    singleton; every feature flag has a getter/setter here.
+  * ui/Theme.java  colours (t.text, t.sub, t.panel, t.accent, t.onAccent,
+    t.track, ), light/night aware.
+  * ui/Ui.java  view construction helpers (row/column/text/spacer, layout
+    params lp()/lpWeight()/margins(), pressable backgrounds, dp()/tp() scaling).
+
+
+===============================================================================
+7. FILE MAP (every source file, with its role)
+===============================================================================
+Descriptions are by role; read the file for exact behaviour.
+
+-- root ----------------------------------------------------------------------
+  MainActivity.java        Launcher home Activity; builds HomeView, starts
+                           watchers (DongleWatch, DashcamClient auto-trigger),
+                           provides updater() to sub-views, plays startup sound.
+  BootSplashActivity.java  Boot/launch splash Activity.
+  L.java                   Localisation helper: L.s(resId), L.f(resId, args),
+                           L.locale(). Used everywhere instead of getString.
+
+-- apps/ ---------------------------------------------------------------------
+  AppCatalog.java          Defines the installable/launchable app tiles. Each
+                           App has label, package, activity, icon, category
+                           (drive/nav/media/system/shortcut). CAR_APPS table +
+                           carApps() resolves real packages on the car. The two
+                           Android shortcuts (@android_settings, @android_files)
+                           are category "shortcut" (top row of the Apps screen).
+                           Also contains the Engineering-mode tile.
+  IconStyler.java          Normalises / tints app icons for a consistent look.
+
+-- svc/ (car + background) ---------------------------------------------------
+  Rpc.java                 Low-level AIDL-style RPC: Rpc.call/callInt/callFloat
+                           over a bound binder with a descriptor + transaction
+                           code + args. Unsupported-but-valid codes return -1
+                           (self-gating); readException is caught.
+  ServiceLink.java         Binds/holds the SAIC vehicle service hub binder.
+  VehicleClient.java       High-level car controls built on Rpc. Descriptors
+                           CHG / AC / SET / COND. Ambient lighting (on, colour,
+                           brightness, breathing, welcome), rear defrost, blower
+                           direction, charging amps/volts readback, plus a State
+                           holder. (See CLIMATE/VEHICLE subsystem.)
+  CarProps.java            CarPropertyManager access via reflection
+                           (android.car.Car) for vendor properties, e.g. the
+                           forward-collision warning level signal.
+  CarFeatures.java         Feature/variant detection helpers.
+  DriveModeClient.java     Drive-mode state from the car.
+  CarHotspot.java          Car Wi-Fi hotspot automation (ADB-gated; shown only
+                           to car-hotspot users).
+  ConnClient.java          Connectivity/status (BT/Wi-Fi/signal) source.
+  PhoneClient.java         Phone/telephony state for the phone tab.
+  NavClient.java           Navigation state/handoff.
+  ManeuverReport.java      Turn/maneuver reporting (nav card / cluster feed).
+  MediaClient.java         Car media state: source (SRC_RADIO=1, USB=2,
+                           ONLINE=3, BT=4, CARPLAY=5, AAUTO=6), playing flag,
+                           title/subtitle/art, activeSrc (0 = nothing playing),
+                           isNativeSaicSource(). Central now-playing feed.
+  MusicPlayer.java         The launcher's own library audio player.
+  MusicCache.java          Caching for library media/artwork.
+  Subsonic.java            Subsonic/Navidrome API client (songs, cover art).
+  SubsonicParse.java       Response parsing for Subsonic.
+  StationLogos.java        Radio station logo lookup.
+  LogoPacks.java           Station/brand logo packs.
+  RadioRepair.java         Radio state fix-ups.
+  Sfx.java                 Soft UI sounds via SoundPool on the sonification
+                           channel. Loads the full Pacely pack from res/raw.
+                           enum S { TAP, TOGGLE_ON, TOGGLE_OFF, OPEN, CLOSE,
+                           DONE, STARTUP, SWIPE, ADD, DELETE, ERROR, UNDO,
+                           PAUSE, STEP, NEXT, FOCUS, PICKUP, DROP, HOVER,
+                           TIMER }. click(), toggle(bool), play(S). Never ducks
+                           music.
+  WheelKeys.java           Steering-wheel / joystick key handling; calls
+                           JoystickMedia before its action listener.
+  JoystickMedia.java       Maps joystick keys to media transport (5=next,
+                           4=prev, 3+longpress=play/pause) by dispatching media
+                           keys to the active MediaSession; AudioManager
+                           fallback gated by MediaClient.isNativeSaicSource().
+  SysHvacPanel.java        Suppresses the stock HVAC pop-up (see HVAC subsystem).
+                           Reads pref "hvacPopupSuppress" (default on), 8s grace
+                           after a user-opened HVAC, closes the "hvac page"
+                           window over any app while suppression is on.
+  AdbToggle.java           Reads/writes Settings.Global.ADB_ENABLED.
+  WindowControl.java       Window/overlay helpers.
+  WindowControl / HomeMode / HomeLock / HomeDefault
+                           Default-launcher / home behaviour management.
+  DongleWatch.java         Watches for the CarPlay/AA dongle and USB state.
+  DashcamClient.java       360-camera-as-dashcam: triggers the 360 app's event
+                           save, watches the dashcam folder, uploads clips to
+                           GitHub (see DASHCAM subsystem). No-ops if no USB.
+  Cam360 (ui/Cam360.java)  360-camera view surface.
+  Updater.java             Self-update for the launcher AND DiPlay: checkSilent
+                           / checkQuiet / check, install(), DiPlay detect +
+                           installDiPlay(), reads releases/latest.json on main.
+  LogUploader.java         GitHub contents-API uploader (PUT base64, Bearer
+                           token) used for logs and dashcam clips.
+  TokenReceiver.java       Receives/stores the upload token.
+  Diag.java                Diagnostic logging (Diag.error(tag, msg)).
+  SelfCheck / SelfUninstall / StartGuard / CrashGuard / StoreSetup /
+  BootWatcher / BootAccessibility / RetroReturn / EmbedCheck / Offline /
+  Notices / DayNight / ChargeFrames / ChargePack / ClusterCfg / Firmware /
+  FirmwareExport
+                           Supporting services: self-diagnostics and safe
+                           uninstall, crash/start guards, first-run store setup,
+                           boot/accessibility watchers, offline handling, user
+                           notices, day/night switching, charging animation
+                           frames/packs, cluster config, firmware detect/export.
+
+-- ui/ (screens + widgets) ---------------------------------------------------
+  Ui.java                  View-construction + layout helper library.
+  Theme.java               Colour theme (light/night).
+  Prefs.java               SharedPreferences wrapper + all feature flags.
+  HomeView.java            THE main screen (largest file): map background mode,
+                           car/vehicle panel, climate tiles, charging, media
+                           now-playing (+ sources, radio, library), Map/Media/
+                           CarPlay tabs, bottom bar, side/mini now-playing.
+  AppsView.java            Apps screen: grouped grid (DRIVING / NAVIGATION /
+                           MEDIA & PHONE / SYSTEM & TOOLS), top-row shortcuts,
+                           header update bar (updater()).
+  SettingsView.java        Settings screen: comfort toggles (ADB, dashcam auto-
+                           upload, Stop the HVAC pop-up, Joystick controls media,
+                           Check for DiPlay updates), launcher + DiPlay update
+                           boxes.
+  Confirm.java             Confirmation dialog/overlay helper (pick() lays out
+                           vertically for long options).
+  Pager.java               Swipe pager (home <-> apps).
+  LiveMap.java             Live map rendering surface.
+  TileServer.java          Map tile serving/caching.
+  NavWindow.java           Navigation window/overlay.
+  ManeuverIcons.java       Turn/maneuver icon set.
+  CarView.java             Car illustration panel.
+  ClimaIcone.java          Climate icon set.
+  ChargeAnimView.java      Charging animation.
+  CheckPanel.java          Diagnostics/self-check panel UI.
+  Bars.java                Signal/level bar widgets (Bars.Signal).
+  StartupSplash.java       Startup splash view.
+  PowerOff.java            Power-off / shutdown UI.
+  Units.java               Unit formatting (mi/km, psi, etc.).
+
+
+===============================================================================
+8. SUBSYSTEM DEEP-DIVES
+===============================================================================
+
+-------------------------------------------------------------------------------
+8.1  HOME SCREEN & FULL-SCREEN MAP BACKGROUND
+-------------------------------------------------------------------------------
+HomeView builds either:
+  * Panel mode  map shown as one panel among others; media panel has a
+    semi-opaque background.
+  * Full-screen map background ("bgMap", pref mapBackground)  the live map
+    fills the screen with a gradient scrim for legibility, and the UI panels
+    float over it with transparent backgrounds.
+
+Key bgMap behaviours (added over calm.9396):
+  * Panel backgrounds (car panel, right panel, tabs, bottom bar) are set to null
+    (transparent) when bgMap, so controls float over the map.
+  * The media column is transparent and right-aligned (gravity END). The now-
+    playing content is pushed into the right half by a leading weighted spacer
+    in the media "body" row.
+  * The source row (Radio/Library) keeps a right margin (~dp 180) so it sits
+    just LEFT of the car's own system status bar (BT/Wi-Fi/4G) instead of under
+    it. (Earlier versions clipped it under the status icons  fixed in calm.96.)
+  * The Map/Media/CarPlay tab row moves to BOTTOM|END (bottom-right) in bgMap.
+  * The "Map" tab is hidden in bgMap (the map is already the background).
+
+Climate tiles on the home screen (via VehicleClient): rear defrost, blower
+direction, ambient lighting (with a popup: toggle + colour + brightness
+slider). Charging shows amps/volts text and an animation.
+
+-------------------------------------------------------------------------------
+8.2  MEDIA SUBSYSTEM  (the most-iterated area)
+-------------------------------------------------------------------------------
+Two distinct playback worlds feed one now-playing panel:
+
+  A) CAR sources (MediaClient): radio, USB, Bluetooth, online (e.g. Amazon
+     Music via the car), and CarPlay/Android Auto. State = source, playing,
+     title/subtitle/art, and activeSrc (0 = nothing actually playing).
+
+  B) The launcher's OWN library player: Navidrome/Subsonic via MusicPlayer +
+     Subsonic. When it is playing, directAudio = true and applyDirectToPanel()
+     owns the now-playing (title, artist, cover art via loadCoverInto).
+
+The onMedia(State) method renders the panel. Critical rules learned the hard way
+(do NOT regress these):
+  * If the library (MediaSession, "libShowing") OR the direct player
+    (directAudio) is playing, force radio = false. Otherwise the car's selected
+    source can still be "radio" and the radio panels (FM/DAB, frequency, station
+    list) draw OVER the music. (Fixed calm.95.)
+  * When directAudio is active, onMedia must NOT touch the art tile  the cover
+    is owned by applyDirectToPanel(), which loads asynchronously. If onMedia
+    also sets the art it causes a 1-second cover-then-wave flicker. (calm.95.)
+  * Idle (cold start, nothing playing): idleNP = activeSrc==0 && !radio &&
+    !libShowing && !direct. When idle, the whole now-playing "body" is hidden
+    (only Radio/Library remain so the driver can pick a source)  no stale
+    "Amazon Music" + wave placeholder. (calm.94/95.)
+  * The source label line shows the source ("ONLINE" etc.) but the "NAVIDROME"
+    label was removed from the library now-playing. (calm.95.)
+  * Album art: libraries show real cover art; when art is missing a neutral
+    music-note icon is shown (R.drawable.ic_music), NOT the wave tile. The wave
+    tile used to launch Amazon when tapped  that was removed.
+  * selectTab(TAB_MEDIA) re-applies onMedia(media.last()) so switching from the
+    full map back to Media refreshes the now-playing immediately instead of
+    showing a stale track. (calm.94.)
+
+The media panel also has a compact side/mini now-playing used by the map panel
+and bottom bar; it follows the same idle/library rules.
+
+-------------------------------------------------------------------------------
+8.3  JOYSTICK / STEERING-WHEEL MEDIA CONTROL
+-------------------------------------------------------------------------------
+Root problem: the SAIC media service only handles transport for NATIVE car
+sources, so the wheel joystick never controlled CarPlay/library playback.
+
+JoystickMedia (called from WheelKeys) fixes this by dispatching media keys to
+the currently active MediaSession:
+  * Primary: MediaSessionManager.getActiveSessions(null) (needs the
+    MEDIA_CONTENT_CONTROL permission), skipping SAIC/launcher packages.
+  * Fallback: AudioManager.dispatchMediaKeyEvent via reflection, gated by
+    MediaClient.isNativeSaicSource() so it doesn't double-fire on native
+    sources.
+  * Mapping: 5 = next, 4 = previous, 3 (short) = play/pause (long-press variant
+    handled too).
+Controlled by the "Joystick controls media" setting (pref joystickMedia,
+default on).
+
+-------------------------------------------------------------------------------
+8.4  CLIMATE / VEHICLE CONTROL (VehicleClient)
+-------------------------------------------------------------------------------
+VehicleClient wraps Rpc with four descriptors: CHG (charging), AC (air/climate),
+SET (settings), COND (conditioning). Codes are AIDL transaction numbers; an
+unsupported-but-valid code returns -1, so unknown features self-disable without
+crashing, and readException is caught.
+
+Implemented controls:
+  * Ambient lighting: on/off, colour, brightness, breathing mode, welcome
+    light, plus an availability check. (Written via the SET/settingWrite path.)
+  * Rear defrost toggle (AC codes).
+  * Blower direction (AC codes).
+  * Charging readback: amps and volts (stored in State, shown on the home
+    charging tile).
+Other-country "extra features": investigated; most are gated by firmware/region
+coding that is SIPS-only and not reachable from the app. Driver-aid toggles were
+explicitly declined by the owner.
+
+Forward-collision / alert detection: CarProps reads the vendor property
+AAD_FCW_WARNING_LEVEL_SIGNAL (id 557883745) via reflection on android.car.Car
+(createCar -> connect -> getCarManager("property") -> getProperty). Needs
+android.car.permission.CAR_VENDOR_EXTENSION. This is what the dashcam auto-
+trigger watches.
+
+-------------------------------------------------------------------------------
+8.5  STOCK HVAC POP-UP SUPPRESSION (SysHvacPanel)
+-------------------------------------------------------------------------------
+Annoyance: turning the A/C or heating ON from fully OFF (via +/- or the centre
+push) makes SAIC's SystemUI throw up its HVAC page over whatever you were doing.
+
+Investigation found the trigger is in SystemUI's WindowAdapter: a handler message
+(what=12, visible=0) calls showHVACPage() (window title "hvac page") on an air-
+condition change. There is no setting to disable it, and killing it fully would
+require patching SystemUI (the owner declined that).
+
+Launcher-side mitigation (SysHvacPanel): while the "Stop the HVAC pop-up"
+setting is on (pref hvacPopupSuppress, default on), the launcher detects the
+"hvac page" window appearing over any app and closes it  with an ~8-second
+grace window after the user themselves opened HVAC (so intentional opens aren't
+fought). This hides most unwanted pop-ups but cannot stop them at the source.
+
+-------------------------------------------------------------------------------
+8.6  APPS SCREEN, ENGINEERING MODE, ADB
+-------------------------------------------------------------------------------
+AppsView groups app tiles by category with section headers:
+  DRIVING / NAVIGATION / MEDIA & PHONE / SYSTEM & TOOLS.
+Plus:
+  * A top row of shortcuts (category "shortcut"): Android Settings and Android
+    Files  pinned above the groups for quick reach.
+  * A header update bar beside the "Apps" title: auto-checks on open
+    (Updater.checkSilent) and shows "Up to date" or "Install <tag>"; one tap
+    installs. Uses the same updater as Settings.
+  * An Engineering-mode tile (SAIC EngineeringModeActivity; PIN 123456) exposing
+    an ADB toggle (AdbToggle -> Settings.Global.ADB_ENABLED).
+
+-------------------------------------------------------------------------------
+8.7  DASHCAM (360 camera as dashcam)  DashcamClient
+-------------------------------------------------------------------------------
+Goal: use the user's 360-camera app (com.drivehub.kamera, the BETA build) with
+a USB stick as a dashcam, and auto-upload footage around a collision.
+
+Integration points (discovered by decompiling the 360 app):
+  * Exported receiver DashcamEventTriggerReceiver accepts the broadcast
+    com.drivehub.kamera.action.TRIGGER_DASHCAM_EVENT, which calls
+    RecordingService.triggerEventSaveOrFutureOnly (saves a pre+post buffer).
+  * Clip files: [0-9]{12,17}(_[FRXY])?.mp4 in the dashcam folder
+    (Downloads/dashcam by default, USB override, events/ subfolder). 720x240
+    grid frames.
+
+DashcamClient behaviour:
+  * ready() = 360 app installed AND dashcamDir() is a real directory; otherwise
+    every operation no-ops (so "no USB stick" = do nothing, silently).
+  * dashcamDir() auto-detects a USB "dashcam" folder under /storage/* or
+    /mnt/media_rw/*, else falls back to Downloads/dashcam.
+  * startAutoWatch() creates the Car via reflection, car.connect(), then polls
+    the FCW property (557883745) ~every 700ms; on a collision warning it fires
+    the event-save broadcast and uploads the clips.
+  * Manual "send clip" button sits by the 360 button on the home screen; it
+    uploads the current + previous recording.
+  * Uploads go to a PRIVATE GitHub logs repo (configured via the upload token)
+    the same way logs do: LogUploader.put(path, data) -> PUT /repos/.../contents/<path>
+    with base64 body + Bearer token (422 = already exists). Clips are placed
+    under dashcam/<date>/ and capped at ~90 MB (GitHub ~100 MB/file limit).
+  * Controlled by the "dashcam auto-upload" setting (only shown if the 360 app
+    is installed).
+
+-------------------------------------------------------------------------------
+8.8  UI SOUNDS (Sfx) + STARTUP SOUND
+-------------------------------------------------------------------------------
+Sfx plays soft UI sounds through a SoundPool on the ASSISTANCE_SONIFICATION /
+CONTENT_TYPE_SONIFICATION channel  it never requests audio focus, so music is
+never paused or ducked. All 20 sounds of the "Pacely" pack live in res/raw as
+lowercase_underscore .mp3 files (Android resource names cannot contain hyphens):
+  add, close, delete, done, drop, focus_start, gentle_error, hover, next_step,
+  open, pause, pickup, step, swipe, tab, timer, toggle_off, toggle_on, undo,
+  welcome.
+
+Wired triggers:
+  * STARTUP = welcome.mp3 at launch (MainActivity).
+  * TAP = tab (general taps), OPEN/CLOSE on popups, DONE on confirms.
+  * TOGGLE_ON / TOGGLE_OFF  different sound for a switch turning on vs off.
+  * SWIPE on page change, ADD/DELETE where applicable.
+The rest are bundled and available; a launcher simply has no natural moment for
+a few of them (timer, focus_start, ). Sounds obey the existing calm-sounds
+on/off setting. Startup sound is a touch louder (0.7) than the rest (0.45).
+
+-------------------------------------------------------------------------------
+8.9  DIPLAY INTEGRATION + UPDATE TOGGLE
+-------------------------------------------------------------------------------
+DiPlay (Samfox84/DiPlay-MG4-Plus) is a separate app: a wireless CarPlay receiver
+that renders a map/turn-card on the instrument cluster. The launcher can detect
+the installed DiPlay version and offer to update it from Settings, using the same
+Updater machinery (installDiPlay()).
+
+New in calm.94: a "Check for DiPlay updates" setting (pref diplayUpdateCheck,
+DEFAULT OFF). When off, Updater.checkDiPlay() early-returns (no GitHub ping, no
+update prompt) and the DiPlay box is hidden entirely in Settings  it only shows
+the installed version, nothing more, and only if the toggle is on.
+
+-------------------------------------------------------------------------------
+8.10  SELF-UPDATE (Updater) + UPLOADS (LogUploader)
+-------------------------------------------------------------------------------
+Updater reads the repo's MAIN branch (raw.githubusercontent.com/.../main/ for
+files + the GitHub contents API for the default branch):
+  * checkSilent(repo, token, cb)  always calls back with the Release (newer or
+    not). Used by the Apps header bar.
+  * checkQuiet(...)  only calls back when a newer build with an APK URL exists.
+  * check() / install(release, token)  the full flow; install triggers the
+    Android package-install of the downloaded APK.
+  * Release has fields incl. newer, apkUrl, tag, installed.
+  * Separately detects + updates DiPlay (checkDiPlay / installDiPlay).
+LogUploader.put(path, bytes) PUTs base64 to a private GitHub repo with a Bearer
+token (used for diagnostics logs and dashcam clips).
+
+
+===============================================================================
+9. RESOURCES & LOCALISATION
+===============================================================================
+  * Strings live in res/values/ with translations in values-de, -es, -fr, -it,
+    -pl, -pt, -tr. New user-facing settings copy uses the settings_ prefix where
+    practical. Some newer in-code labels are English literals to avoid touching
+    all locale folders  acceptable for this single-user project but translate
+    them if you widen the audience.
+  * Night colours in values-night/.
+  * UI sounds in res/raw/ (see Sfx). Icons in drawable/ (vectors) and
+    drawable-nodpi/ (bitmaps that must not scale).
+
+
+===============================================================================
+10. VARIANTS  (SWI68 / SWI69 / SWI132 / SWI133)
+===============================================================================
+The project is primarily built for SWI68. Sibling firmware variants SWI69,
+SWI132, SWI133 are tracked. Rules:
+  * The graphics/UI must stay IDENTICAL across the variants.
+  * Fixes should be applied the same way across all variants where possible.
+Differences between variants are mostly firmware/region feature gating, much of
+which is not reachable from the app.
+
+
+===============================================================================
+11. KNOWN LIMITATIONS (things that are NOT app-fixable)
+===============================================================================
+  * Instrument cluster size / feature-variant coding: the cluster is a separate
+    IPK module reachable only over SIPS. Its physical size and the car's enabled-
+    feature coding are NOT reachable from an Android app. (DiPlay draws onto the
+    cluster via its own path; the launcher cannot resize or re-code it.)
+  * Native Android Waze turn-by-turn: Waze running natively on the head unit does
+    not broadcast navigation the way CarPlay apps do, so its directions can't be
+    surfaced the way Apple Maps (via CarPlay) can. This is an app-side limitation
+    of Waze, not something the launcher can add.
+  * Stock HVAC pop-up: can only be MITIGATED from the launcher (close the window
+    after it appears). Fully stopping it at the source needs a SystemUI patch,
+    which the owner chose not to do.
+  * Other-country car features: mostly SIPS/firmware-coded, not app-reachable.
+
+
+===============================================================================
+12. VERSION HISTORY (highlights  see README for the full changelog)
+===============================================================================
+The versioning scheme is 1.0.5-calm.<N> with an integer VERSION_CODE. The README
+holds the complete per-version changelog (Italian + English). Recent, most
+relevant milestones:
+
+  calm.96  Full-screen map: Radio/Library top-right (left of the status icons),
+           Media/CarPlay tabs bottom-right, now-playing right-aligned.
+  calm.95  Media fixes: streaming/library no longer shows the radio panel over
+           the music; artwork no longer flickers back to the wave; "NAVIDROME"
+           label removed; media box hidden when nothing is playing.
+  calm.94  Media now-playing refreshes on tab switch; Radio/Library kept clear
+           of the status icons on a full map; Apps screen gets the Android
+           Settings/Files top-row shortcuts and a one-tap update bar by the
+           title; DiPlay box hidden when its update check is off (default off).
+  calm.93  Full-screen map panel backgrounds hidden (controls float over the
+           map); full Pacely sound pack + a proper welcome startup sound.
+  calm.92  (and the long run before it) built the bulk of the launcher: app-
+           window grouping, engineering mode + ADB toggle, HVAC pop-up
+           suppression, joystick media control, ambient/charging/HVAC controls,
+           map-background transparency/gradient/right-align, library artwork,
+           charging-popup restyle, and the full dashcam feature.
+
+Earlier calm.45calm.82 entries (see README) cover the incremental build-up of
+the home screen, media panel, radio, charging, settings, theming and localisation.
+
+
+===============================================================================
+13. HOW TO REBUILD OR MODIFY FROM SCRATCH (checklist for future-you / an AI)
+===============================================================================
+  1. Clone https://github.com/Samfox84/mg4-calm-launcher.
+  2. Read CLAUDE.md (project rules) and this document.
+  3. Supply the secrets that are NOT in git:
+       keys/platform.p12  (the platform signing key  required to sign)
+       tools/log-token.txt OR env MG4_LOG_TOKEN  (only if you want uploads)
+     (tools/android.jar, d8.jar, apksig.jar auto-download in build.sh.)
+  4. Make your change in the relevant subsystem (use the FILE MAP + deep-dives).
+       - Respect the calm design philosophy (section 1).
+       - For media changes, re-read section 8.2  the radio/library/direct/idle
+         rules are easy to regress.
+       - Keep graphics identical across SWI68/69/132/133 (section 10).
+  5. Bump VERSION_CODE + VERSION_NAME in version.properties.
+  6. ./build.sh  -> build/MG4Launcher-<VERSION_NAME>.apk
+  7. Copy APK to releases/, update releases/latest.json (version/apk/size/notes),
+     add a README changelog entry (IT + EN, version numbers only).
+  8. Commit "Aggiornamento" (fixed author per CLAUDE.md) and push to MAIN.
+     Cars auto-update from main. ALWAYS PUBLISH, never sideload.
+  9. Never commit or print secrets (section 5).
+
+If you are an AI assistant reading this to help: the repo is the source of
+truth, build.sh is the whole toolchain, and the car updates itself from the
+main branch's releases/latest.json. Work subsystem by subsystem, preserve the
+media-panel rules in 8.2, and keep every build publishable (signed + in
+releases/ + latest.json pointed at it).
+
+===============================================================================
+APPENDIX A - ANDROID MANIFEST, PERMISSIONS, AND EXACT BUILD VERSIONS
+===============================================================================
+AndroidManifest.xml declares sharedUserId = android.uid.system and registers the
+Activity as the HOME/launcher (intent-filter: action MAIN + category HOME +
+category DEFAULT, plus LAUNCHER). Because it is a privileged system app it holds
+a broad permission set - these only work because it is platform-signed and
+installed as system/privileged:
+
+  Core:        INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE,
+               CHANGE_WIFI_STATE, BLUETOOTH, READ_CONTACTS,
+               ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION
+  Media:       MEDIA_CONTENT_CONTROL  (joystick media -> active MediaSession)
+  Day/night:   MODIFY_DAY_NIGHT_MODE
+  Launcher:    REORDER_TASKS, REAL_GET_TASKS, SET_PREFERRED_APPLICATIONS,
+               CHANGE_COMPONENT_ENABLED_STATE, ACTIVITY_EMBEDDING,
+               INTERNAL_SYSTEM_WINDOW, RECEIVE_BOOT_COMPLETED
+  Settings:    WRITE_SETTINGS, WRITE_SECURE_SETTINGS (ADB toggle etc.),
+               GRANT_RUNTIME_PERMISSIONS, READ_LOGS
+  Packages:    INSTALL_PACKAGES, REQUEST_INSTALL_PACKAGES, DELETE_PACKAGES,
+               FORCE_STOP_PACKAGES, CLEAR_APP_USER_DATA  (self-update, uninstall)
+  Storage:     READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE  (dashcam clips)
+  USB:         MANAGE_USB  (dongle / dashcam USB detection)
+  Wi-Fi host:  TETHER_PRIVILEGED  (car hotspot automation)
+  Car (android.car.permission.*):
+               CAR_VENDOR_EXTENSION  (vendor props incl. FCW collision signal),
+               CONTROL_CAR_CLIMATE   (climate/ambient/defrost/blower),
+               CAR_EXTERIOR_LIGHTS, CAR_EXTERIOR_ENVIRONMENT,
+               CAR_TIRES (tyre pressures), CAR_SPEED, CAR_ENGINE_DETAILED,
+               CAR_INFO
+
+Exact build toolchain versions and SHA-256 (pinned in build.sh, auto-downloaded):
+  Android platform: platform-28_r06   (dl.google.com)
+      platform zip SHA-256 8452dbbf9668a428abb243c4f02a943b7aa83af3cca627629a15c4c09f28e7bd
+      android.jar  SHA-256 d20853d289a5161d9cf1c1268d7923076487d4fa68c970b0733e2d5a0ccfc3c5
+  D8/R8: 8.5.35 (com.android.tools:r8, Google Maven)
+      SHA-256 4733945987ee0a840fafc34080b135259e01678412e07212b23f706334290294
+  apksig (only if d8 lacks the signer): 8.5.2
+      SHA-256 c4f6fdf2148490296f422a7eb37647ea11d1c3b02f1f2349c33ce257f3c29b1f
+  build.sh also sanity-checks that the signing certificate of the APK it is
+  replacing matches the platform key before overwriting.
+
+Note on reproducibility: these pinned versions are what every published APK was
+built with. If Google moves/retires an artifact, drop the matching jar into
+tools/ by hand (build.sh will tell you exactly which file and version it needs).
+
+===============================================================================
+APPENDIX B - PRIVACY NOTE FOR THIS PUBLISHED COPY
+===============================================================================
+This document is written to be published publicly (simonmarriott.co.uk). It
+deliberately contains NO secrets and NO private personal data: no signing key,
+no API/GitHub tokens, no email addresses, no private log-repo name, and nothing
+about the owner beyond the public GitHub handle. The commit-author identity, the
+upload token, and the platform signing key live only in the private repo
+(CLAUDE.md / keys / tools) and are never needed to understand the design - only
+to actually sign and publish a build, which only the owner does.
+
+===============================================================================
+END OF DOCUMENT
+===============================================================================
