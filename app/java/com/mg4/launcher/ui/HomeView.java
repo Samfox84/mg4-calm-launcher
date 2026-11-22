@@ -383,7 +383,7 @@ public final class HomeView extends LinearLayout {
 
     private View buildCarPanel(Context c) {
         LinearLayout p = Ui.column(c);
-        p.setBackground(Ui.pressable(c, t.panel, 24, t));
+        p.setBackground(bgMap ? null : Ui.pressable(c, t.panel, 24, t));   // 1.0.5: trasparente con mappa a sfondo
         p.setPadding(dp(32), dp(28), dp(32), dp(24));
         // Calm Launcher: la modalita' guida si apre toccando l'immagine/animazione dell'auto (vedi carFrame piu' sotto),
         // non tutto il pannello: cosi' il tocco sulla percentuale batteria apre i comandi di ricarica senza conflitti.
@@ -1131,7 +1131,7 @@ public final class HomeView extends LinearLayout {
 
     private FrameLayout buildRightPanel(Context c) {
         FrameLayout f = new FrameLayout(c);
-        f.setBackground(Ui.round(t.panel, dp(24)));
+        f.setBackground(bgMap ? null : Ui.round(t.panel, dp(24)));   // 1.0.5: trasparente con mappa a sfondo
         f.setClipToOutline(true);
 
         mapPanel = buildMapPanel(c);
@@ -1142,7 +1142,7 @@ public final class HomeView extends LinearLayout {
         f.addView(phonePanel, new FrameLayout.LayoutParams(-1, -1));
 
         LinearLayout tabs = Ui.row(c);
-        tabs.setBackground(Ui.round(t.overlay, dp(16)));
+        tabs.setBackground(bgMap ? null : Ui.round(t.overlay, dp(16)));   // 1.0.5: trasparente con mappa a sfondo
         tabs.setPadding(dp(6), dp(6), dp(6), dp(6));
         tabMap = addTab(c, tabs, L.s(R.string.tab_map), TAB_MAP);
         if (bgMap) tabMap.setVisibility(GONE);
@@ -2486,7 +2486,7 @@ public final class HomeView extends LinearLayout {
     private View buildBottomBar(Context c) {
         LinearLayout bar = Ui.row(c);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setBackground(Ui.round(t.panel, dp(24)));
+        bar.setBackground(bgMap ? null : Ui.round(t.panel, dp(24)));   // 1.0.5: trasparente con mappa a sfondo
         bar.setPadding(dp(14), 0, dp(14), 0);
         int btn = bs(76, BIG_BTN), arrow = bs(68, BIG_ARROW), arrowIcon = bs(30, BIG_ICON - 8), icon = bs(32, BIG_ICON);
         float rad = big ? 24 : 20 * Ui.K;

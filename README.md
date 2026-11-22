@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.93
+- **Mappa a schermo intero più pulita**: con la mappa come sfondo, gli sfondi dei riquadri (auto, media e barra in basso) sono nascosti, così i comandi e le info galleggiano direttamente sopra la mappa.
+- **Nuovo suono d'avvio e pacchetto suoni completo**: all'avvio parte un suono di benvenuto più bello; i suoni soft del pacchetto Pacely accompagnano tocchi, interruttori (acceso/spento diverso) e conferme. La musica non viene mai interrotta.
+- **Interruttore per il controllo aggiornamenti DiPlay**: nuova voce nelle Impostazioni per disattivare il controllo aggiornamenti di DiPlay. **Spento di default**: così il launcher non contatta più GitHub per DiPlay e non mostra richieste di aggiornamento, mostra solo la versione installata.
+
 #### 1.0.5-calm.92
 - **Schermata App riordinata**: le app dell'auto sono raggruppate (Guida, Navigazione, Media e telefono, Sistema), con riquadri più grandi (6 per riga invece di 9) e un riquadro **Engineering** che apre la modalità tecnica (PIN 123456).
 - **Il joystick al volante controlla i media**: avanti/indietro saltano traccia e una pressione lunga fa play/pausa su CarPlay, DiPlay o la tua libreria — non solo su USB/Bluetooth.
@@ -1288,6 +1293,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.93
+- **Cleaner full-screen map**: with the map as the background, the panel backgrounds (car, media and bottom bar) are hidden, so the controls and info float directly over the map.
+- **New startup sound and the full sound pack**: a nicer welcome sound plays at launch, and the soft Pacely sounds run on taps, toggles (different for on/off) and confirmations. Music is never interrupted.
+- **DiPlay update-check toggle**: a new Settings switch turns off the DiPlay update check. **Off by default**: the launcher no longer pings GitHub for DiPlay or shows update prompts — it just shows the installed version.
 
 #### 1.0.5-calm.92
 - **Reorganised app screen**: car apps are grouped (Driving, Navigation, Media & phone, System) with bigger tiles (6 across instead of 9) and an **Engineering** tile that opens engineering mode (PIN 123456).

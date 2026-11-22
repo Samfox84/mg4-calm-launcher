@@ -587,6 +587,9 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Reclaim screen from DiPlay at startup",
                 "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
                 toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
+        card.addView(row(c, "Check for DiPlay updates",
+                "Off by default. When off, the launcher never checks GitHub for a newer DiPlay and never shows a DiPlay update prompt - it just shows the installed version. Turn on only if you want to be told when a new DiPlay is out.",
+                toggle(c, prefs.diplayUpdateCheck(), on -> { prefs.setDiplayUpdateCheck(on); host.updater().checkDiPlay(); }), false));
         card.addView(row(c, "Stop the HVAC pop-up",
                 "The car throws its own climate window on top whenever you turn the AC or heating on from off. On by default: the launcher auto-dismisses it so it never interrupts CarPlay, maps or music. A panel you open yourself is left alone.",
                 toggle(c, prefs.hvacPopupSuppress(), on -> prefs.setHvacPopupSuppress(on)), false));
@@ -1792,6 +1795,7 @@ public final class SettingsView extends FrameLayout {
             setOnClickListener(v -> {
                 this.on = !this.on;
                 invalidate();
+                com.mg4.launcher.svc.Sfx.toggle(this.on);   // 1.0.5: suono diverso acceso/spento
                 l.changed(this.on);
             });
         }

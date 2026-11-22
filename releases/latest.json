@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.92",
-  "apk": "releases/MG4Launcher-1.0.5-calm.92.apk",
-  "size": 8876741,
-  "notes": "Grouped app screen, joystick media control, stop the HVAC pop-up, ambient lighting + climate extras, better full-screen map, tidier charging menu, and dashcam incident upload."
+  "version": "1.0.5-calm.93",
+  "apk": "releases/MG4Launcher-1.0.5-calm.93.apk",
+  "size": 9070282,
+  "notes": "Full-screen map: panel backgrounds hidden so controls float over the map. New startup sound and the full calm sound pack on taps, toggles and actions. New setting to turn off the DiPlay update check (off by default)."
 }

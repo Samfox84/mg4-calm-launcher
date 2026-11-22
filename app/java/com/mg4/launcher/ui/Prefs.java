@@ -57,6 +57,10 @@ public final class Prefs {
     // Tasti media del joystick al volante inoltrati alla sessione attiva (CarPlay, DiPlay, terze parti).
     public boolean joystickMedia() { return sp.getBoolean("joystickMedia", true); }
     public void setJoystickMedia(boolean v) { sp.edit().putBoolean("joystickMedia", v).apply(); }
+
+    // 1.0.5: controllo aggiornamenti DiPlay — spento di default.
+    public boolean diplayUpdateCheck() { return sp.getBoolean("diplayUpdateCheck", false); }
+    public void setDiplayUpdateCheck(boolean v) { sp.edit().putBoolean("diplayUpdateCheck", v).apply(); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {

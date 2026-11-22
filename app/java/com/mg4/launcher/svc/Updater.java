@@ -484,6 +484,13 @@ public final class Updater {
     public void checkDiPlay() {
         bg.post(() -> {
             Release inst = installedDiPlay();                 // null se non installata
+            if (!com.mg4.launcher.ui.Prefs.get(ctx).diplayUpdateCheck()) {
+                // 1.0.5: controllo aggiornamenti DiPlay disattivato (spento di default):
+                // mostra solo la versione installata, niente richieste di aggiornamento né rete.
+                lastDiPlay = inst;
+                dpStatus("current", inst, false);
+                return;
+            }
             try {
                 Release r = latestDiPlay();                   // da DiPlay.json
                 r.installed = inst != null ? inst.installed : null;
