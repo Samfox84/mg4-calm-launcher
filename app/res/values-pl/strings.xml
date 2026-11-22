@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Ikony manewrów nawigacji (dzięki sommistica) i nawigacja w oknie w panelu map (eksperymentalne)</string>
     <string name="news_v105_4" formatted="false">Ustawienia: strona zostaje na miejscu nawet po przerwie · pakiet animacji aktualizuje się sam</string>
     <string name="news_v104_6" formatted="false">Ustawienia: po zmianie opcji strona zostaje w tym samym miejscu · Aplikacje: przytrzymaj zainstalowaną przez siebie aplikację, aby ją odinstalować</string>
+    <string name="section_drive" formatted="false">JAZDA</string>
+    <string name="section_nav" formatted="false">NAWIGACJA</string>
+    <string name="section_media" formatted="false">MULTIMEDIA I TELEFON</string>
+    <string name="section_system" formatted="false">SYSTEM I NARZĘDZIA</string>
+    <string name="app_engmode" formatted="false">Serwisowy</string>
 </resources>

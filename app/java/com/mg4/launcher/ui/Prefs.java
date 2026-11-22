@@ -49,11 +49,31 @@ public final class Prefs {
     // Home: live map as full-screen background (default off = current panel layout)
     public boolean mapBackground() { return sp.getBoolean("mapBackground", false); }
     public void setMapBackground(boolean v) { sp.edit().putBoolean("mapBackground", v).apply(); }
+
+    // Soppressione del pop-up clima di sistema ("hvac page") su qualunque app, non solo su MG4 Clima/launcher.
+    public boolean hvacPopupSuppress() { return sp.getBoolean("hvacPopupSuppress", true); }
+    public void setHvacPopupSuppress(boolean v) { sp.edit().putBoolean("hvacPopupSuppress", v).apply(); }
+
+    // Tasti media del joystick al volante inoltrati alla sessione attiva (CarPlay, DiPlay, terze parti).
+    public boolean joystickMedia() { return sp.getBoolean("joystickMedia", true); }
+    public void setJoystickMedia(boolean v) { sp.edit().putBoolean("joystickMedia", v).apply(); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {
         sp = c.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE);
     }
+
+    private static Prefs sInstance;
+    public static Prefs get(Context c) {
+        if (sInstance == null) sInstance = new Prefs(c.getApplicationContext());
+        return sInstance;
+    }
+
+    // 1.0.5: dashcam incidenti (app 360 com.drivehub.kamera)
+    public boolean dashcamAutoUpload() { return sp.getBoolean("dashcamAutoUpload", false); }
+    public void setDashcamAutoUpload(boolean v) { sp.edit().putBoolean("dashcamAutoUpload", v).apply(); }
+    public String dashcamFolder() { return sp.getString("dashcamFolder", ""); }   // vuoto = Download/dashcam
+    public void setDashcamFolder(String v) { sp.edit().putString("dashcamFolder", v == null ? "" : v).apply(); }
 
     public int carColorIndex() {
         return Math.max(0, Math.min(CAR_COLORS.length - 1, sp.getInt("carColor", 5)));

@@ -37,6 +37,15 @@ public final class MediaClient {
         return lastActiveSrc == 0 ? "nessuna" : sourceName(lastActiveSrc);
     }
 
+    /**
+     * 1.0.5: sorgente nativa SAIC (radio / USB / online / Bluetooth)? Quelle i tasti del joystick le gestisce già
+     * il servizio media del sistema; CarPlay e Android Auto no, e lì tocca al launcher inoltrare il tasto.
+     */
+    public static boolean isNativeSaicSource() {
+        int s = lastActiveSrc;
+        return s == SRC_RADIO || s == SRC_USB || s == SRC_ONLINE || s == SRC_BT;
+    }
+
     public static String sourceName(int s) {
         switch (s) {
             case SRC_RADIO: return "RADIO";

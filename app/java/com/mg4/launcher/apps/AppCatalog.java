@@ -32,14 +32,20 @@ public final class AppCatalog {
         public final int iconRes;               // 0 = icona ridisegnata dall'originale
         public final boolean highlight;
         public final String packageName;
+        public final String category;           // gruppo nella schermata App (drive/nav/media/system); null = app installata
 
         App(String label, ComponentName cn, Intent li, int iconRes, boolean highlight, String pkg) {
+            this(label, cn, li, iconRes, highlight, pkg, null);
+        }
+
+        App(String label, ComponentName cn, Intent li, int iconRes, boolean highlight, String pkg, String category) {
             this.label = label;
             this.component = cn;
             this.launchIntent = li;
             this.iconRes = iconRes;
             this.highlight = highlight;
             this.packageName = pkg;
+            this.category = category;
         }
 
         public Intent intent() {
@@ -57,30 +63,34 @@ public final class AppCatalog {
         }
     }
 
-    /** App dell'auto, nell'ordine del launcher MG (componenti dal file app_pool_list dell'originale). */
+    /**
+     * App dell'auto, nell'ordine del launcher MG (componenti dal file app_pool_list dell'originale).
+     * 5ª colonna: gruppo nella schermata App — "drive", "nav", "media", "system".
+     */
     private static final String[][] CAR_APPS = {
-            {"@app_vehicle", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.vehicleconfig.ui.VehicleSettingsActivity", "car"},
-            {"@climate", "com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity", "fan"},
-            {"@app_energy", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.chargemanagement.ui.ChargeManagementActivity", "bolt"},
-            {"@app_consumption", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.energyconsumption.ui.EnergyConsumptionActivity", "chart"},
-            {"@app_phone", "com.saicmotor.hmi.btcall", "com.saicmotor.hmi.btcall.BtCallActivity", "phone"},
-            {"@src_radio", "com.saicmotor.hmi.radio", "com.saicmotor.hmi.radio.app.RadioHomeActivity", "radio"},
-            {"@app_music", "com.saicmotor.hmi.music", "com.saicmotor.hmi.music.ui.activity.MusicActivity", "music"},
-            {"@app_usb_video", "com.saicmotor.hmi.video", "com.saicmotor.hmi.video.ui.activity.UsbVideoActivity", "video"},
-            {"@app_camera", "com.saicmotor.hmi.aroundview", "com.saicmotor.hmi.aroundview.AVMActivity", "cam360"},
-            {"@app_settings", "com.saicmotor.hmi.systemsettings", "com.saicmotor.hmi.systemsettings.SettingsActivity", "gear"},
-            {"@app_navigator", "@nav", "", "nav"},
-            {"EV Route", "com.saicmotor.evrouting", "com.saicmotor.evrouting.view.MainActivity", "route"},
-            {"Spotify", "com.saicmotor.mediacenter", "com.saicmotor.mediacenter.spotify.MainActivity", "wave"},
-            {"Amazon Music", "com.saicmotor.onlinemedia.amazon.v2", "", "wave"},
-            {"@app_weather", "com.saicmotor.weathers", "com.saicmotor.weathers.activity.MainActivity", "cloud"},
-            {"@app_manual", "com.saicmotor.hmi.pdfreader", "com.saicmotor.hmi.pdfreader.QRcodeActivity", "book"},
-            {"MG Touchpoint", "com.saic.saicmaintenance", "com.saic.saicmaintenance.module.maintaince.MaintaiceEp21Activity", "info"},
-            {"@app_account", "com.saic.avnlogin", "com.saic.avnlogin.mvp.login.LoginActivity", "user"},
-            {"@app_sos", "com.saicmotor.rescuecall", "com.saicmotor.rescuecall.module.ICallCenterAct", "sos"},
+            {"@app_vehicle", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.vehicleconfig.ui.VehicleSettingsActivity", "car", "drive"},
+            {"@climate", "com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity", "fan", "drive"},
+            {"@app_energy", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.chargemanagement.ui.ChargeManagementActivity", "bolt", "drive"},
+            {"@app_consumption", "com.saicmotor.hmi.vehiclesettings", "com.saicmotor.hmi.vehiclesettings.energyconsumption.ui.EnergyConsumptionActivity", "chart", "drive"},
+            {"@app_camera", "com.saicmotor.hmi.aroundview", "com.saicmotor.hmi.aroundview.AVMActivity", "cam360", "drive"},
+            {"@app_navigator", "@nav", "", "nav", "nav"},
+            {"EV Route", "com.saicmotor.evrouting", "com.saicmotor.evrouting.view.MainActivity", "route", "nav"},
+            {"@app_weather", "com.saicmotor.weathers", "com.saicmotor.weathers.activity.MainActivity", "cloud", "nav"},
+            {"@app_phone", "com.saicmotor.hmi.btcall", "com.saicmotor.hmi.btcall.BtCallActivity", "phone", "media"},
+            {"@src_radio", "com.saicmotor.hmi.radio", "com.saicmotor.hmi.radio.app.RadioHomeActivity", "radio", "media"},
+            {"@app_music", "com.saicmotor.hmi.music", "com.saicmotor.hmi.music.ui.activity.MusicActivity", "music", "media"},
+            {"@app_usb_video", "com.saicmotor.hmi.video", "com.saicmotor.hmi.video.ui.activity.UsbVideoActivity", "video", "media"},
+            {"Spotify", "com.saicmotor.mediacenter", "com.saicmotor.mediacenter.spotify.MainActivity", "wave", "media"},
+            {"Amazon Music", "com.saicmotor.onlinemedia.amazon.v2", "", "wave", "media"},
+            {"@app_settings", "com.saicmotor.hmi.systemsettings", "com.saicmotor.hmi.systemsettings.SettingsActivity", "gear", "system"},
+            {"@app_engmode", "com.saicmotor.hmi.engmode", "com.saicmotor.hmi.engmode.home.ui.EngineeringModeActivity", "buttons", "system"},
+            {"@app_manual", "com.saicmotor.hmi.pdfreader", "com.saicmotor.hmi.pdfreader.QRcodeActivity", "book", "system"},
+            {"MG Touchpoint", "com.saic.saicmaintenance", "com.saic.saicmaintenance.module.maintaince.MaintaiceEp21Activity", "info", "system"},
+            {"@app_account", "com.saic.avnlogin", "com.saic.avnlogin.mvp.login.LoginActivity", "user", "system"},
+            {"@app_sos", "com.saicmotor.rescuecall", "com.saicmotor.rescuecall.module.ICallCenterAct", "sos", "system"},
             // scorciatoie di Android (solo se l'attività esiste davvero sull'auto)
-            {"@app_android_settings", "@android_settings", "", "android_settings"},
-            {"@app_android_files", "@android_files", "", "folder"},
+            {"@app_android_settings", "@android_settings", "", "android_settings", "system"},
+            {"@app_android_files", "@android_files", "", "folder", "system"},
     };
 
     /** Gestori file possibili, nell'ordine in cui si cercano. */
@@ -121,29 +131,30 @@ public final class AppCatalog {
         List<App> out = new ArrayList<>();
         for (String[] row : CAR_APPS) {
             String[] a = {label(row[0]), row[1], row[2], row[3]};
+            String cat = row.length > 4 ? row[4] : null;
             int icon = iconFor(ctx, a[3]);
             if ("@nav".equals(a[1])) {
                 Intent nav = navIntent(navPackageHint);
                 if (nav != null) {
                     String pkg = nav.getComponent() != null ? nav.getComponent().getPackageName() : String.valueOf(nav.getPackage());
-                    out.add(new App(a[0], null, nav, icon, false, pkg));
+                    out.add(new App(a[0], null, nav, icon, false, pkg, cat));
                 }
                 continue;
             }
             if ("@android_settings".equals(a[1]) || "@android_files".equals(a[1])) {
                 Intent si = "@android_settings".equals(a[1]) ? androidSettingsIntent() : androidFilesIntent();
-                if (si != null) out.add(new App(a[0], null, si, icon, false, targetPackage(si)));
+                if (si != null) out.add(new App(a[0], null, si, icon, false, targetPackage(si), cat));
                 continue;
             }
             // 1.0.3: il ComponentName si crea solo con pacchetto e classe validi (prima: crash "class name is null")
             if (empty(a[1])) continue;
             ComponentName cn = empty(a[2]) ? null : new ComponentName(a[1], a[2]);
             if (cn != null && exists(cn)) {
-                out.add(new App(a[0], cn, null, icon, false, a[1]));
+                out.add(new App(a[0], cn, null, icon, false, a[1], cat));
             } else {
                 Intent li = pm.getLaunchIntentForPackage(a[1]);
                 if (li != null && !"bolt".equals(a[3]) && !"chart".equals(a[3])) {
-                    out.add(new App(a[0], null, li, icon, false, a[1]));
+                    out.add(new App(a[0], null, li, icon, false, a[1], cat));
                 }
             }
         }

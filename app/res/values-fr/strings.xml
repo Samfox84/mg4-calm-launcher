@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Icônes des manœuvres du navigateur (merci à sommistica) et navigateur en fenêtre dans le panneau carte (expérimental)</string>
     <string name="news_v105_4" formatted="false">Réglages : la page reste en place même après une pause · le pack d\'animation se met à jour tout seul</string>
     <string name="news_v104_6" formatted="false">Réglages : en changeant une option, la page reste où elle était · Applis : appui long sur une appli que vous avez installée pour la désinstaller</string>
+    <string name="section_drive" formatted="false">CONDUITE</string>
+    <string name="section_nav" formatted="false">NAVIGATION</string>
+    <string name="section_media" formatted="false">MÉDIAS ET TÉLÉPHONE</string>
+    <string name="section_system" formatted="false">SYSTÈME ET OUTILS</string>
+    <string name="app_engmode" formatted="false">Ingénierie</string>
 </resources>

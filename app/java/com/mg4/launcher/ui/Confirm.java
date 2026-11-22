@@ -157,8 +157,10 @@ public final class Confirm {
             m.setLineSpacing(0, 1.15f);
             card.addView(m, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 16), 0, 0));
         }
-        if (options.length <= PICK_ROW_MAX) {
-            // pochi valori: un pulsante per valore sulla stessa riga (com'era)
+        boolean anyLong = false;
+        for (String o : options) if (o != null && o.length() > 14) { anyLong = true; break; }   // 1.0.5: etichette lunghe (menu ricarica) -> elenco verticale, come gli altri popup
+        if (options.length <= PICK_ROW_MAX && !anyLong) {
+            // pochi valori brevi: un pulsante per valore sulla stessa riga (com'era)
             LinearLayout opts = Ui.row(c);
             for (int i = 0; i < options.length; i++) {
                 final int idx = i;

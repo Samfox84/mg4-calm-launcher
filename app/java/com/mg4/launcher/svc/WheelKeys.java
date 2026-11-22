@@ -26,6 +26,15 @@ public final class WheelKeys {
 
     private WheelKeys() {}
 
+    /** Il launcher inoltra i tasti media del joystick alla sessione attiva (predefinito: acceso). */
+    static boolean joystickMediaOn(Context c) {
+        try {
+            return c.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getBoolean("joystickMedia", true);
+        } catch (Throwable e) {
+            return true;
+        }
+    }
+
     public static synchronized void start(Context c) {
         if (registered) return;
         try {
@@ -37,8 +46,13 @@ public final class WheelKeys {
                     note(code, down, lp);
                     Listener l = probe;
                     if (l != null) l.onKey(code, down, lp);
-                    Listener a = action;
-                    if (a != null) a.onKey(code, down, lp);
+                    // 1.0.5: tasti media del joystick → sessione attiva (CarPlay, DiPlay, app di terze parti).
+                    // Se il launcher li inoltra, non chiamiamo anche l'ascoltatore della libreria (niente doppio salto).
+                    boolean handled = joystickMediaOn(ctx) && JoystickMedia.handle(ctx, code, down, lp);
+                    if (!handled) {
+                        Listener a = action;
+                        if (a != null) a.onKey(code, down, lp);
+                    }
                 }
             }, new IntentFilter(ACTION));
             registered = true;

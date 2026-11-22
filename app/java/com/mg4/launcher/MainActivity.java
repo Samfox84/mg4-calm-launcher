@@ -153,6 +153,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             logs.start();
             com.mg4.launcher.svc.FirmwareExport.schedule(this);
             com.mg4.launcher.svc.DongleWatch.get(this, media).start();
+            // 1.0.5: dashcam incidenti — controllo collisione automatico, solo se l'app 360 è installata
+            if (com.mg4.launcher.svc.DashcamClient.camInstalled(this)) com.mg4.launcher.svc.DashcamClient.get(this).startAutoWatch();
             com.mg4.launcher.svc.EmbedCheck.log(this);
         });
         // avvio all'accensione: servizio di accessibilità, scadenza officina, riconferma della home predefinita

@@ -234,6 +234,7 @@ public final class HomeView extends LinearLayout {
         miniPlayIcon.setImageResource(picon);
         if (miniTitle != null) { miniTitle.setText(s.title); miniSub.setText(s.artist); }
         if (sideMediaTitle != null) { sideMediaTitle.setText(s.title); sideMediaSub.setText(s.artist); sideMediaPlay.setImageResource(picon); }
+        if (music != null && artCover != null) music.loadCoverInto(artCover, s);   // 1.0.5: copertina anche qui
     }
 
     private void musicTogglePlay() {
@@ -282,6 +283,13 @@ public final class HomeView extends LinearLayout {
             FrameLayout stack = new FrameLayout(c);
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
             stack.addView(new LiveMap(c, mapNight), new FrameLayout.LayoutParams(-1, -1));
+            // 1.0.5: gradiente sulla mappa a sfondo, come il velo del pannello: scuro ai bordi (riquadro auto a
+            // sinistra, media a destra), più chiaro al centro, così si legge il testo ma si vede il centro della mappa.
+            View mapScrim = new View(c);
+            mapScrim.setBackground(new android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+                    new int[]{0xD9000000, 0x40000000, 0x14000000, 0x40000000, 0xE6000000}));
+            stack.addView(mapScrim, new FrameLayout.LayoutParams(-1, -1));
             LinearLayout content = Ui.column(c);
             content.setPadding(pad, pad, pad, pad);
             stack.addView(content, new FrameLayout.LayoutParams(-1, -1));
@@ -963,11 +971,90 @@ public final class HomeView extends LinearLayout {
     }
 
     /** Testo di stato: solo durante ricarica o scarica (tipo · potenza · tempo rimanente), altrimenti vuoto. */
+    /** 1.0.5: nomi della direzione aria (valori presunti: da verificare sull'auto). */
+    private String blowerDirName(int mode) {
+        switch (mode) {
+            case 0: return "Face";
+            case 1: return "Face + feet";
+            case 2: return "Feet";
+            case 3: return "Feet + screen";
+            case 4: return "Screen";
+            default: return "—";
+        }
+    }
+
+    /** 1.0.5: finestra luci ambiente (on/off, colore, luminosità, respiro, benvenuto). */
+    private void showAmbientPopup() {
+        final FrameLayout root = host.overlay();
+        if (root == null || vehicle == null) return;
+        final Context c = getContext();
+        VehicleClient.State s = vehicle.last();
+        final FrameLayout dim = new FrameLayout(c);
+        dim.setBackgroundColor(t.day ? 0x66000000 : 0xB3000000);
+        dim.setClickable(true);
+        dim.setOnClickListener(v -> { if (dim.getParent() != null) ((ViewGroup) dim.getParent()).removeView(dim); });
+        LinearLayout card = Ui.column(c);
+        card.setBackground(Ui.round(t.panel, dp(28)));
+        card.setPadding(dp(40), dp(30), dp(40), dp(26));
+        card.setClickable(true);
+        card.addView(Ui.text(c, "Ambient lighting", 30, t.text, Ui.MEDIUM));
+        card.addView(ambToggle(c, "Light on", s != null && s.ambtOn == 1, on -> vehicle.setAmbientOn(on)), ambGap(16));
+        card.addView(ambSlider(c, "Colour", 15, s != null && s.ambtColor >= 0 ? s.ambtColor : 0, vehicle::setAmbientColor), ambGap(14));
+        card.addView(ambSlider(c, "Brightness", 10, s != null && s.ambtBright >= 0 ? s.ambtBright : 5, vehicle::setAmbientBrightness), ambGap(14));
+        card.addView(ambToggle(c, "Breathing", s != null && s.ambtBreath == 1, on -> vehicle.setAmbientBreathing(on)), ambGap(14));
+        card.addView(ambToggle(c, "Welcome light", s != null && s.ambtWlcm == 1, on -> vehicle.setAmbientWelcome(on)), ambGap(14));
+        TextView close = Ui.text(c, L.s(R.string.btn_ok), 22, t.text, Ui.MEDIUM);
+        close.setGravity(Gravity.CENTER);
+        close.setPadding(tp(26), tp(10), tp(26), tp(10));
+        close.setBackground(Ui.pressable(c, t.chip, dp(16), t));
+        close.setClickable(true);
+        close.setOnClickListener(v -> { if (dim.getParent() != null) ((ViewGroup) dim.getParent()).removeView(dim); });
+        LinearLayout br = Ui.row(c);
+        br.setGravity(Gravity.END);
+        br.addView(close);
+        card.addView(br, ambGap(24));
+        dim.addView(card, new FrameLayout.LayoutParams(dp(760), -2, Gravity.CENTER));
+        root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+    }
+
+    private LinearLayout.LayoutParams ambGap(int m) {
+        return Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, dp(m), 0, 0);
+    }
+
+    private View ambToggle(Context c, String label, boolean on, final java.util.function.Consumer<Boolean> cb) {
+        LinearLayout r = Ui.row(c);
+        r.setGravity(Gravity.CENTER_VERTICAL);
+        r.addView(Ui.text(c, label, 22, t.text, Ui.REGULAR), Ui.lpWeight(0, -2, 1f));
+        android.widget.Switch sw = new android.widget.Switch(c);
+        sw.setChecked(on);
+        sw.setOnCheckedChangeListener((b, v) -> cb.accept(v));
+        r.addView(sw);
+        return r;
+    }
+
+    private View ambSlider(Context c, String label, int max, int value, final java.util.function.IntConsumer cb) {
+        LinearLayout r = Ui.row(c);
+        r.setGravity(Gravity.CENTER_VERTICAL);
+        r.addView(Ui.text(c, label, 22, t.text, Ui.REGULAR), Ui.margins(Ui.lp(-2, -2), 0, 0, dp(16), 0));
+        android.widget.SeekBar sb = new android.widget.SeekBar(c);
+        sb.setMax(max);
+        sb.setProgress(Math.max(0, Math.min(max, value)));
+        sb.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar b, int p, boolean u) {}
+            public void onStartTrackingTouch(android.widget.SeekBar b) {}
+            public void onStopTrackingTouch(android.widget.SeekBar b) { cb.accept(b.getProgress()); }
+        });
+        r.addView(sb, Ui.lpWeight(0, -2, 1f));
+        return r;
+    }
+
     private String chargeText(VehicleClient.State s) {
         // 1.0.5: ricarica via cavo solo se anche l'animazione la vede (stessa decisione: VehicleClient.cablePlugged)
         int cs = s.chargingStatus;
         if ((cs == 1 || cs == 3 || cs == 10 || cs == 11) && !VehicleClient.cablePlugged(s)) return "";
-        String kw = s.chargeKw > 0.3f ? String.format(L.locale(), " · %.1f kW", s.chargeKw) : "";
+        String av = s.chargeKw > 0.3f && !Float.isNaN(s.chargeAmps) && !Float.isNaN(s.chargeVolts)
+                ? String.format(L.locale(), " (%.0f A · %.0f V)", Math.abs(s.chargeAmps), s.chargeVolts) : "";
+        String kw = s.chargeKw > 0.3f ? String.format(L.locale(), " · %.1f kW", s.chargeKw) + av : "";
         String tgt = target(s.chargeLimit);
         switch (s.chargingStatus) {
             case 1: return L.s(R.string.charge_charging) + kw + remaining(s.predictMinutes) + tgt;
@@ -1516,7 +1603,14 @@ public final class HomeView extends LinearLayout {
         // Velo semitrasparente: sotto il Media resta la mappa viva, così il pannello non è un rettangolo grigio vuoto.
         // Consuma i tocchi (niente trascinamenti accidentali della mappa) e tiene leggibili testo e comandi.
         col.setClickable(true);
-        col.setBackgroundColor(bgMap ? (t.panel | 0xFF000000) : ((t.panel & 0x00FFFFFF) | 0xA8000000));
+        // 1.0.5: con mappa a sfondo il pannello media è trasparente (si vede la mappa sotto; la leggibilità la dà
+        // il gradiente sulla mappa) e tutto è allineato a destra, così resta libero il centro della mappa.
+        if (bgMap) {
+            col.setBackgroundColor(0x00000000);
+            col.setGravity(Gravity.END);
+        } else {
+            col.setBackgroundColor((t.panel & 0x00FFFFFF) | 0xA8000000);
+        }
 
         // sorgenti: un pulsante per ciascuna (Radio, USB, Bluetooth, Online, + CarPlay/Android Auto se collegato)
         // 1.0.4 (punto E4): pulsanti più grandi (+15%), ognuno con il suo fondo e un bordo leggero; niente riquadro comune
@@ -2015,6 +2109,8 @@ public final class HomeView extends LinearLayout {
     }
 
     private void openCurrentSourceApp() {
+        // 1.0.5: se sta suonando la libreria del launcher, apri la libreria (non Amazon Music, che era insensato).
+        if (directAudio) { openMusic(); return; }
         MediaClient.State m = media.last();
         switch (m.source) {
             case MediaClient.SRC_RADIO:
@@ -2542,6 +2638,23 @@ public final class HomeView extends LinearLayout {
         if (cam.kind != Cam360.HIDDEN)
             // 1.0.2 (issue #23): scritta "360°" grande al posto della videocamera (non si confonde più con Video USB)
             bar.addView(shortcut(c, 0, cam.label.isEmpty() ? L.s(R.string.app_camera) : cam.label, cam.pkg, cam.cls));
+        // 1.0.5: "Invia clip" dashcam, accanto al 360, solo se l'app 360 (com.drivehub.kamera) è installata
+        if (com.mg4.launcher.svc.DashcamClient.camInstalled(c)) {
+            int ds = bs(64, BIG_SHORTCUT);
+            View send = barIcon(c, R.drawable.ic_cloud, t.text, 0, ds, bs(40, BIG_ICON + 12), big ? 22 : 18 * Ui.K, "Send dashcam clip",
+                    v -> {
+                        Sfx.click();
+                        com.mg4.launcher.svc.DashcamClient dc = com.mg4.launcher.svc.DashcamClient.get(c);
+                        if (!dc.ready()) {
+                            android.widget.Toast.makeText(c, "No dashcam USB detected", android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        dc.sendClipNow();
+                        android.widget.Toast.makeText(c, "Saving & uploading clip…", android.widget.Toast.LENGTH_SHORT).show();
+                    });
+            send.setLayoutParams(Ui.margins(Ui.lp(ds, ds), dp(6), 0, 0, 0));
+            bar.addView(send);
+        }
         if (!big) bar.addView(shortcut(c, R.drawable.ic_gear, L.s(R.string.app_settings), "com.saicmotor.hmi.systemsettings", "com.saicmotor.hmi.systemsettings.SettingsActivity"));
         // 1.0.5: Spegni la vettura (opzione, predefinito spento): stessa conferma delle impostazioni
         if (prefs.powerButton()) {
@@ -3349,6 +3462,17 @@ public final class HomeView extends LinearLayout {
         }
         private void diskArtPut(String key, android.graphics.Bitmap b) {
             try { java.io.File d = artDir(); d.mkdirs(); java.io.FileOutputStream o = new java.io.FileOutputStream(new java.io.File(d, sanKey(key) + ".jpg")); b.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, o); o.close(); } catch (Exception ignored) {}
+        }
+
+        /** 1.0.5: copertina del brano di libreria nel riquadro "ora in riproduzione" (prima mancava: solo nel menu). */
+        void loadCoverInto(ImageView iv, Subsonic.Song s) {
+            if (iv == null) return;
+            if (directServer == null || s == null || s.coverArt == null || s.coverArt.isEmpty()) {
+                iv.setVisibility(GONE);
+                return;
+            }
+            iv.setVisibility(VISIBLE);
+            loadArtUrl(iv, "sub:" + s.coverArt, directServer.coverUrl(s.coverArt, 400));
         }
 
         private void loadArtUrl(final ImageView iv, final String key, final String url) {
@@ -4397,6 +4521,17 @@ public final class HomeView extends LinearLayout {
                 // sul tasto fisico, perché il comando software non è stato verificato sugli originali
                 if (s.defrostOn >= 0) addTile(c, "defrostF", null, R.drawable.clima_sbrinamento_anteriore,
                         L.s(R.string.tile_defrost_front), v -> vehicle.toggleFrontDefrost());
+                // 1.0.5: sbrinamento lunotto, direzione aria, luci ambiente (promossi dalle Impostazioni)
+                if (s.rearDefrostOn >= 0) addTile(c, "defrostR", null, R.drawable.clima_sbrinamento_posteriore,
+                        "Rear defrost", v -> vehicle.toggleRearDefrost());
+                if (s.blowerDir >= 0) addTile(c, "blowerDir", null, R.drawable.clima_aria_viso,
+                        "Air direction", v -> {
+                            VehicleClient.State st = vehicle.last();
+                            int cur = st != null && st.blowerDir >= 0 ? st.blowerDir : -1;
+                            vehicle.setBlowerDir((cur + 1) % 5);
+                        });
+                if (s.ambtAvail != 0) addTile(c, "ambient", null, R.drawable.clima_accensione,
+                        "Ambient light", v -> showAmbientPopup());
             } else {
                 // 0.9.6: caselle nell'ordine fisico dei sedili (sinistro, volante, destro). Con la guida a destra il guidatore
                 // è sul sedile destro: cambiano le etichette, non i comandi (ogni casella comanda il sedile che ha davanti).
@@ -4469,6 +4604,9 @@ public final class HomeView extends LinearLayout {
                     case "auto": state = s.autoOn; break;
                     case "recirc": state = s.loopMode < 0 ? -1 : s.loopMode == 0 ? 1 : 0; break;
                     case "defrostF": state = s.defrostOn; break;
+                    case "defrostR": state = s.rearDefrostOn; break;
+                    case "blowerDir": state = s.blowerDir >= 0 ? 0 : -1; break;
+                    case "ambient": state = s.ambtOn; break;
                     case "lka": state = s.lka; break;
                     case "opd": state = s.opd; break;
                     case "acc": state = s.accTja < 0 ? -1 : s.accTja == 4 ? 0 : 1; break;
@@ -4492,6 +4630,8 @@ public final class HomeView extends LinearLayout {
                     ((TextView) tag[1]).setText(accName(s.accTja));
                 }
                 if (state >= 0 && id.equals("pedal")) stateText = pedalName(s.pedal);
+                if (id.equals("blowerDir")) stateText = blowerDirName(s.blowerDir);
+                if (id.equals("ambient")) stateText = s.ambtOn < 0 ? "—" : L.s(s.ambtOn == 1 ? R.string.tile_on_f : R.string.tile_off_f);
                 st.setText(stateText);
                 if (guida) {
                     // guida (LKA/OPD/ACC/pedale): grafica originale invariata, non è clima (punto 10 non la tocca)
@@ -4514,7 +4654,7 @@ public final class HomeView extends LinearLayout {
                     // Clima (ac/auto/recirc/sbrinamento) e Comfort (sedili/volante): colori ufficiali MG4 Clima 1.4.0.
                     // Clima = acceso (blu); Comfort = caldo (arancio) quando il riscaldamento è a un livello > 0.
                     // "caldo" (arancio): riscaldamenti e sbrinamento; "acceso" (blu): A/C, AUTO, ricircolo
-                    boolean heatTile = id.equals("seatL") || id.equals("seatR") || id.equals("wheel") || id.equals("defrostF");
+                    boolean heatTile = id.equals("seatL") || id.equals("seatR") || id.equals("wheel") || id.equals("defrostF") || id.equals("defrostR");
                     int cs = state < 0 ? 3 : !on ? 0 : heatTile ? 2 : 1;
                     int fg = climaFg(cs);
                     v.setAlpha(1f);

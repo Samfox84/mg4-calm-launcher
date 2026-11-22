@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Icone delle manovre del navigatore (grazie a sommistica) e navigatore in finestra nel pannello mappe (sperimentale)</string>
     <string name="news_v105_4" formatted="false">Impostazioni: la pagina resta al suo posto anche dopo una pausa · il pacchetto dell\'animazione si aggiorna da solo</string>
     <string name="news_v104_6" formatted="false">Impostazioni: cambiando un\'opzione la pagina resta dov\'era · App: pressione lunga su un\'app installata da te per disinstallarla</string>
+    <string name="section_drive" formatted="false">GUIDA</string>
+    <string name="section_nav" formatted="false">NAVIGAZIONE</string>
+    <string name="section_media" formatted="false">MEDIA E TELEFONO</string>
+    <string name="section_system" formatted="false">SISTEMA E STRUMENTI</string>
+    <string name="app_engmode" formatted="false">Tecnica</string>
 </resources>

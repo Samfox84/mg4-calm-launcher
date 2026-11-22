@@ -71,12 +71,22 @@ public final class VehicleClient {
     private static final int AC_SET_DRV_SEAT_HEAT = 33, AC_SET_PSG_SEAT_HEAT = 37, AC_SET_WHEEL_HEAT = 52;
     private static final int AC_GET_DRV_SEAT_HEAT = 77, AC_GET_PSG_SEAT_HEAT = 79, AC_GET_WHEEL_HEAT = 94;
     private static final int AC_OPEN_FRONT_DEFROST = 48, AC_CLOSE_FRONT_DEFROST = 49, AC_GET_FRONT_DEFROST = 92;
+    // 1.0.5: sbrinamento lunotto + direzione del flusso d'aria (codici dallo stub IAirConditionService del firmware)
+    private static final int AC_OPEN_REAR_DEFROST = 50, AC_CLOSE_REAR_DEFROST = 51, AC_GET_REAR_DEFROST = 93;
+    private static final int AC_SET_BLOWER_DIR = 14, AC_GET_BLOWER_DIR = 58;
     // ricircolo, come l'app Clima originale: 0 = ricircolo interno, 1 = aria esterna, 2 = automatico, -1 = non supportato
     private static final int AC_LOOP_PRESS = 9, AC_LOOP_INNER = 10, AC_LOOP_OUTSIDE = 11, AC_GET_LOOP = 56;
 
     // fendinebbia, come la barra di stato originale (SystemUI): set(1) = premuto, get 1 = acceso
     private static final String SET = "com.saicmotor.sdk.vehiclesettings.IVehicleSettingService";
     private static final int SET_GET_REAR_FOG = 178, SET_SET_REAR_FOG = 179, SET_GET_FRONT_FOG = 187, SET_SET_FRONT_FOG = 188;
+    // 1.0.5: luci ambiente (codici dallo stub IVehicleSettingService del firmware)
+    private static final int SET_GET_AMBT_GLB = 55, SET_SET_AMBT_GLB = 56;       // accensione globale (1 acceso, 2/0 spento)
+    private static final int SET_GET_AMBT_COLOR = 61, SET_SET_AMBT_COLOR = 62;   // colore (indice della tavolozza)
+    private static final int SET_GET_AMBT_BRIGHT = 63, SET_SET_AMBT_BRIGHT = 64; // luminosità (livello)
+    private static final int SET_GET_AMBT_BREATH = 65, SET_SET_AMBT_BREATH = 66; // effetto respiro (1 acceso)
+    private static final int SET_GET_AMBT_WLCM = 67, SET_SET_AMBT_WLCM = 68;     // luce di benvenuto (1 accesa)
+    private static final int SET_GET_AMBT_AVAIL = 150;                            // disponibilità luci ambiente
     private static final String COND = "com.saicmotor.sdk.vehiclesettings.IVehicleConditionService";
     private static final int COND_FRONT_FOG_CONFIG = 45;   // 0 = fendinebbia anteriori presenti
     private static final int COND_BMS_AVAILABLE = 56;      // 1 = batteria (BMS) pronta a ricevere comandi
@@ -162,6 +172,11 @@ public final class VehicleClient {
         public int opdInhibit;            // motivo del blocco OPD (1 in carica, 2 sistema, 3 condizioni), 0 nessuno
         public int fanLevel = -1;         // 0 spenta, 1..max, 15 auto
         public int fanMin = 1, fanMax = 11;
+        // ---- 1.0.5: luci ambiente, dettaglio ricarica, sbrinamento lunotto, direzione aria ----
+        public int ambtAvail = -1, ambtOn = -1, ambtColor = -1, ambtBright = -1, ambtBreath = -1, ambtWlcm = -1;
+        public float chargeAmps = Float.NaN, chargeVolts = Float.NaN;
+        public int rearDefrostOn = -1;    // 1 acceso, 0 spento, -1 non disponibile
+        public int blowerDir = -1;        // modo direzione aria (valore grezzo dell'auto)
         public float outsideTemp = -10000f;   // °C
         // ---- 1.0.2 ----
         /** Fonte della temperatura interna ("" = nessuna valida: si mostra "--"). */
@@ -190,6 +205,7 @@ public final class VehicleClient {
     private Listener listener;
     private volatile State last = new State();
     private volatile int pendingTemp = -1, pendingFan = -1;
+    private int ambtAvail = -1;   // 1.0.5: disponibilità luci ambiente, letta una volta sola
     private volatile int heldTemp = -1, heldFan = -1;
     private volatile long tempHoldUntil, fanHoldUntil;
     private int fanMin = 1, fanMax = 11;
@@ -294,6 +310,8 @@ public final class VehicleClient {
                     s.dischargeStatus = Rpc.callInt(c, CHG, CHG_DISCHARGE_STATUS);
                     float amps = Rpc.callFloat(c, CHG, CHG_CURRENT);
                     float volts = Rpc.callFloat(c, CHG, CHG_BATTERY_VOLT);
+                    s.chargeAmps = amps;
+                    s.chargeVolts = volts;
                     s.chargeKw = Math.abs(amps * volts) / 1000f;
                     long now = android.os.SystemClock.uptimeMillis();
                     try {
@@ -357,6 +375,13 @@ public final class VehicleClient {
                         }
                         fanRangeRead = true;
                         Diag.put("clima.ventolaMinMax", mn + " / " + mx);
+                    }
+                    // 1.0.5: sbrinamento lunotto + direzione aria (difensivo: non deve rompere le altre letture)
+                    try {
+                        long nowAc = android.os.SystemClock.uptimeMillis();
+                        s.rearDefrostOn = held(AC_GET_REAR_DEFROST, Rpc.callInt(a, AC, AC_GET_REAR_DEFROST), nowAc);
+                        s.blowerDir = Rpc.callInt(a, AC, AC_GET_BLOWER_DIR);
+                    } catch (Exception ignored) {
                     }
                     long now = android.os.SystemClock.uptimeMillis();
                     int readTemp = Rpc.callInt(a, AC, AC_GET_DRV_TEMP);
@@ -454,6 +479,21 @@ public final class VehicleClient {
                     if (s.hasFrontFog) s.frontFog = held(SET_GET_FRONT_FOG, Rpc.callInt(st, SET, SET_GET_FRONT_FOG), now);
                     Diag.put("luci.fendinebbia ant/post", s.frontFog + " / " + s.rearFog);
                     readAssist(st, s, now);
+                    // 1.0.5: luci ambiente (difensivo)
+                    try {
+                        if (ambtAvail < 0) ambtAvail = Rpc.callInt(st, SET, SET_GET_AMBT_AVAIL);
+                        s.ambtAvail = ambtAvail;
+                        if (ambtAvail != 0) {
+                            s.ambtOn = held(SET_GET_AMBT_GLB, Rpc.callInt(st, SET, SET_GET_AMBT_GLB), now);
+                            s.ambtColor = held(SET_GET_AMBT_COLOR, Rpc.callInt(st, SET, SET_GET_AMBT_COLOR), now);
+                            s.ambtBright = held(SET_GET_AMBT_BRIGHT, Rpc.callInt(st, SET, SET_GET_AMBT_BRIGHT), now);
+                            s.ambtBreath = held(SET_GET_AMBT_BREATH, Rpc.callInt(st, SET, SET_GET_AMBT_BREATH), now);
+                            s.ambtWlcm = held(SET_GET_AMBT_WLCM, Rpc.callInt(st, SET, SET_GET_AMBT_WLCM), now);
+                            Diag.putQuiet("luci.ambiente", "on " + s.ambtOn + " · colore " + s.ambtColor
+                                    + " · lum " + s.ambtBright + " · respiro " + s.ambtBreath + " · benvenuto " + s.ambtWlcm);
+                        }
+                    } catch (Exception ignored) {
+                    }
                 }
             } catch (Exception e) {
                 Diag.error("luci", e.toString());
@@ -1196,6 +1236,82 @@ public final class VehicleClient {
                 if (a != null) Rpc.call(a, AC, on ? AC_CLOSE_FRONT_DEFROST : AC_OPEN_FRONT_DEFROST, Rpc.NONE);
             } catch (Exception e) {
                 Diag.error("clima.sbrinamento", e.toString());
+            }
+            poll();
+        });
+    }
+
+    /** 1.0.5: sbrinamento lunotto acceso ↔ spento (come il davanti). */
+    public void toggleRearDefrost() {
+        if (bg == null) return;
+        boolean on = last.rearDefrostOn == 1;
+        hold(AC_GET_REAR_DEFROST, on ? 0 : 1);
+        bg.post(() -> {
+            try {
+                IBinder a = sub("aircondition");
+                if (a != null) Rpc.call(a, AC, on ? AC_CLOSE_REAR_DEFROST : AC_OPEN_REAR_DEFROST, Rpc.NONE);
+            } catch (Exception e) {
+                Diag.error("clima.sbrinamentoLunotto", e.toString());
+            }
+            poll();
+        });
+    }
+
+    /** 1.0.5: direzione del flusso d'aria (ciclo dei modi dell'auto). */
+    public void setBlowerDir(int mode) {
+        acWrite(AC_SET_BLOWER_DIR, mode, "clima.direzioneAria → " + mode);
+    }
+
+    private void acWrite(int code, int value, String what) {
+        if (bg == null) return;
+        bg.post(() -> {
+            try {
+                IBinder a = sub("aircondition");
+                if (a != null) Rpc.call(a, AC, code, p -> p.writeInt(value));
+                Diag.put("comando.ultimo", what + (a == null ? " · servizio assente" : " · inviato"));
+            } catch (Exception e) {
+                Diag.error(what, e.toString());
+            }
+            poll();
+        });
+    }
+
+    // ---- 1.0.5: luci ambiente ----------------------------------------------------------------
+
+    public void setAmbientOn(boolean on) {
+        hold(SET_GET_AMBT_GLB, on ? 1 : 2);
+        settingWrite(SET_SET_AMBT_GLB, on ? 1 : 2, "ambiente.accensione");
+    }
+
+    public void setAmbientColor(int index) {
+        hold(SET_GET_AMBT_COLOR, index);
+        settingWrite(SET_SET_AMBT_COLOR, index, "ambiente.colore → " + index);
+    }
+
+    public void setAmbientBrightness(int level) {
+        hold(SET_GET_AMBT_BRIGHT, level);
+        settingWrite(SET_SET_AMBT_BRIGHT, level, "ambiente.luminosità → " + level);
+    }
+
+    public void setAmbientBreathing(boolean on) {
+        hold(SET_GET_AMBT_BREATH, on ? 1 : 0);
+        settingWrite(SET_SET_AMBT_BREATH, on ? 1 : 0, "ambiente.respiro");
+    }
+
+    public void setAmbientWelcome(boolean on) {
+        hold(SET_GET_AMBT_WLCM, on ? 1 : 0);
+        settingWrite(SET_SET_AMBT_WLCM, on ? 1 : 0, "ambiente.benvenuto");
+    }
+
+    private void settingWrite(int code, int value, String what) {
+        if (bg == null) return;
+        bg.post(() -> {
+            try {
+                IBinder st = sub("vehiclesetting");
+                if (st != null) Rpc.call(st, SET, code, p -> p.writeInt(value));
+                Diag.put("comando.ultimo", what + (st == null ? " · servizio assente" : " · inviato"));
+            } catch (Exception e) {
+                Diag.error(what, e.toString());
             }
             poll();
         });

@@ -587,7 +587,14 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Reclaim screen from DiPlay at startup",
                 "If DiPlay grabs the screen in the first 30 seconds after the car starts, the launcher presses Home and comes back. Only affects DiPlay – never the reverse camera. If you open DiPlay yourself, it's left alone.",
                 toggle(c, prefs.reclaimScreen(), on -> prefs.setReclaimScreen(on)), false));
+        card.addView(row(c, "Stop the HVAC pop-up",
+                "The car throws its own climate window on top whenever you turn the AC or heating on from off. On by default: the launcher auto-dismisses it so it never interrupts CarPlay, maps or music. A panel you open yourself is left alone.",
+                toggle(c, prefs.hvacPopupSuppress(), on -> prefs.setHvacPopupSuppress(on)), false));
+        card.addView(row(c, "Joystick controls media",
+                "Make the steering-wheel joystick skip and play/pause whatever's actually playing - CarPlay, DiPlay or your own library - not just the car's USB/Bluetooth. Left/right = previous/next; long-press the joystick = play/pause. The car's own sources are left to the system so nothing double-skips. (The joystick must be in its media mode.)",
+                toggle(c, prefs.joystickMedia(), on -> prefs.setJoystickMedia(on)), false));
         buildClusterLook(c, card);
+        buildComfortControls(c, card);
         // DiPlay si scarica/aggiorna dal riquadro "DiPlay" in fondo al menu, uguale al launcher.
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
@@ -1582,6 +1589,23 @@ public final class SettingsView extends FrameLayout {
     }
 
     /** Controlli del look del cruscotto DiPlay: colore tenuto, luminosità, preset, applica (riavvia DiPlay). */
+    /** 1.0.5: interruttore ADB. Luci ambiente, extra clima e dettaglio ricarica sono promossi sulla home. */
+    private void buildComfortControls(Context c, LinearLayout card) {
+        card.addView(row(c, "ADB (USB debugging)",
+                "Turns on Android USB debugging straight from here - the master switch for sideloading and tweaks. You still need a cable to a laptop to use it.",
+                toggle(c, com.mg4.launcher.svc.AdbToggle.enabled(c), on -> {
+                    if (!com.mg4.launcher.svc.AdbToggle.set(c, on)) {
+                        android.widget.Toast.makeText(c, "Couldn't change ADB on this firmware", android.widget.Toast.LENGTH_LONG).show();
+                    }
+                }), false));
+        // 1.0.5: dashcam incidenti, solo se l'app 360 è installata
+        if (com.mg4.launcher.svc.DashcamClient.camInstalled(c)) {
+            card.addView(row(c, "Auto-upload dashcam on crash",
+                    "When the car's forward-collision warning fires, automatically save a dashcam event (the 360 app does the pre/post buffer) and upload the clips to your private GitHub, same as the logs. Needs the dashcam USB present - does nothing without it. The 'Send clip' button by the 360 button uploads on demand either way.",
+                    toggle(c, prefs.dashcamAutoUpload(), on -> prefs.setDashcamAutoUpload(on)), false));
+        }
+    }
+
     private void buildClusterLook(Context c, LinearLayout card) {
         final android.widget.SeekBar colour = new android.widget.SeekBar(c);
         colour.setMax(100); colour.setProgress(prefs.clusterColour());

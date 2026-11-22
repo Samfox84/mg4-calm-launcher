@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.82",
-  "apk": "releases/MG4Launcher-1.0.5-calm.82.apk",
-  "size": 8864453,
-  "notes": "Nine cluster presets with map thumbnails, plus the sliders/Apply and experimental full-screen map background."
+  "version": "1.0.5-calm.92",
+  "apk": "releases/MG4Launcher-1.0.5-calm.92.apk",
+  "size": 8876741,
+  "notes": "Grouped app screen, joystick media control, stop the HVAC pop-up, ambient lighting + climate extras, better full-screen map, tidier charging menu, and dashcam incident upload."
 }

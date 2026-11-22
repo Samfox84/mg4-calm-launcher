@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Manöver-Symbole des Navis (danke an sommistica) und Navi im Fenster im Kartenbereich (experimentell)</string>
     <string name="news_v105_4" formatted="false">Einstellungen: die Seite bleibt auch nach einer Pause an ihrem Platz · das Animationspaket aktualisiert sich selbst</string>
     <string name="news_v104_6" formatted="false">Einstellungen: beim Ändern einer Option bleibt die Seite, wo sie war · Apps: eine selbst installierte App lange drücken, um sie zu deinstallieren</string>
+    <string name="section_drive" formatted="false">FAHREN</string>
+    <string name="section_nav" formatted="false">NAVIGATION</string>
+    <string name="section_media" formatted="false">MEDIEN &amp; TELEFON</string>
+    <string name="section_system" formatted="false">SYSTEM &amp; TOOLS</string>
+    <string name="app_engmode" formatted="false">Entwickler</string>
 </resources>

@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Navigasyon manevra simgeleri (sommistica\'ya teşekkürler) ve harita panelinde pencerede navigasyon (deneysel)</string>
     <string name="news_v105_4" formatted="false">Ayarlar: sayfa bir aradan sonra bile yerinde kalır · animasyon paketi kendiliğinden güncellenir</string>
     <string name="news_v104_6" formatted="false">Ayarlar: bir seçeneği değiştirince sayfa olduğu yerde kalır · Uygulamalar: yüklediğiniz bir uygulamayı kaldırmak için uzun basın</string>
+    <string name="section_drive" formatted="false">SÜRÜŞ</string>
+    <string name="section_nav" formatted="false">NAVİGASYON</string>
+    <string name="section_media" formatted="false">MEDYA VE TELEFON</string>
+    <string name="section_system" formatted="false">SİSTEM VE ARAÇLAR</string>
+    <string name="app_engmode" formatted="false">Mühendislik</string>
 </resources>

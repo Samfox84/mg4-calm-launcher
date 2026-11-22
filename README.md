@@ -310,6 +310,16 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.92
+- **Schermata App riordinata**: le app dell'auto sono raggruppate (Guida, Navigazione, Media e telefono, Sistema), con riquadri più grandi (6 per riga invece di 9) e un riquadro **Engineering** che apre la modalità tecnica (PIN 123456).
+- **Il joystick al volante controlla i media**: avanti/indietro saltano traccia e una pressione lunga fa play/pausa su CarPlay, DiPlay o la tua libreria — non solo su USB/Bluetooth.
+- **Stop al pop-up del clima**: quando accendi A/C o riscaldamento da spento, il launcher chiude da solo la finestra clima dell'auto, così non copre più CarPlay, mappa o musica. Interruttore nelle Impostazioni.
+- **Luci ambiente ed extra clima**: nel pop-up del clima trovi accensione/colore/luminosità/respiro/benvenuto delle luci ambiente, lo sbrinamento lunotto e la direzione dell'aria. Nella riga della ricarica compaiono anche ampere e volt.
+- **Interruttore ADB**: in Impostazioni, accende il debug USB direttamente dal launcher.
+- **Mappa a schermo intero migliorata**: riquadro media trasparente e allineato a destra, con un gradiente sulla mappa per la leggibilità; la copertina ora appare anche nel riquadro "in riproduzione".
+- **Menu ricarica in ordine**: ora è un elenco verticale pulito come gli altri menu.
+- **Dashcam incidenti (app 360)**: pulsante "Invia clip" accanto al 360 e invio automatico quando scatta l'allarme di collisione — salva un evento nell'app 360 e carica le clip nel repository privato, come i log. Non fa nulla se la chiavetta dashcam non c'è.
+
 #### 1.0.5-calm.82
 - **Più preset cruscotto, con anteprime**: nove preset (Grigio pieno, Grigio morbido, Grigio scuro, Percorso leggero/evidenziato/forte, Morbido, Notte, Molto scuro) mostrati come griglia con una miniatura della tua mappa per ciascuno.
 
@@ -1278,6 +1288,16 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.92
+- **Reorganised app screen**: car apps are grouped (Driving, Navigation, Media & phone, System) with bigger tiles (6 across instead of 9) and an **Engineering** tile that opens engineering mode (PIN 123456).
+- **Joystick controls media**: left/right skip tracks and a long-press plays/pauses CarPlay, DiPlay or your own library — not just USB/Bluetooth.
+- **Stop the HVAC pop-up**: when you turn A/C or heating on from off, the launcher auto-dismisses the car's climate window so it no longer covers CarPlay, maps or music. Toggle in Settings.
+- **Ambient lighting & climate extras**: the climate pop-up now has ambient light on/colour/brightness/breathing/welcome, rear defroster and air direction. The charge line also shows amps and volts.
+- **ADB toggle**: Settings can turn on USB debugging straight from the launcher.
+- **Better full-screen map**: the media box is transparent and right-aligned, with a gradient over the map for readability; album art now also shows on the now-playing box.
+- **Tidier charging menu**: now a clean vertical list like the other menus.
+- **Dashcam incident upload (360 app)**: a "Send clip" button by the 360 button, plus automatic upload when the collision warning fires — it saves an event in the 360 app and uploads the clips to your private repo, like the logs. Does nothing if the dashcam USB isn't present.
 
 #### 1.0.5-calm.82
 - **More cluster presets, with previews**: nine presets (Full grey, Grey soft, Grey dark, Route subtle/hi-lite/bold, Soft calm, Night, Very dark) shown as a grid, each with a thumbnail preview made from your own map.

@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Iconos de maniobras del navegador (gracias a sommistica) y navegador en ventana en el panel de mapas (experimental)</string>
     <string name="news_v105_4" formatted="false">Ajustes: la página se queda en su sitio incluso tras una pausa · el paquete de la animación se actualiza solo</string>
     <string name="news_v104_6" formatted="false">Ajustes: al cambiar una opción la página se queda donde estaba · Apps: mantén pulsada una app que instalaste para desinstalarla</string>
+    <string name="section_drive" formatted="false">CONDUCCIÓN</string>
+    <string name="section_nav" formatted="false">NAVEGACIÓN</string>
+    <string name="section_media" formatted="false">MULTIMEDIA Y TELÉFONO</string>
+    <string name="section_system" formatted="false">SISTEMA Y HERRAMIENTAS</string>
+    <string name="app_engmode" formatted="false">Ingeniería</string>
 </resources>

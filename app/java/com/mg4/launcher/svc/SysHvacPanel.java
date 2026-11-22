@@ -36,8 +36,18 @@ public final class SysHvacPanel {
     private static boolean binding;
     private static String lastApp = "";
     private static long lastClose;
+    private static long userOpened;   // quando l'utente ha aperto il pannello a mano: finestra di grazia
 
     private SysHvacPanel() {}
+
+    /** Soppressione attiva: il pop-up "hvac page" si chiude sopra qualunque app, non solo MG4 Clima/launcher. */
+    private static boolean suppressEnabled(Context c) {
+        try {
+            return c.getSharedPreferences("mg4launcher", Context.MODE_PRIVATE).getBoolean("hvacPopupSuppress", true);
+        } catch (Throwable e) {
+            return true;
+        }
+    }
 
     /** Solo i firmware con il pannello clima nel SystemUI. */
     public static boolean supported(Context c) {
@@ -85,6 +95,7 @@ public final class SysHvacPanel {
      * sistema. True se il comando è partito; se il servizio non è ancora collegato lo collega e riprova una volta.
      */
     public static boolean open(Context c) {
+        userOpened = SystemClock.elapsedRealtime();   // apertura deliberata: non auto-chiudere per qualche secondo
         IBinder b = page;
         if (b == null) {
             bind(c);
@@ -151,7 +162,13 @@ public final class SysHvacPanel {
                 && !(e.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && pkg != null && SYSUI.contentEquals(pkg))) {
             return;
         }
-        if (!CLIMA_PKG.equals(lastApp) && !s.getPackageName().equals(lastApp)) return;   // chiudi sopra MG4 Clima o il Calm Launcher stesso
+        // Soppressione ON (predefinito): chiudi il pop-up sopra qualunque app, tranne nei primi 8s dopo un'apertura deliberata.
+        // Soppressione OFF: comportamento storico, solo sopra MG4 Clima o il Calm Launcher.
+        if (suppressEnabled(s)) {
+            if (SystemClock.elapsedRealtime() - userOpened < 8000) return;
+        } else if (!CLIMA_PKG.equals(lastApp) && !s.getPackageName().equals(lastApp)) {
+            return;
+        }
         boolean shown = false;
         try {
             List<AccessibilityWindowInfo> ws = s.getWindows();

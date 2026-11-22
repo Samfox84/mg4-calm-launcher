@@ -24,7 +24,11 @@ import java.util.Set;
 
 /** Griglia di tutte le app: sezione "Auto" (icone disegnate) e "Installate da te" (icone ridisegnate in automatico). */
 public final class AppsView extends LinearLayout {
-    private static final int COLUMNS = 9;
+    private static final int COLUMNS = 6;
+
+    /** Gruppi della sezione Auto, nell'ordine di visualizzazione: chiave categoria + titolo tradotto. */
+    private static final String[] CAT_KEYS = {"drive", "nav", "media", "system"};
+    private static final int[] CAT_TITLES = {R.string.section_drive, R.string.section_nav, R.string.section_media, R.string.section_system};
 
     public interface Host {
         void closeApps();
@@ -113,17 +117,42 @@ public final class AppsView extends LinearLayout {
         for (AppCatalog.App a : catalog.carApps(host.navPackageHint())) {
             if (editing || !hidden.contains(key(a))) car.add(a);
         }
-        if (!car.isEmpty()) {
-            content.addView(section(c, L.s(R.string.section_car), note));
-            addGrid(c, car, hidden);
+        // Auto raggruppata per categoria (Guida, Navigazione, Media, Sistema). Ogni gruppo ha la sua intestazione.
+        boolean firstGroup = true;
+        for (int g = 0; g < CAT_KEYS.length; g++) {
+            List<AppCatalog.App> group = new ArrayList<>();
+            for (AppCatalog.App a : car) {
+                if (CAT_KEYS[g].equals(a.category)) group.add(a);
+            }
+            if (group.isEmpty()) continue;
+            content.addView(section(c, L.s(CAT_TITLES[g]), note),
+                    Ui.margins(new LayoutParams(-1, -2), firstGroup ? 0 : dp(14), 0, 0, 0));
+            addGrid(c, group, hidden);
+            firstGroup = false;
+        }
+        // app dell'auto senza categoria nota (firmware diversi): finiscono in un gruppo "Auto" di scorta
+        List<AppCatalog.App> other = new ArrayList<>();
+        for (AppCatalog.App a : car) {
+            if (a.category == null || !isKnownCat(a.category)) other.add(a);
+        }
+        if (!other.isEmpty()) {
+            content.addView(section(c, L.s(R.string.section_car), note),
+                    Ui.margins(new LayoutParams(-1, -2), firstGroup ? 0 : dp(14), 0, 0, 0));
+            addGrid(c, other, hidden);
+            firstGroup = false;
         }
         List<AppCatalog.App> all = catalog.userApps();
         List<AppCatalog.App> mine = new ArrayList<>();
         for (AppCatalog.App a : all) {
             if (editing || !hidden.contains(key(a))) mine.add(a);
         }
-        content.addView(section(c, L.s(R.string.section_mine), note), Ui.margins(new LayoutParams(-1, -2), car.isEmpty() ? 0 : dp(10), 0, 0, 0));
+        content.addView(section(c, L.s(R.string.section_mine), note), Ui.margins(new LayoutParams(-1, -2), firstGroup ? 0 : dp(14), 0, 0, 0));
         if (!mine.isEmpty()) addGrid(c, mine, hidden);
+    }
+
+    private static boolean isKnownCat(String cat) {
+        for (String k : CAT_KEYS) if (k.equals(cat)) return true;
+        return false;
     }
 
     private View section(Context c, String title, String note) {

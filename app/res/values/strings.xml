@@ -551,4 +551,9 @@
     <string name="news_v105_3" formatted="false">Navigator manoeuvre icons (thanks to sommistica) and navigator in a window inside the map panel (experimental)</string>
     <string name="news_v105_4" formatted="false">Settings: the page stays in place even after a pause · the animation pack updates by itself</string>
     <string name="news_v104_6" formatted="false">Settings: changing an option keeps the page where it was · Apps: long-press an app you installed to uninstall it</string>
+    <string name="section_drive" formatted="false">DRIVING</string>
+    <string name="section_nav" formatted="false">NAVIGATION</string>
+    <string name="section_media" formatted="false">MEDIA &amp; PHONE</string>
+    <string name="section_system" formatted="false">SYSTEM &amp; TOOLS</string>
+    <string name="app_engmode" formatted="false">Engineering</string>
 </resources>
