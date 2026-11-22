@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.98
+- **Mappa a sfondo fissa (come lo sfondo di un telefono)**: con la mappa a sfondo, la mappa non si muove più quando si scorre tra le pagine - resta ferma dietro, e le pagine scorrono sopra.
+- **Nuova pagina "solo mappa"** tutta a sinistra della Home: solo la mappa, niente sopra. Il launcher parte sempre sulla Home come prima; a destra ci sono le App, a sinistra la mappa pulita.
+- Vale solo con la mappa a sfondo attiva; la modalità normale è invariata.
+
 #### 1.0.5-calm.97
 - **Animazioni morbide e calme** in tutto il launcher: i pannelli entrano in dissolvenza, la copertina sfuma al cambio brano, le finestre compaiono dolcemente e i pulsanti danno un piccolo rimbalzo al tocco.
 - **Nuova impostazione "Smooth animations"** (accesa di default): spegne tutte le animazioni all'istante, per schermate immediate e senza movimento (riduci movimento).
@@ -1313,6 +1318,11 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.98
+- **Fixed map backdrop (like a phone wallpaper)**: in full-screen map mode the map no longer moves when you swipe between pages - it stays put behind, and the pages slide over it.
+- **New "clean map" page** to the left of Home: just the map, nothing on top. The launcher still starts on Home; Apps are to the right, the clean map to the left.
+- Applies only when map background is on; normal mode is unchanged.
 
 #### 1.0.5-calm.97
 - **Soft, calm animations** across the launcher: panels fade in, album art fades on track change, pop-ups ease in, and buttons give a gentle tap response.

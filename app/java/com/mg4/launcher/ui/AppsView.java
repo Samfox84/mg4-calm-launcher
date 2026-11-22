@@ -65,7 +65,10 @@ public final class AppsView extends LinearLayout {
         this.prefs = prefs;
         this.k = prefs.appsScaleFactor();
         setOrientation(VERTICAL);
-        setBackgroundColor(t.bg);
+        // 1.0.5: con mappa a sfondo, la pagina App è trasparente così la mappa fissa della root resta visibile dietro
+        // (e durante lo swipe non si muove). L'elenco app sta su un velo scuro traslucido, per restare leggibile.
+        boolean bgMap = prefs.mapBackground() && prefs.liveMap();
+        setBackgroundColor(bgMap ? 0x00000000 : t.bg);
         int pad = dp(20);
         setPadding(pad, pad, pad, pad);
 
@@ -103,7 +106,7 @@ public final class AppsView extends LinearLayout {
         addView(head);
 
         ScrollView sv = new ScrollView(c);
-        sv.setBackground(Ui.round(t.panel, dp(24)));
+        sv.setBackground(Ui.round(bgMap ? 0xCC121216 : t.panel, dp(24)));
         sv.setClipToOutline(true);
         sv.setVerticalScrollBarEnabled(false);
         content = Ui.column(c);

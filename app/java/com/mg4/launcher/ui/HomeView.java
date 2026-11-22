@@ -290,22 +290,11 @@ public final class HomeView extends LinearLayout {
         bgMap = prefs.mapBackground() && prefs.liveMap();
         android.view.ViewGroup dest = this;
         if (bgMap) {
-            setPadding(0, 0, 0, 0);
-            FrameLayout stack = new FrameLayout(c);
-            boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
-            stack.addView(new LiveMap(c, mapNight), new FrameLayout.LayoutParams(-1, -1));
-            // 1.0.5: gradiente sulla mappa a sfondo, come il velo del pannello: scuro ai bordi (riquadro auto a
-            // sinistra, media a destra), più chiaro al centro, così si legge il testo ma si vede il centro della mappa.
-            View mapScrim = new View(c);
-            mapScrim.setBackground(new android.graphics.drawable.GradientDrawable(
-                    android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-                    new int[]{0xD9000000, 0x40000000, 0x14000000, 0x40000000, 0xE6000000}));
-            stack.addView(mapScrim, new FrameLayout.LayoutParams(-1, -1));
-            LinearLayout content = Ui.column(c);
-            content.setPadding(pad, pad, pad, pad);
-            stack.addView(content, new FrameLayout.LayoutParams(-1, -1));
-            addView(stack, Ui.lpWeight(LayoutParams.MATCH_PARENT, 0, 1f));
-            dest = content;
+            // 1.0.5: la mappa (e il velo) sono lo sfondo FISSO della root, dietro tutte le pagine. Qui la Home è solo
+            // contenuto trasparente che scorre sopra: niente mappa propria, così lo sfondo non si muove allo swipe.
+            setBackgroundColor(0x00000000);
+            setPadding(pad, pad, pad, pad);
+            dest = this;
         }
 
         LinearLayout top = Ui.row(c);

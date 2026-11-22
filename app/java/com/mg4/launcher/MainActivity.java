@@ -52,6 +52,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     private FrameLayout root;
     private Theme theme;
     private HomeView home;
+    private int homeIndex = 0;   // 1.0.5: indice pagina Home (1 con mappa a sfondo, per la pagina "solo mappa" a sinistra)
+    private int appsIndex = 1;   // 1.0.5: indice pagina App
     private AppsView apps;
     private Pager pager;
     private com.mg4.launcher.svc.ConnClient conn;
@@ -687,7 +689,11 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         root.removeAllViews();
         root.removeCallbacks(hidePopup);
         updPopup = null;
-        int keepPage = pager != null ? pager.page() : 0;
+        // 1.0.5: con mappa a sfondo c'è una pagina "solo mappa" tutta a sinistra, quindi la Home è all'indice 1.
+        boolean bg = prefs.mapBackground() && prefs.liveMap();
+        homeIndex = bg ? 1 : 0;
+        appsIndex = bg ? 2 : 1;
+        int keepPage = pager != null ? pager.page() : homeIndex;
         pager = new Pager(this);
         home = new HomeView(this, theme, prefs, this, vehicle, media, nav);
         // Autotest passivo: dopo il layout, il launcher scrive nel log se l'animazione è pronta e da che lato
@@ -695,14 +701,27 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         final HomeView homeForTest = home;
         if (root != null) root.postDelayed(() -> { if (home == homeForTest) homeForTest.selfTest(); }, 6000);
         apps = new AppsView(this, theme, catalog, prefs, this);
+        // 1.0.5: mappa a sfondo = sfondo FISSO dietro tutte le pagine (come lo sfondo di un telefono): non scorre.
+        // La mappa e il velo vivono nella root, dietro il Pager; le pagine sono trasparenti e scorrono sopra.
+        if (bg) {
+            boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(this).isDay();
+            root.addView(new com.mg4.launcher.ui.LiveMap(this, mapNight), new FrameLayout.LayoutParams(-1, -1));
+            android.view.View scrim = new android.view.View(this);
+            scrim.setBackground(new android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+                    new int[]{0xD9000000, 0x40000000, 0x14000000, 0x40000000, 0xE6000000}));
+            root.addView(scrim, new FrameLayout.LayoutParams(-1, -1));
+            // pagina "solo mappa" tutta a sinistra: trasparente, lascia vedere la mappa fissa sotto, nient'altro
+            pager.addView(new android.view.View(this));
+        }
         pager.addView(home);
         pager.addView(apps);
         pager.setListener(p -> {
-            if (p == 1) apps.reload();
+            if (p == appsIndex) apps.reload();
         });
         root.addView(pager, new FrameLayout.LayoutParams(-1, -1));
         settings = null;
-        pager.show(keepPage, false);
+        pager.show(Math.min(keepPage, pager.getChildCount() - 1), false);
         home.onVehicle(vehicle.last());
         home.onConn(conn.last());
         home.onMedia(media.last());
@@ -795,7 +814,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     public void onBackPressed() {
         if (wrongFirmware) return;
         if (settings != null) closeSettings();
-        else if (pager != null && pager.page() != 0) closeApps();
+        else if (pager != null && pager.page() != homeIndex) closeApps();
         // altrimenti il launcher resta dov'è
     }
 
@@ -862,7 +881,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
 
     @Override
     public void openApps() {
-        if (pager != null) pager.show(1, true);
+        if (pager != null) pager.show(appsIndex, true);
     }
 
     @Override
@@ -1021,7 +1040,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
 
     @Override
     public void closeApps() {
-        if (pager != null) pager.show(0, true);
+        if (pager != null) pager.show(homeIndex, true);
     }
 
     @Override

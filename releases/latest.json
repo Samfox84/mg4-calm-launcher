@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.97",
-  "apk": "releases/MG4Launcher-1.0.5-calm.97.apk",
+  "version": "1.0.5-calm.98",
+  "apk": "releases/MG4Launcher-1.0.5-calm.98.apk",
   "size": 9074378,
-  "notes": "Soft calm animations across the launcher - panel switches fade, album art fades on track change, pop-ups ease in, and buttons give a gentle tap response. New 'Smooth animations' setting (on by default) turns them all off instantly for motion-free screens."
+  "notes": "Full-screen map mode: the map is now a fixed backdrop (like a phone wallpaper) that stays put while pages slide over it, with a new 'clean map' page to the left of Home and nothing on top. Launches on Home as before. Normal mode unchanged."
 }
