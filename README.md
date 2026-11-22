@@ -310,6 +310,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.99
+- **Orologio sulla pagina "solo mappa"**: con la mappa a sfondo, la pagina a sinistra mostra l'ora digitale a sinistra, a metà altezza.
+- **In radio spariscono i comandi play/pausa/avanti/indietro** al centro: in radio non servono, si vedono solo con le altre sorgenti.
+
+#### 1.0.5-calm.99
+- **Clock on the "clean map" page**: with map background on, the left page shows a digital clock on the left, midway down.
+- **Radio hides the central play/pause/skip buttons**: they do nothing for radio, so they now show only for other media sources.
+
 #### 1.0.5-calm.98
 - **Mappa a sfondo fissa (come lo sfondo di un telefono)**: con la mappa a sfondo, la mappa non si muove più quando si scorre tra le pagine - resta ferma dietro, e le pagine scorrono sopra.
 - **Nuova pagina "solo mappa"** tutta a sinistra della Home: solo la mappa, niente sopra. Il launcher parte sempre sulla Home come prima; a destra ci sono le App, a sinistra la mappa pulita.

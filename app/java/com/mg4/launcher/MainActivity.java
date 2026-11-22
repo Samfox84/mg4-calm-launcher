@@ -54,6 +54,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     private HomeView home;
     private int homeIndex = 0;   // 1.0.5: indice pagina Home (1 con mappa a sfondo, per la pagina "solo mappa" a sinistra)
     private int appsIndex = 1;   // 1.0.5: indice pagina App
+    private android.widget.TextView cleanClock, cleanDate;   // 1.0.5: orologio della pagina "solo mappa"
     private AppsView apps;
     private Pager pager;
     private com.mg4.launcher.svc.ConnClient conn;
@@ -711,8 +712,28 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
                     android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
                     new int[]{0xD9000000, 0x40000000, 0x14000000, 0x40000000, 0xE6000000}));
             root.addView(scrim, new FrameLayout.LayoutParams(-1, -1));
-            // pagina "solo mappa" tutta a sinistra: trasparente, lascia vedere la mappa fissa sotto, nient'altro
-            pager.addView(new android.view.View(this));
+            // pagina "solo mappa" tutta a sinistra: trasparente sulla mappa fissa, con un orologio digitale
+            // a sinistra, a metà altezza e leggermente rientrato (come lo sfondo di un telefono).
+            FrameLayout cleanPage = new FrameLayout(this);
+            LinearLayout clockCol = new LinearLayout(this);
+            clockCol.setOrientation(LinearLayout.VERTICAL);
+            cleanClock = new android.widget.TextView(this);
+            cleanClock.setTextColor(0xFFFFFFFF);
+            cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 76);
+            cleanClock.setTypeface(com.mg4.launcher.ui.Ui.LIGHT);
+            cleanDate = new android.widget.TextView(this);
+            cleanDate.setTextColor(0xCCFFFFFF);
+            cleanDate.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24);
+            cleanDate.setTypeface(com.mg4.launcher.ui.Ui.MEDIUM);
+            clockCol.addView(cleanClock);
+            clockCol.addView(cleanDate, com.mg4.launcher.ui.Ui.margins(
+                    new LinearLayout.LayoutParams(-2, -2), com.mg4.launcher.ui.Ui.dp(this, 4), 0, 0, 0));
+            FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-2, -2,
+                    android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+            clp.leftMargin = com.mg4.launcher.ui.Ui.dp(this, 72);
+            cleanPage.addView(clockCol, clp);
+            pager.addView(cleanPage);
+            updateCleanClock();
         }
         pager.addView(home);
         pager.addView(apps);
@@ -842,9 +863,19 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         @Override
         public void onReceive(Context c, Intent i) {
             if (home != null) home.updateClock();
+            updateCleanClock();
             logoPacksTick();
         }
     };
+
+    // 1.0.5: orologio digitale della pagina "solo mappa" (mappa a sfondo). Stesso formato ora della Home.
+    private void updateCleanClock() {
+        if (cleanClock == null) return;
+        java.util.Date now = new java.util.Date();
+        boolean h24 = android.text.format.DateFormat.is24HourFormat(this);
+        cleanClock.setText(new java.text.SimpleDateFormat(h24 ? "HH:mm" : "h:mm", L.locale()).format(now));
+        if (cleanDate != null) cleanDate.setText(new java.text.SimpleDateFormat("EEE d MMM", L.locale()).format(now));
+    }
 
     // ---- pacchetti loghi radio: download quando arriva la rete, zip su chiavetta da installare ----------
 

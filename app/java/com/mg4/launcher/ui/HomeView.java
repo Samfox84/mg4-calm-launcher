@@ -139,6 +139,7 @@ public final class HomeView extends LinearLayout {
     private LinearLayout mediaBody;
     private FrameLayout mediaArt;        // 1.0.5: riquadro copertina, per la dissolvenza al cambio brano
     private String lastNpKey = "";       // 1.0.5: chiave del brano mostrato, per animare solo quando cambia
+    private LinearLayout mediaCtr;       // 1.0.5: comandi prev/play/next; nascosti in radio (lì non servono)
     private ImageView artCover;
     /** Sorgenti senza scritta (solo icona) quando non c'è spazio accanto ai pulsanti in alto a destra. */
     private boolean srcCompact;
@@ -1729,6 +1730,7 @@ public final class HomeView extends LinearLayout {
         // comandi grandi + banda FM/DAB subito accanto. 1.0.3: la banda torna qui (nella 1.0.2 era sotto la riga delle
         // sorgenti), più grande di prima: alta come i pulsanti avanti/indietro, scritte più grandi
         LinearLayout ctr = Ui.row(c);
+        mediaCtr = ctr;   // 1.0.5: riferimento per nascondere i comandi in radio
         ctr.setGravity(Gravity.CENTER_VERTICAL);
         // 1.0.4: in "Molto grande" questi tasti restano grandi come in "Grande": in altezza non c'è spazio per di più
         // (prima il tasto play usciva tagliato sopra e sotto)
@@ -2181,6 +2183,9 @@ public final class HomeView extends LinearLayout {
         // che altrimenti restavano sopra al brano in riproduzione.
         boolean direct = directAudio && musicPlayer != null && musicPlayer.current() != null;
         if (libShowing || direct) { radio = false; styleSources(LIBRARY); }
+        // 1.0.5: in radio i comandi prev/play/next al centro non fanno nulla: li nascondiamo (la radio ha i suoi
+        // comandi - banda, frequenza, stazioni). Si mostrano solo con le altre sorgenti.
+        if (mediaCtr != null) mediaCtr.setVisibility(radio ? GONE : VISIBLE);
         // 1.0.5: all'avvio, con niente realmente in riproduzione, non mostriamo il segnaposto "Amazon Music".
         boolean idleNP = m.activeSrc == 0 && !radio && !libShowing && !direct;
         mTitle.setText(idleNP ? "" : m.title);

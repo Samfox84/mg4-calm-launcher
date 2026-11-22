@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.98",
-  "apk": "releases/MG4Launcher-1.0.5-calm.98.apk",
+  "version": "1.0.5-calm.99",
+  "apk": "releases/MG4Launcher-1.0.5-calm.99.apk",
   "size": 9074378,
-  "notes": "Full-screen map mode: the map is now a fixed backdrop (like a phone wallpaper) that stays put while pages slide over it, with a new 'clean map' page to the left of Home and nothing on top. Launches on Home as before. Normal mode unchanged."
+  "notes": "Clean-map page now shows a digital clock on the left. In radio mode the central play/pause/skip buttons are hidden (they don't apply to radio) - they show only for other media sources."
 }
