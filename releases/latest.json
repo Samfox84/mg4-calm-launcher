@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.95",
-  "apk": "releases/MG4Launcher-1.0.5-calm.95.apk",
+  "version": "1.0.5-calm.96",
+  "apk": "releases/MG4Launcher-1.0.5-calm.96.apk",
   "size": 9070282,
-  "notes": "Media panel fixes: streaming/library no longer shows the FM radio panel over the top, now-playing shows the real track, artwork no longer flips back to the wave icon, the NAVIDROME label is gone, and the media box is hidden when nothing is playing."
+  "notes": "Full-screen map: Radio/Library sit top-right just left of the status icons, the Media/CarPlay tabs move to the bottom-right, and the now-playing is right-aligned - the centre of the map stays clear."
 }

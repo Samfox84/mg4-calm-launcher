@@ -1209,13 +1209,16 @@ public final class HomeView extends LinearLayout {
         // a tutti i riquadri (Mappa e Media) sempre nello stesso punto: centrato sulla riga dei preferiti (alta FAV_H).
         // L'ordine in alto della 1.0.3 non serve più (in alto restano solo le sorgenti) e l'opzione è stata tolta.
         int inset = rhd && sysIndicator ? dp(SYSTEM_LIGHT_INSET) : 0;
-        FrameLayout.LayoutParams tl = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.START);
-        tl.setMargins(dp(28) + inset, 0, 0, tabsBottom());
+        // 1.0.5: con mappa a sfondo, le schede (Media/CarPlay) vanno in basso a DESTRA, allineate al resto.
+        FrameLayout.LayoutParams tl = new FrameLayout.LayoutParams(-2, -2,
+                Gravity.BOTTOM | (bgMap ? Gravity.END : Gravity.START));
+        if (bgMap) tl.setMargins(0, 0, dp(28), tabsBottom());
+        else tl.setMargins(dp(28) + inset, 0, 0, tabsBottom());
         f.addView(tabs, tl);
         tabsBox = tabs;
-        // i preferiti partono subito dopo Mappa/Media
+        // i preferiti partono subito dopo Mappa/Media (solo a sinistra; con mappa a sfondo le schede sono a destra)
         tabs.addOnLayoutChangeListener((v, l, tp, r, b, ol, ot, or, ob) -> {
-            if (favBottom == null || r - l == or - ol) return;
+            if (favBottom == null || bgMap || r - l == or - ol) return;
             android.view.ViewGroup.MarginLayoutParams fl = (android.view.ViewGroup.MarginLayoutParams) favScroll.getLayoutParams();
             int want = inset + (r - l) + dp(16);
             if (fl.leftMargin != want) {
@@ -1614,12 +1617,12 @@ public final class HomeView extends LinearLayout {
         // Velo semitrasparente: sotto il Media resta la mappa viva, così il pannello non è un rettangolo grigio vuoto.
         // Consuma i tocchi (niente trascinamenti accidentali della mappa) e tiene leggibili testo e comandi.
         col.setClickable(true);
-        // 1.0.5: con mappa a sfondo il pannello media è trasparente (si vede la mappa sotto; la leggibilità la dà
-        // il gradiente sulla mappa). Il brano in riproduzione si sposta a destra con lo spazio vuoto nel "body"
-        // (sotto); NON si usa gravity END sulla colonna, altrimenti la riga delle sorgenti (Radio/Library) finisce
-        // sotto le icone di stato in alto a destra e sparisce.
+        // 1.0.5: con mappa a sfondo il pannello media è trasparente (si vede la mappa sotto; la leggibilità la dà il
+        // gradiente). Tutto è allineato a destra (gravity END + spazio vuoto nel "body"), ma la riga sorgenti
+        // (Radio/Library) tiene un margine destro per NON finire sotto la barra di stato di sistema (BT/Wi-Fi/4G).
         if (bgMap) {
             col.setBackgroundColor(0x00000000);
+            col.setGravity(Gravity.END);
         } else {
             col.setBackgroundColor((t.panel & 0x00FFFFFF) | 0xA8000000);
         }
@@ -1627,8 +1630,10 @@ public final class HomeView extends LinearLayout {
         // sorgenti: un pulsante per ciascuna (Radio, USB, Bluetooth, Online, + CarPlay/Android Auto se collegato)
         // 1.0.4 (punto E4): pulsanti più grandi (+15%), ognuno con il suo fondo e un bordo leggero; niente riquadro comune
         srcRow = Ui.row(c);
-        // guida a destra con la spia luci: la riga sorgenti parte più a destra (spazio di oggi, SYSTEM_LIGHT_INSET)
-        col.addView(srcRow, Ui.margins(new LayoutParams(-2, tp(SRC_H)), rhd && sysIndicator ? dp(SYSTEM_LIGHT_INSET) : 0, 0, 0, 0));
+        // guida a destra con la spia luci: la riga sorgenti parte più a destra (spazio di oggi, SYSTEM_LIGHT_INSET).
+        // 1.0.5: con mappa a sfondo, margine destro per restare a sinistra della barra di stato di sistema.
+        int srcRight = bgMap ? dp(180) : 0;
+        col.addView(srcRow, Ui.margins(new LayoutParams(-2, tp(SRC_H)), rhd && sysIndicator ? dp(SYSTEM_LIGHT_INSET) : 0, 0, srcRight, 0));
         srcRow.addOnLayoutChangeListener((v, l, tp, r, b, ol, ot, or, ob) -> {
             alignBand();
             if (r - l != or - ol) fitSources();

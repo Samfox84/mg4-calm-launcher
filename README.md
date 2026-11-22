@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.96
+- **Media a destra con la mappa a sfondo**: Radio e Libreria in alto a destra, appena a sinistra delle icone di stato; le schede Media/CarPlay in basso a destra; il brano in riproduzione allineato a destra. Il centro della mappa resta libero.
+
 #### 1.0.5-calm.95
 - **La radio non resta più sopra alla musica**: se sta suonando la libreria o lo streaming, i pannelli radio (FM/DAB, frequenza, elenco stazioni) spariscono e si vede il brano in riproduzione, anche se la sorgente auto scelta era la radio.
 - **Copertina stabile**: non lampeggia più tornando all'icona a onda; la copertina resta.
@@ -1306,6 +1309,9 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.96
+- **Media on the right over a full-screen map**: Radio and Library sit top-right, just left of the status icons; the Media/CarPlay tabs move to the bottom-right; the now-playing is right-aligned. The centre of the map stays clear.
 
 #### 1.0.5-calm.95
 - **Radio no longer stays over the music**: when the library or streaming is playing, the radio panels (FM/DAB, frequency, station list) disappear and the playing track shows, even if the car's selected source was radio.
