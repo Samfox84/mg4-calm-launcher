@@ -61,6 +61,10 @@ public final class Prefs {
     // 1.0.5: controllo aggiornamenti DiPlay — spento di default.
     public boolean diplayUpdateCheck() { return sp.getBoolean("diplayUpdateCheck", false); }
     public void setDiplayUpdateCheck(boolean v) { sp.edit().putBoolean("diplayUpdateCheck", v).apply(); }
+
+    // 1.0.5: animazioni morbide (dissolvenze, micro-rimbalzo tocco, comparsa finestre) — accese di default.
+    public boolean smoothAnim() { return sp.getBoolean("smoothAnim", true); }
+    public void setSmoothAnim(boolean v) { sp.edit().putBoolean("smoothAnim", v).apply(); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {

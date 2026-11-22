@@ -35,6 +35,7 @@ public final class Confirm {
         card.addView(btns, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 28), 0, 0));
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 980), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     /**
@@ -70,6 +71,7 @@ public final class Confirm {
         card.addView(btns, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 28), 0, 0));
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 980), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     public interface OnText {
@@ -123,6 +125,7 @@ public final class Confirm {
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 980), -2, Gravity.CENTER_HORIZONTAL | Gravity.TOP));
         ((FrameLayout.LayoutParams) card.getLayoutParams()).topMargin = Ui.dp(c, 60);
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
         e.requestFocus();
         e.postDelayed(() -> {
             try {
@@ -209,6 +212,7 @@ public final class Confirm {
         card.addView(btns, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 24), 0, 0));
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 1080), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     public interface OnMulti {
@@ -288,6 +292,7 @@ public final class Confirm {
         card.addView(btns, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 24), 0, 0));
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 1180), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     /**
@@ -355,6 +360,7 @@ public final class Confirm {
         card.addView(btns, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, Ui.dp(c, 24), 0, 0));
         dim.addView(card, new FrameLayout.LayoutParams(Ui.dp(c, 1180), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     /** Avviso con elenco puntato e un solo pulsante (popup "Novità"). */
@@ -399,6 +405,7 @@ public final class Confirm {
         lp.bottomMargin = Ui.dp(c, 30);
         dim.addView(card, lp);
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
     }
 
     /** Fino a quanti valori restano sulla stessa riga nel popup di scelta; oltre, elenco che scorre. */
@@ -455,6 +462,7 @@ public final class Confirm {
         dim.addView(card, Ui.margins(new FrameLayout.LayoutParams(Ui.dp(c, 1180), -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL),
                 0, 0, 0, Ui.dp(c, 40)));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);
         dim.postDelayed(close, timeoutMs);
     }
 

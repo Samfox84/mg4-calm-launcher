@@ -29,6 +29,35 @@ public final class Ui {
     /** Dimensione dei comandi toccabili: 1 Normale, 1,15 Grande, 1,3 Molto grande. */
     public static float K = 1f;
 
+    // ---- animazioni calme (1.0.5) ----------------------------------------------------------------
+    // Interruttore unico, aggiornato dal vivo dall'impostazione "Animazioni morbide". Quando è spento,
+    // ogni helper non fa nulla (le viste appaiono subito), così è anche una "riduci movimento".
+    public static boolean animations = true;
+
+    /** Dissolvenza in entrata (pannelli, copertina al cambio brano). */
+    public static void fadeIn(View v) {
+        if (!animations || v == null) return;
+        v.setAlpha(0f);
+        v.animate().alpha(1f).setDuration(220).start();
+    }
+
+    /** Comparsa morbida di una finestra: velo in dissolvenza, scheda che sale appena di scala. */
+    public static void popIn(View card, View dim) {
+        fadeIn(dim);
+        if (!animations || card == null) return;
+        card.setAlpha(0f);
+        card.setScaleX(0.96f);
+        card.setScaleY(0.96f);
+        card.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start();
+    }
+
+    /** Micro-rimbalzo al tocco di un pulsante (abbinato al suono di tap). */
+    public static void tapPulse(final View v) {
+        if (!animations || v == null) return;
+        v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(80)
+                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(130).start()).start();
+    }
+
     /** Misura di un comando toccabile (dp × K). */
     public static int tp(Context c, float v) {
         return dp(c, v * K);
@@ -96,7 +125,7 @@ public final class Ui {
         f.setLayoutParams(new LinearLayout.LayoutParams(dp(c, sizeDp), dp(c, sizeDp)));
         f.setClickable(true);
         final View.OnClickListener cl = click;
-        f.setOnClickListener(cl == null ? null : v -> { com.mg4.launcher.svc.Sfx.click(); cl.onClick(v); });
+        f.setOnClickListener(cl == null ? null : v -> { com.mg4.launcher.svc.Sfx.click(); tapPulse(v); cl.onClick(v); });
         return f;
     }
 

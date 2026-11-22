@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.97
+- **Animazioni morbide e calme** in tutto il launcher: i pannelli entrano in dissolvenza, la copertina sfuma al cambio brano, le finestre compaiono dolcemente e i pulsanti danno un piccolo rimbalzo al tocco.
+- **Nuova impostazione "Smooth animations"** (accesa di default): spegne tutte le animazioni all'istante, per schermate immediate e senza movimento (riduci movimento).
+
 #### 1.0.5-calm.96
 - **Media a destra con la mappa a sfondo**: Radio e Libreria in alto a destra, appena a sinistra delle icone di stato; le schede Media/CarPlay in basso a destra; il brano in riproduzione allineato a destra. Il centro della mappa resta libero.
 
@@ -1309,6 +1313,10 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.97
+- **Soft, calm animations** across the launcher: panels fade in, album art fades on track change, pop-ups ease in, and buttons give a gentle tap response.
+- **New "Smooth animations" setting** (on by default): turns every animation off instantly for immediate, motion-free screens (reduce motion).
 
 #### 1.0.5-calm.96
 - **Media on the right over a full-screen map**: Radio and Library sit top-right, just left of the status icons; the Media/CarPlay tabs move to the bottom-right; the now-playing is right-aligned. The centre of the map stays clear.

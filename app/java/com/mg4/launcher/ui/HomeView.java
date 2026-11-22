@@ -137,6 +137,8 @@ public final class HomeView extends LinearLayout {
     // 1.0.2 (issue #25): banda FM/DAB come sotto-opzione della Radio, subito sotto la riga delle sorgenti
     private LinearLayout bandBox, mediaCol;
     private LinearLayout mediaBody;
+    private FrameLayout mediaArt;        // 1.0.5: riquadro copertina, per la dissolvenza al cambio brano
+    private String lastNpKey = "";       // 1.0.5: chiave del brano mostrato, per animare solo quando cambia
     private ImageView artCover;
     /** Sorgenti senza scritta (solo icona) quando non c'è spazio accanto ai pulsanti in alto a destra. */
     private boolean srcCompact;
@@ -265,6 +267,7 @@ public final class HomeView extends LinearLayout {
         super(c);
         this.t = t;
         this.prefs = prefs;
+        Ui.animations = prefs.smoothAnim();   // 1.0.5: animazioni calme attive dal valore salvato
         this.host = host;
         this.vehicle = vehicle;
         this.media = media;
@@ -1023,6 +1026,7 @@ public final class HomeView extends LinearLayout {
         card.addView(br, ambGap(24));
         dim.addView(card, new FrameLayout.LayoutParams(dp(760), -2, Gravity.CENTER));
         root.addView(dim, new FrameLayout.LayoutParams(-1, -1));
+        Ui.popIn(card, dim);   // 1.0.5: comparsa morbida
     }
 
     private LinearLayout.LayoutParams ambGap(int m) {
@@ -1260,13 +1264,21 @@ public final class HomeView extends LinearLayout {
         return tv;
     }
 
+    // 1.0.5: mostra un pannello con una dissolvenza morbida solo quando passa da nascosto a visibile.
+    private void showPanel(View p, boolean show) {
+        if (p == null) return;
+        boolean was = p.getVisibility() == VISIBLE;
+        p.setVisibility(show ? VISIBLE : GONE);
+        if (show && !was) Ui.fadeIn(p);
+    }
+
     private void selectTab(int which, boolean byUser) {
         tab = which;
         if (byUser) userPickedTab = true;
         // La mappa resta visibile anche sotto il Media (fa da sfondo vivo); sotto CarPlay invece si spegne.
-        mapPanel.setVisibility(!bgMap && (which == TAB_MAP || which == TAB_MEDIA) ? VISIBLE : GONE);
-        mediaPanel.setVisibility(which == TAB_MEDIA ? VISIBLE : GONE);
-        phonePanel.setVisibility(which == TAB_PHONE ? VISIBLE : GONE);
+        showPanel(mapPanel, !bgMap && (which == TAB_MAP || which == TAB_MEDIA));
+        showPanel(mediaPanel, which == TAB_MEDIA);
+        showPanel(phonePanel, which == TAB_PHONE);
         styleTab(tabMap, which == TAB_MAP);
         styleTab(tabMedia, which == TAB_MEDIA);
         styleTab(tabPhone, which == TAB_PHONE);
@@ -1664,6 +1676,7 @@ public final class HomeView extends LinearLayout {
         left.addView(main, Ui.margins(Ui.lpWeight(-1, 0, 1), dp(8), dp(Ui.K > 1.2f ? 0 : 4), 0, 0));
 
         FrameLayout art = new FrameLayout(c);
+        mediaArt = art;   // 1.0.5: riferimento per la dissolvenza della copertina al cambio brano
         art.setBackground(Ui.pressable(c, t.chip, 26, t));
         art.setClipToOutline(true);
         art.setClickable(true);
@@ -2200,6 +2213,11 @@ public final class HomeView extends LinearLayout {
             artIcon.setVisibility(radio || cover ? GONE : VISIBLE);
             artIcon.setImageResource(idleNP ? R.drawable.ic_music : sourceIcon(m.source));
         }
+        // 1.0.5: dissolvenza della copertina solo quando il brano cambia davvero (non a ogni aggiornamento)
+        String npKey = idleNP ? "" : (m.source + "|" + m.title + "|"
+                + (direct && musicPlayer.current() != null ? musicPlayer.current().id : ""));
+        if (!npKey.isEmpty() && !npKey.equals(lastNpKey)) Ui.fadeIn(mediaArt);
+        lastNpKey = npKey;
         if (radio) {
             boolean dab = m.radioBand == MediaClient.BAND_DAB;
             String band = dab ? "DAB+" : m.radioBand == MediaClient.BAND_AM ? "AM" : "FM";

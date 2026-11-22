@@ -1077,6 +1077,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         if (rebuild) {
             IconStyler.clearCache();
             build();
+            com.mg4.launcher.ui.Ui.fadeIn(home);   // 1.0.5: dissolvenza morbida alla ricostruzione (es. mappa a sfondo)
             openSettings();
         } else if (home != null) {
             home.applyCarLook();

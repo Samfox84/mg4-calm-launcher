@@ -596,6 +596,9 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Stop the HVAC pop-up",
                 "The car throws its own climate window on top whenever you turn the AC or heating on from off. On by default: the launcher auto-dismisses it so it never interrupts CarPlay, maps or music. A panel you open yourself is left alone.",
                 toggle(c, prefs.hvacPopupSuppress(), on -> prefs.setHvacPopupSuppress(on)), false));
+        card.addView(row(c, "Smooth animations",
+                "Soft fades and a gentle tap response across the launcher - panel switches, album art, pop-ups and buttons. On by default; turn off for instant, motion-free screens.",
+                toggle(c, prefs.smoothAnim(), on -> { prefs.setSmoothAnim(on); com.mg4.launcher.ui.Ui.animations = on; }), false));
         card.addView(row(c, "Joystick controls media",
                 "Make the steering-wheel joystick skip and play/pause whatever's actually playing - CarPlay, DiPlay or your own library - not just the car's USB/Bluetooth. Left/right = previous/next; long-press the joystick = play/pause. The car's own sources are left to the system so nothing double-skips. (The joystick must be in its media mode.)",
                 toggle(c, prefs.joystickMedia(), on -> prefs.setJoystickMedia(on)), false));

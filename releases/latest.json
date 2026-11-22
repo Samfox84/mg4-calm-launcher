@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.96",
-  "apk": "releases/MG4Launcher-1.0.5-calm.96.apk",
-  "size": 9070282,
-  "notes": "Full-screen map: Radio/Library sit top-right just left of the status icons, the Media/CarPlay tabs move to the bottom-right, and the now-playing is right-aligned - the centre of the map stays clear."
+  "version": "1.0.5-calm.97",
+  "apk": "releases/MG4Launcher-1.0.5-calm.97.apk",
+  "size": 9074378,
+  "notes": "Soft calm animations across the launcher - panel switches fade, album art fades on track change, pop-ups ease in, and buttons give a gentle tap response. New 'Smooth animations' setting (on by default) turns them all off instantly for motion-free screens."
 }
