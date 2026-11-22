@@ -300,6 +300,8 @@ public final class SettingsView extends FrameLayout {
             new LinearLayout.LayoutParams(-1, -2));
 
         // --- DiPlay (stessa fork, stesso stile: rileva versione e aggiorna da qui) ---
+        // 1.0.5: se il controllo aggiornamenti DiPlay è spento, il riquadro DiPlay non compare per niente.
+        if (prefs.diplayUpdateCheck()) {
         Updater.Release d = lastDiPlay;
         String instVer = d != null ? d.installed : null;
         boolean dpOffer = d == null || d.newer;              // offre installa/aggiorna finché non è confermata aggiornata
@@ -318,6 +320,7 @@ public final class SettingsView extends FrameLayout {
                 () -> up.installDiPlay(),
                 "Up to date"),
             Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, dp(8), 0, 0));
+        }
 
         footer.addView(col, new LayoutParams(-1, -2));
     }

@@ -1259,6 +1259,9 @@ public final class HomeView extends LinearLayout {
         styleTab(tabMap, which == TAB_MAP);
         styleTab(tabMedia, which == TAB_MEDIA);
         styleTab(tabPhone, which == TAB_PHONE);
+        // 1.0.5: tornando sul Media (o passando da mappa piena a pannello) riapplichiamo subito l'ultimo stato,
+        // così il brano in riproduzione e i pulsanti sorgente non restano fermi a quello di prima.
+        if (which == TAB_MEDIA && media != null) onMedia(media.last());
     }
 
     private void styleTab(TextView tv, boolean on) {
@@ -1604,10 +1607,11 @@ public final class HomeView extends LinearLayout {
         // Consuma i tocchi (niente trascinamenti accidentali della mappa) e tiene leggibili testo e comandi.
         col.setClickable(true);
         // 1.0.5: con mappa a sfondo il pannello media è trasparente (si vede la mappa sotto; la leggibilità la dà
-        // il gradiente sulla mappa) e tutto è allineato a destra, così resta libero il centro della mappa.
+        // il gradiente sulla mappa). Il brano in riproduzione si sposta a destra con lo spazio vuoto nel "body"
+        // (sotto); NON si usa gravity END sulla colonna, altrimenti la riga delle sorgenti (Radio/Library) finisce
+        // sotto le icone di stato in alto a destra e sparisce.
         if (bgMap) {
             col.setBackgroundColor(0x00000000);
-            col.setGravity(Gravity.END);
         } else {
             col.setBackgroundColor((t.panel & 0x00FFFFFF) | 0xA8000000);
         }
@@ -1634,6 +1638,9 @@ public final class HomeView extends LinearLayout {
         mediaBody = body;
         col.addView(body, Ui.margins(Ui.lpWeight(-1, 0, 1), 0, dp(10), 0, 0));
         LinearLayout left = Ui.column(c);
+        // 1.0.5: con la mappa a sfondo, uno spazio vuoto a sinistra spinge i comandi media nella metà destra,
+        // così il centro della mappa resta libero e leggibile.
+        if (bgMap) body.addView(new View(c), Ui.lpWeight(0, -1, 1));
         body.addView(left, Ui.lpWeight(0, -1, 1));
         // 1.0.4: FM/DAB sta in cima alla colonna di sinistra, così l'elenco delle stazioni a destra parte alla sua
         // stessa altezza (subito sotto le sorgenti) e riempie lo spazio che prima restava vuoto
@@ -2154,11 +2161,15 @@ public final class HomeView extends LinearLayout {
             boolean has = up || st0 == android.media.session.PlaybackState.STATE_PAUSED || st0 == android.media.session.PlaybackState.STATE_BUFFERING;
             libShowing = up || (has && !m.playing);   // la libreria cede alla sorgente auto quando questa suona
         }
-        mTitle.setText(m.title);
-        mSub.setText(m.subtitle);
+        // 1.0.5: all'avvio, con niente realmente in riproduzione (activeSrc == 0), non mostriamo il segnaposto
+        // "Amazon Music" con l'onda: titolo e sorgente restano vuoti e l'icona è una nota neutra. Il tasto play resta,
+        // così premendolo parte comunque l'ultima sorgente.
+        boolean idleNP = m.activeSrc == 0 && !radio && !libShowing;
+        mTitle.setText(idleNP ? "" : m.title);
+        mSub.setText(idleNP ? "" : m.subtitle);
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         // rubato ai comandi (prima in "Molto grande" il tasto play risultava tagliato)
-        mSub.setVisibility(m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
+        mSub.setVisibility(idleNP || m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
         if (libShowing) { radio = false; styleSources(LIBRARY); }
         boolean logo = radio && m.logo != null;
         artLogo.setVisibility(logo ? VISIBLE : GONE);
@@ -2168,7 +2179,7 @@ public final class HomeView extends LinearLayout {
         artCover.setVisibility(cover ? VISIBLE : GONE);
         if (cover) artCover.setImageBitmap(m.art);
         artIcon.setVisibility(radio || cover ? GONE : VISIBLE);
-        artIcon.setImageResource(sourceIcon(m.source));
+        artIcon.setImageResource(idleNP ? R.drawable.ic_music : sourceIcon(m.source));
         if (radio) {
             boolean dab = m.radioBand == MediaClient.BAND_DAB;
             String band = dab ? "DAB+" : m.radioBand == MediaClient.BAND_AM ? "AM" : "FM";
@@ -2181,7 +2192,7 @@ public final class HomeView extends LinearLayout {
             styleBands(SystemClock.uptimeMillis() < pendingBandUntil ? pendingBand : m.radioBand);
             showFavorites(m);
         } else {
-            mMeta.setText(sourceLabel(m.source).toUpperCase(L.locale()));
+            mMeta.setText(idleNP ? "" : sourceLabel(m.source).toUpperCase(L.locale()));
         }
         // 1.0.4: banda FM/DAB sotto il pulsante Radio, solo per la Radio
         if ((bandBox.getVisibility() == VISIBLE) != radio) {
@@ -2206,8 +2217,8 @@ public final class HomeView extends LinearLayout {
         playIcon.setImageResource(m.playing ? R.drawable.ic_pause : R.drawable.ic_play);
         miniPlayIcon.setImageResource(m.playing ? R.drawable.ic_pause : R.drawable.ic_play);
         if (sideMediaTitle != null) {
-            sideMediaTitle.setText(m.title.isEmpty() ? sourceLabel(m.source) : m.title);
-            sideMediaSub.setText(sourceLabel(m.source) + (m.subtitle.isEmpty() ? "" : " · " + m.subtitle));
+            sideMediaTitle.setText(idleNP ? "" : (m.title.isEmpty() ? sourceLabel(m.source) : m.title));
+            sideMediaSub.setText(idleNP ? "" : sourceLabel(m.source) + (m.subtitle.isEmpty() ? "" : " · " + m.subtitle));
             sideMediaPlay.setImageResource(m.playing ? R.drawable.ic_pause : R.drawable.ic_play);
             if (radio && m.logo != null || !radio && m.art != null) {
                 sideMediaArt.clearColorFilter();
@@ -2220,11 +2231,11 @@ public final class HomeView extends LinearLayout {
                 sideMediaArt.setPadding(pad, pad, pad, pad);
                 sideMediaArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 sideMediaArt.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN);
-                sideMediaArt.setImageResource(sourceIcon(m.source));
+                sideMediaArt.setImageResource(idleNP ? R.drawable.ic_music : sourceIcon(m.source));
             }
         }
         // Niente in riproduzione (es. Online all'avvio): barra pulita, nessuna scritta "Online · Amazon Music".
-        if (m.title.isEmpty()) {
+        if (idleNP || m.title.isEmpty()) {
             miniTitle.setText("");
             miniSub.setText("");
         } else {

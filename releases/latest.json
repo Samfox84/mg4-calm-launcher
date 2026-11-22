@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.93",
-  "apk": "releases/MG4Launcher-1.0.5-calm.93.apk",
+  "version": "1.0.5-calm.94",
+  "apk": "releases/MG4Launcher-1.0.5-calm.94.apk",
   "size": 9070282,
-  "notes": "Full-screen map: panel backgrounds hidden so controls float over the map. New startup sound and the full calm sound pack on taps, toggles and actions. New setting to turn off the DiPlay update check (off by default)."
+  "notes": "Media fixes: now-playing refreshes the moment you switch tabs, Radio/Library buttons stay put over a full-screen map, the now-playing moves right, and no Amazon placeholder at cold start. Apps screen: Android Settings/Files on the top row + a one-tap update bar by the title. DiPlay box hidden when its update check is off."
 }

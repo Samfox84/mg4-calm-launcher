@@ -310,6 +310,13 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.94
+- **Media che non si aggiorna più tra le viste**: passando da mappa piena a pannello (o tornando sul Media) il brano in riproduzione si aggiorna subito, non resta fermo a quello di prima.
+- **Pulsanti Radio e Libreria sempre visibili**: con la mappa a schermo intero non finiscono più sotto le icone di stato in alto a destra. Il brano in riproduzione si sposta a destra, il centro della mappa resta libero.
+- **Niente segnaposto "Amazon Music" all'avvio**: se non sta suonando niente, il riquadro media resta pulito (nota neutra), non mostra più Amazon con l'onda.
+- **Schermata App**: le scorciatoie Impostazioni Android e File Android sono nella riga in cima. Accanto al titolo "App" c'è una barra aggiornamento: un tocco controlla, un tocco installa.
+- **Riquadro DiPlay nascosto**: se il controllo aggiornamenti DiPlay è spento, il riquadro DiPlay non compare più nelle Impostazioni.
+
 #### 1.0.5-calm.93
 - **Mappa a schermo intero più pulita**: con la mappa come sfondo, gli sfondi dei riquadri (auto, media e barra in basso) sono nascosti, così i comandi e le info galleggiano direttamente sopra la mappa.
 - **Nuovo suono d'avvio e pacchetto suoni completo**: all'avvio parte un suono di benvenuto più bello; i suoni soft del pacchetto Pacely accompagnano tocchi, interruttori (acceso/spento diverso) e conferme. La musica non viene mai interrotta.
@@ -1293,6 +1300,13 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.94
+- **Now-playing no longer stuck between views**: switching from full-screen map to the panel (or back to Media) refreshes the playing track at once instead of showing the old one.
+- **Radio and Library buttons always visible**: on a full-screen map they no longer slide under the status icons top-right. The now-playing moves to the right so the centre of the map stays clear.
+- **No "Amazon Music" placeholder at cold start**: when nothing is playing the media box stays clean (neutral note) instead of showing Amazon with the wave icon.
+- **Apps screen**: the Android Settings and Android Files shortcuts sit on the top row, and an update bar next to the "Apps" title checks with one tap and installs with the next.
+- **DiPlay box hidden**: when the DiPlay update check is off, the DiPlay box no longer appears in Settings.
 
 #### 1.0.5-calm.93
 - **Cleaner full-screen map**: with the map as the background, the panel backgrounds (car, media and bottom bar) are hidden, so the controls and info float directly over the map.

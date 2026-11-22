@@ -89,8 +89,9 @@ public final class AppCatalog {
             {"@app_account", "com.saic.avnlogin", "com.saic.avnlogin.mvp.login.LoginActivity", "user", "system"},
             {"@app_sos", "com.saicmotor.rescuecall", "com.saicmotor.rescuecall.module.ICallCenterAct", "sos", "system"},
             // scorciatoie di Android (solo se l'attività esiste davvero sull'auto)
-            {"@app_android_settings", "@android_settings", "", "android_settings", "system"},
-            {"@app_android_files", "@android_files", "", "folder", "system"},
+            // 1.0.5: categoria "shortcut" = riga in cima alla schermata App, sempre a portata.
+            {"@app_android_settings", "@android_settings", "", "android_settings", "shortcut"},
+            {"@app_android_files", "@android_files", "", "folder", "shortcut"},
     };
 
     /** Gestori file possibili, nell'ordine in cui si cercano. */

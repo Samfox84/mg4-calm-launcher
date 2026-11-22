@@ -17,6 +17,7 @@ import com.mg4.launcher.L;
 import com.mg4.launcher.R;
 import com.mg4.launcher.apps.AppCatalog;
 import com.mg4.launcher.apps.IconStyler;
+import com.mg4.launcher.svc.Updater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,9 @@ public final class AppsView extends LinearLayout {
 
         /** Contenitore per le finestre di conferma (1.0.4). */
         FrameLayout overlayRoot();
+
+        /** Aggiornatore del launcher, per la barra "Aggiorna" in cima alla schermata App (1.0.5). */
+        Updater updater();
     }
 
     private final Theme t;
@@ -50,6 +54,8 @@ public final class AppsView extends LinearLayout {
     private final TextView editBtn;
     private boolean editing;
     private final Handler main = new Handler(Looper.getMainLooper());
+    private TextView updChip;
+    private Updater.Release pendingUpd;
 
     public AppsView(Context c, Theme t, AppCatalog catalog, Prefs prefs, Host host) {
         super(c);
@@ -67,6 +73,23 @@ public final class AppsView extends LinearLayout {
         head.setPadding(dp(8), dp(4), dp(8), dp(4));
         // si torna alla home scorrendo verso destra (o con il tasto Home)
         head.addView(Ui.text(c, L.s(R.string.apps_title), 32, t.text, Ui.MEDIUM), Ui.margins(Ui.lp(-2, -2), dp(12), 0, 0, 0));
+        // 1.0.5: barra aggiornamento del launcher, subito a destra del titolo. Un tocco controlla, un tocco installa.
+        updChip = Ui.text(c, L.s(R.string.btn_check), 17, t.sub, Ui.MEDIUM);
+        updChip.setGravity(Gravity.CENTER);
+        updChip.setPadding(dp(22), 0, dp(22), 0);
+        updChip.setClickable(true);
+        updChip.setBackground(Ui.pressable(c, t.panel, 26, t));
+        updChip.setOnClickListener(v -> {
+            Updater up = host.updater();
+            if (up == null) return;
+            if (pendingUpd != null && pendingUpd.newer && pendingUpd.apkUrl != null) {
+                updChip.setText("Installing…");
+                up.install(pendingUpd, prefs.githubToken());
+            } else {
+                checkUpdate();
+            }
+        });
+        head.addView(updChip, Ui.margins(Ui.lp(-2, dp(52)), dp(16), 0, 0, 0));
         head.addView(Ui.spacer(c));
         editBtn = Ui.text(c, L.s(R.string.edit), 19, t.text, Ui.MEDIUM);
         editBtn.setGravity(Gravity.CENTER);
@@ -88,6 +111,30 @@ public final class AppsView extends LinearLayout {
         sv.addView(content, new FrameLayout.LayoutParams(-1, -2));
         addView(sv, Ui.margins(Ui.lpWeight(-1, 0, 1), 0, dp(16), 0, 0));
         setEditing(false);
+        checkUpdate();   // 1.0.5: controlla all'apertura, così la barra mostra subito lo stato reale
+    }
+
+    /** Controlla gli aggiornamenti del launcher e aggiorna la barra in cima (senza toccare il resto della UI). */
+    private void checkUpdate() {
+        final Context c = getContext();
+        Updater up = host.updater();
+        if (up == null || updChip == null) return;
+        updChip.setText("Checking…");
+        updChip.setTextColor(t.sub);
+        updChip.setBackground(Ui.pressable(c, t.panel, 26, t));
+        up.checkSilent(prefs.updateRepo(), prefs.githubToken(), r -> main.post(() -> {
+            pendingUpd = r;
+            boolean newer = r != null && r.newer && r.apkUrl != null;
+            if (newer) {
+                updChip.setText("Install " + r.tag);
+                updChip.setTextColor(t.onAccent);
+                updChip.setBackground(Ui.pressable(c, t.accent, 26, t));
+            } else {
+                updChip.setText("Up to date");
+                updChip.setTextColor(t.sub);
+                updChip.setBackground(Ui.pressable(c, t.panel, 26, t));
+            }
+        }));
     }
 
     private void setEditing(boolean on) {
@@ -114,11 +161,19 @@ public final class AppsView extends LinearLayout {
         String note = editing ? L.s(R.string.edit_note) : null;
         // 0.9.5: anche le app dell'auto si possono nascondere in Modifica (stesso elenco delle app nascoste)
         List<AppCatalog.App> car = new ArrayList<>();
+        List<AppCatalog.App> shortcuts = new ArrayList<>();
         for (AppCatalog.App a : catalog.carApps(host.navPackageHint())) {
-            if (editing || !hidden.contains(key(a))) car.add(a);
+            if (!(editing || !hidden.contains(key(a)))) continue;
+            // 1.0.5: le scorciatoie Android (Impostazioni/File) vanno nella riga in cima, senza intestazione.
+            if ("shortcut".equals(a.category)) shortcuts.add(a); else car.add(a);
+        }
+        // Scorciatoie: prima riga in assoluto, a portata di dito.
+        boolean firstGroup = true;
+        if (!shortcuts.isEmpty()) {
+            addGrid(c, shortcuts, hidden);
+            firstGroup = false;
         }
         // Auto raggruppata per categoria (Guida, Navigazione, Media, Sistema). Ogni gruppo ha la sua intestazione.
-        boolean firstGroup = true;
         for (int g = 0; g < CAT_KEYS.length; g++) {
             List<AppCatalog.App> group = new ArrayList<>();
             for (AppCatalog.App a : car) {
