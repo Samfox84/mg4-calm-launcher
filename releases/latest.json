@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.94",
-  "apk": "releases/MG4Launcher-1.0.5-calm.94.apk",
+  "version": "1.0.5-calm.95",
+  "apk": "releases/MG4Launcher-1.0.5-calm.95.apk",
   "size": 9070282,
-  "notes": "Media fixes: now-playing refreshes the moment you switch tabs, Radio/Library buttons stay put over a full-screen map, the now-playing moves right, and no Amazon placeholder at cold start. Apps screen: Android Settings/Files on the top row + a one-tap update bar by the title. DiPlay box hidden when its update check is off."
+  "notes": "Media panel fixes: streaming/library no longer shows the FM radio panel over the top, now-playing shows the real track, artwork no longer flips back to the wave icon, the NAVIDROME label is gone, and the media box is hidden when nothing is playing."
 }

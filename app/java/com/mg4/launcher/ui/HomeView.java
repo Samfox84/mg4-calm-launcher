@@ -229,11 +229,19 @@ public final class HomeView extends LinearLayout {
         mTitle.setText(s.title);
         mSub.setText(s.artist);
         mSub.setVisibility(s.artist == null || s.artist.isEmpty() ? GONE : VISIBLE);
-        if (mMeta != null) mMeta.setText("NAVIDROME");
+        if (mMeta != null) mMeta.setText("");   // 1.0.5: niente scritta "NAVIDROME"
         playIcon.setImageResource(picon);
         miniPlayIcon.setImageResource(picon);
         if (miniTitle != null) { miniTitle.setText(s.title); miniSub.setText(s.artist); }
         if (sideMediaTitle != null) { sideMediaTitle.setText(s.title); sideMediaSub.setText(s.artist); sideMediaPlay.setImageResource(picon); }
+        // 1.0.5: la copertina qui è l'unica padrona del riquadro: via onda/logo/radio, nota neutra solo se manca.
+        boolean hasCover = s.coverArt != null && !s.coverArt.isEmpty();
+        if (artLogo != null) artLogo.setVisibility(GONE);
+        if (artRadio != null) artRadio.setVisibility(GONE);
+        if (artIcon != null) {
+            artIcon.setVisibility(hasCover ? GONE : VISIBLE);
+            if (!hasCover) { artIcon.setColorFilter(t.sub, android.graphics.PorterDuff.Mode.SRC_IN); artIcon.setImageResource(R.drawable.ic_music); }
+        }
         if (music != null && artCover != null) music.loadCoverInto(artCover, s);   // 1.0.5: copertina anche qui
     }
 
@@ -2161,25 +2169,32 @@ public final class HomeView extends LinearLayout {
             boolean has = up || st0 == android.media.session.PlaybackState.STATE_PAUSED || st0 == android.media.session.PlaybackState.STATE_BUFFERING;
             libShowing = up || (has && !m.playing);   // la libreria cede alla sorgente auto quando questa suona
         }
-        // 1.0.5: all'avvio, con niente realmente in riproduzione (activeSrc == 0), non mostriamo il segnaposto
-        // "Amazon Music" con l'onda: titolo e sorgente restano vuoti e l'icona è una nota neutra. Il tasto play resta,
-        // così premendolo parte comunque l'ultima sorgente.
-        boolean idleNP = m.activeSrc == 0 && !radio && !libShowing;
+        // 1.0.5: se la libreria (sessione) o lo streaming diretto stanno suonando, NON siamo in radio, anche se la
+        // sorgente auto scelta è ancora la radio. Così spariscono i pannelli radio (FM/DAB, frequenza, elenco stazioni)
+        // che altrimenti restavano sopra al brano in riproduzione.
+        boolean direct = directAudio && musicPlayer != null && musicPlayer.current() != null;
+        if (libShowing || direct) { radio = false; styleSources(LIBRARY); }
+        // 1.0.5: all'avvio, con niente realmente in riproduzione, non mostriamo il segnaposto "Amazon Music".
+        boolean idleNP = m.activeSrc == 0 && !radio && !libShowing && !direct;
         mTitle.setText(idleNP ? "" : m.title);
         mSub.setText(idleNP ? "" : m.subtitle);
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
-        // rubato ai comandi (prima in "Molto grande" il tasto play risultava tagliato)
-        mSub.setVisibility(idleNP || m.subtitle.isEmpty() || (m.source == MediaClient.SRC_RADIO && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
-        if (libShowing) { radio = false; styleSources(LIBRARY); }
-        boolean logo = radio && m.logo != null;
-        artLogo.setVisibility(logo ? VISIBLE : GONE);
-        if (logo) artLogo.setImageBitmap(m.logo);
-        artRadio.setVisibility(radio && !logo ? VISIBLE : GONE);
-        boolean cover = !radio && m.art != null;
-        artCover.setVisibility(cover ? VISIBLE : GONE);
-        if (cover) artCover.setImageBitmap(m.art);
-        artIcon.setVisibility(radio || cover ? GONE : VISIBLE);
-        artIcon.setImageResource(idleNP ? R.drawable.ic_music : sourceIcon(m.source));
+        mSub.setVisibility(idleNP || m.subtitle.isEmpty() || (radio && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
+        // nascondi tutto il blocco "in riproduzione" quando non suona niente (resta solo Radio/Libreria per scegliere)
+        if (mediaBody != null) mediaBody.setVisibility(idleNP ? GONE : VISIBLE);
+        // 1.0.5: con lo streaming diretto la copertina la gestisce applyDirectToPanel() in fondo; qui NON la tocchiamo,
+        // altrimenti la copertina appariva un attimo e poi tornava l'onda.
+        if (!direct) {
+            boolean logo = radio && m.logo != null;
+            artLogo.setVisibility(logo ? VISIBLE : GONE);
+            if (logo) artLogo.setImageBitmap(m.logo);
+            artRadio.setVisibility(radio && !logo ? VISIBLE : GONE);
+            boolean cover = !radio && m.art != null;
+            artCover.setVisibility(cover ? VISIBLE : GONE);
+            if (cover) artCover.setImageBitmap(m.art);
+            artIcon.setVisibility(radio || cover ? GONE : VISIBLE);
+            artIcon.setImageResource(idleNP ? R.drawable.ic_music : sourceIcon(m.source));
+        }
         if (radio) {
             boolean dab = m.radioBand == MediaClient.BAND_DAB;
             String band = dab ? "DAB+" : m.radioBand == MediaClient.BAND_AM ? "AM" : "FM";
@@ -2271,7 +2286,7 @@ public final class HomeView extends LinearLayout {
             int picon = playing ? R.drawable.ic_pause : R.drawable.ic_play;
             mTitle.setText(tt);
             mSub.setText(ar); mSub.setVisibility(ar.isEmpty() ? GONE : VISIBLE);
-            if (mMeta != null) mMeta.setText("NAVIDROME");
+            if (mMeta != null) mMeta.setText("");   // 1.0.5: niente scritta "NAVIDROME"
             playIcon.setImageResource(picon);
             miniPlayIcon.setImageResource(picon);
             miniTitle.setText(tt);

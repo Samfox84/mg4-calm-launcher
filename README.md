@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.95
+- **La radio non resta più sopra alla musica**: se sta suonando la libreria o lo streaming, i pannelli radio (FM/DAB, frequenza, elenco stazioni) spariscono e si vede il brano in riproduzione, anche se la sorgente auto scelta era la radio.
+- **Copertina stabile**: non lampeggia più tornando all'icona a onda; la copertina resta.
+- **Via la scritta "NAVIDROME"** sopra al titolo.
+- **Riquadro media nascosto quando non suona niente**: all'avvio resta solo Radio/Libreria per scegliere, niente segnaposto.
+
 #### 1.0.5-calm.94
 - **Media che non si aggiorna più tra le viste**: passando da mappa piena a pannello (o tornando sul Media) il brano in riproduzione si aggiorna subito, non resta fermo a quello di prima.
 - **Pulsanti Radio e Libreria sempre visibili**: con la mappa a schermo intero non finiscono più sotto le icone di stato in alto a destra. Il brano in riproduzione si sposta a destra, il centro della mappa resta libero.
@@ -1300,6 +1306,12 @@ Even just **€2** is a great help to keep developing and testing new versions i
 [![Buy me a coffee with PayPal](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/ErnestoMicco?locale.x=it_IT&country.x=IT)
 
 ### Changelog
+
+#### 1.0.5-calm.95
+- **Radio no longer stays over the music**: when the library or streaming is playing, the radio panels (FM/DAB, frequency, station list) disappear and the playing track shows, even if the car's selected source was radio.
+- **Stable artwork**: it no longer flickers back to the wave icon; the cover stays.
+- **"NAVIDROME" label removed** from above the title.
+- **Media box hidden when nothing is playing**: at cold start only Radio/Library remain so you can pick a source, with no placeholder.
 
 #### 1.0.5-calm.94
 - **Now-playing no longer stuck between views**: switching from full-screen map to the panel (or back to Media) refreshes the playing track at once instead of showing the old one.
