@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.104",
-  "apk": "releases/MG4Launcher-1.0.5-calm.104.apk",
+  "version": "1.0.5-calm.105",
+  "apk": "releases/MG4Launcher-1.0.5-calm.105.apk",
   "size": 9074378,
-  "notes": "Now-playing box no longer sticks on the 'Amazon Music' placeholder: it appears only when something is actually playing (or paused on an active source), not just because you opened Library and backed out."
+  "notes": "Update screen: the DiPlay install result no longer appears under the MG4 Launcher title. Launcher and DiPlay updates are now reported on their own rows, so a DiPlay error or progress shows in the DiPlay box only."
 }

@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.105
+- **Aggiornamenti separati**: l'esito dell'installazione di DiPlay non compare più sotto il titolo "MG4 Launcher". Launcher e DiPlay hanno ciascuno la propria riga, così progresso ed errori di DiPlay restano nel riquadro DiPlay.
+
+#### 1.0.5-calm.105
+- **Separate update rows**: a DiPlay install result no longer shows under the "MG4 Launcher" title. The launcher and DiPlay each have their own row, so DiPlay progress and errors stay in the DiPlay box.
+
 #### 1.0.5-calm.104
 - **Niente segnaposto "Amazon Music" bloccato**: il riquadro "in riproduzione" compare solo quando qualcosa suona davvero (o è in pausa su una sorgente attiva), non perché hai aperto la Libreria e sei tornato indietro senza scegliere nulla.
 

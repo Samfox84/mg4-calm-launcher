@@ -173,6 +173,7 @@ public final class Updater {
     public void install(Release r, String token) {
         if (busy || r == null || r.apkUrl == null) return;
         if (HomeMode.officina(ctx)) return;   // aggiornamenti sospesi durante la modalità officina
+        installingForeign = false;            // 1.0.5: esito sul canale del launcher
         status(L.f(R.string.upd_downloading, r.apkName), r, true);
         bg.post(() -> {
             byte[] apk;
@@ -442,6 +443,12 @@ public final class Updater {
 
     private DiPlayListener dpListener;
     public void setDiPlayListener(DiPlayListener l) { dpListener = l; }
+    // 1.0.5: l'esito dell'installazione va al riquadro giusto — DiPlay sul suo canale, il launcher sul suo.
+    private volatile boolean installingForeign;
+    private void installResult(String s, boolean busy) {
+        if (installingForeign) dpStatus(s, null, busy);   // riquadro DiPlay; null = non tocca la versione già rilevata
+        else status(s, null, busy);
+    }
     private void dpStatus(String s, Release r, boolean busy) {
         main.post(() -> { if (dpListener != null) dpListener.onDiPlayStatus(s, r, busy); });
     }
@@ -518,6 +525,7 @@ public final class Updater {
         r.apkUrl = diplayUrl();
         r.raw = true;
         r.repo = "";
+        installingForeign = true;         // 1.0.5: l'esito dell'installazione va nel riquadro DiPlay, non in quello del launcher
         bg.post(() -> {
             try {
                 dpStatus(L.f(R.string.upd_downloading, "DiPlay"), r, true);
@@ -595,7 +603,7 @@ public final class Updater {
                 // senza il permesso di sistema Android chiede conferma: si mostra la schermata standard
                 Intent confirm = i.getParcelableExtra(Intent.EXTRA_INTENT);
                 if (confirm != null) ctx.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                status(L.s(R.string.upd_confirm), null, true);
+                installResult(L.s(R.string.upd_confirm), true);
                 return;
             }
             try {
@@ -603,14 +611,15 @@ public final class Updater {
             } catch (Exception ignored) {
             }
             if (st == PackageInstaller.STATUS_SUCCESS) {
-                status(L.s(R.string.upd_installed), null, false);
+                installResult(L.s(R.string.upd_installed), false);
                 // Aggiorna anche il riquadro DiPlay (se era un'installazione di DiPlay, ora risulta aggiornata).
                 checkDiPlay();
             } else {
                 String msg = i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
                 Diag.error("aggiornamenti.installazione", "stato " + st + ": " + msg);
-                status(L.f(R.string.upd_install_failed, msg == null ? L.f(R.string.upd_error_code, st) : msg), null, false);
+                installResult(L.f(R.string.upd_install_failed, msg == null ? L.f(R.string.upd_error_code, st) : msg), false);
             }
+            installingForeign = false;
         }
     };
 

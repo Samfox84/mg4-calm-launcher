@@ -185,8 +185,12 @@ public final class SettingsView extends FrameLayout {
         });
         // DiPlay: stesso meccanismo del launcher, riquadro separato in fondo al menu.
         up.setDiPlayListener((text, r, busy) -> {
-            lastDiPlay = r;
-            lastDiPlayStatus = busy ? text : null;
+            // Solo il controllo versione (che porta un "code") aggiorna la versione mostrata; i messaggi di
+            // installazione (progresso/errore/esito) NON devono sovrascriverla.
+            if (r != null && r.code > 0) lastDiPlay = r;
+            // Mostra sia il progresso sia l'esito finale (incluso l'errore) nel riquadro DiPlay; i codici di
+            // stato brevi del solo controllo versione non sono testo da mostrare.
+            lastDiPlayStatus = isDiPlayCode(text) ? null : text;
             buildFooter(up.isBusy());
         });
         if (SystemClock.elapsedRealtime() - lastQuietCheck > QUIET_CHECK_MS || lastQuietCheck == 0) {
@@ -360,6 +364,11 @@ public final class SettingsView extends FrameLayout {
             box.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
         }
         return box;
+    }
+
+    /** I codici brevi del solo controllo versione DiPlay (non testo da mostrare nel riquadro). */
+    private static boolean isDiPlayCode(String s) {
+        return "current".equals(s) || "install".equals(s) || "update".equals(s) || "error".equals(s);
     }
 
     private void refreshUpdateViews(boolean busy) {
