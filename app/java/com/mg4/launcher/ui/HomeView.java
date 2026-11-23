@@ -140,6 +140,8 @@ public final class HomeView extends LinearLayout {
     private FrameLayout mediaArt;        // 1.0.5: riquadro copertina, per la dissolvenza al cambio brano
     private String lastNpKey = "";       // 1.0.5: chiave del brano mostrato, per animare solo quando cambia
     private LinearLayout mediaCtr;       // 1.0.5: comandi prev/play/next; nascosti in radio (lì non servono)
+    private boolean mediaEngaged = false; // 1.0.5: all'avvio il riquadro "in riproduzione" resta nascosto finché
+                                          // l'utente non preme Radio/Libreria o parte davvero la musica (niente "Amazon Music")
     private ImageView artCover;
     /** Sorgenti senza scritta (solo icona) quando non c'è spazio accanto ai pulsanti in alto a destra. */
     private boolean srcCompact;
@@ -1880,6 +1882,7 @@ public final class HomeView extends LinearLayout {
                     if (musicCtl != null) musicCtl.getTransportControls().pause();   // ferma la libreria: torna alla sorgente auto
                     pendingSource = src;
                     pendingSourceUntil = SystemClock.uptimeMillis() + 3000;
+                    mediaEngaged = true;   // 1.0.5: l'utente ha scelto una sorgente: ora il riquadro può comparire
                     styleSources(src);
                     media.selectSource(src);
                 });
@@ -1892,7 +1895,7 @@ public final class HomeView extends LinearLayout {
             lib.setClickable(true);
             lib.setTag(LIBRARY);
             lib.setContentDescription("Music library");
-            lib.setOnClickListener(v -> openMusic());
+            lib.setOnClickListener(v -> { mediaEngaged = true; openMusic(); });
             srcRow.addView(lib, Ui.margins(Ui.lp(-2, -1), dp(8), 0, 0, 0));
         }
         int shown = SystemClock.uptimeMillis() < pendingSourceUntil ? pendingSource : m.source;
@@ -2192,8 +2195,11 @@ public final class HomeView extends LinearLayout {
         mSub.setText(idleNP ? "" : m.subtitle);
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         mSub.setVisibility(idleNP || m.subtitle.isEmpty() || (radio && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
-        // nascondi tutto il blocco "in riproduzione" quando non suona niente (resta solo Radio/Libreria per scegliere)
-        if (mediaBody != null) mediaBody.setVisibility(idleNP ? GONE : VISIBLE);
+        // 1.0.5: all'avvio il riquadro "in riproduzione" NON compare finché l'utente non preme Radio/Libreria/una
+        // sorgente o finché non parte davvero la musica. Così sparisce il segnaposto "Amazon Music" al primo avvio.
+        if (m.playing) mediaEngaged = true;
+        boolean showNP = mediaEngaged || m.playing || radio || libShowing || direct;
+        if (mediaBody != null) mediaBody.setVisibility(showNP ? VISIBLE : GONE);
         // 1.0.5: con lo streaming diretto la copertina la gestisce applyDirectToPanel() in fondo; qui NON la tocchiamo,
         // altrimenti la copertina appariva un attimo e poi tornava l'onda.
         if (!direct) {
@@ -2541,6 +2547,16 @@ public final class HomeView extends LinearLayout {
         tempBox.addView(barIcon(c, R.drawable.ic_chev_left, t.text, 0, arrow, arrowIcon, rad, L.s(R.string.temp_down), v -> changeTemp(-1)));
         tempTv = Ui.text(c, "—", bt(40, 54), t.text, Ui.REGULAR);
         tempTv.setGravity(Gravity.CENTER);
+        // 1.0.5: toccare il NUMERO della temperatura apre i comandi clima (così non serve un pulsante dedicato).
+        tempTv.setClickable(true);
+        tempTv.setBackground(Ui.pressable(c, 0, 16, t));
+        tempTv.setOnClickListener(v -> {
+            Sfx.play(Sfx.S.OPEN);
+            if (host.canLaunch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"))
+                host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity");
+            else if (com.mg4.launcher.svc.SysHvacPanel.supported(getContext()))
+                com.mg4.launcher.svc.SysHvacPanel.open(getContext());
+        });
         tempBox.addView(tempTv, new LayoutParams(bs(112, 136), -2));
         tempBox.addView(barIcon(c, R.drawable.ic_chev_right, t.text, 0, arrow, arrowIcon, rad, L.s(R.string.temp_up), v -> changeTemp(1)));
         bar.addView(tempBox, new LayoutParams(-2, btn));

@@ -720,11 +720,20 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             LinearLayout clockCol = new LinearLayout(this);
             clockCol.setOrientation(LinearLayout.VERTICAL);
             // le voci della pagina "solo mappa" si accendono/spengono dalle Impostazioni (sezione Home)
+            clockCol.setClipChildren(false);
+            clockCol.setClipToPadding(false);
+            cleanPage.setClipChildren(false);
             if (prefs.mapClock()) {
                 cleanClock = new android.widget.TextView(this);
                 cleanClock.setTextColor(0xFFFFFFFF);
                 cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 76);
                 cleanClock.setTypeface(com.mg4.launcher.ui.Ui.LIGHT);
+                // 1.0.5: una riga sola, senza taglio: il font sottile a 76sp misurava stretto e tagliava i minuti.
+                cleanClock.setSingleLine(true);
+                cleanClock.setMaxLines(1);
+                cleanClock.setEllipsize(null);
+                cleanClock.setIncludeFontPadding(true);
+                cleanClock.setPadding(0, 0, com.mg4.launcher.ui.Ui.dp(this, 28), 0);
                 clockCol.addView(cleanClock);
             }
             if (prefs.mapDate()) {

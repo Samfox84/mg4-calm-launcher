@@ -42,7 +42,7 @@
     var map=L.map('map',{zoomControl:false,attributionControl:false,
         dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:1}).setView([52.5,-2.5],17);
     L.control.zoom({position:'bottomright'}).addTo(map);
-    var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane',keepBuffer:4});
+    var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane',keepBuffer:12});
     var tileN=0, reported=false;
     function ok(){ if(!reported){reported=true; try{AndroidMap.status('engine-ok');}catch(e){}} }
     if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }

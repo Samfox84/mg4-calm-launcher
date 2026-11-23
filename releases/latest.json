@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.100",
-  "apk": "releases/MG4Launcher-1.0.5-calm.100.apk",
+  "version": "1.0.5-calm.101",
+  "apk": "releases/MG4Launcher-1.0.5-calm.101.apk",
   "size": 9074378,
-  "notes": "Settings reorganised: the overcrowded Home page is split into Home, Readouts (date/battery/distance/tyres) and Media & nav. New 'Map page' toggles in Home let you show or hide the clock and date on the full-screen map page (turn both off for a bare map)."
+  "notes": "Cold start no longer shows the Amazon placeholder - the now-playing stays hidden until you pick a source or music plays. Map-page clock widened so the minutes show. Map preloads a wider area to cut pop-in during smart zoom. Tapping the temperature number now opens the climate controls."
 }

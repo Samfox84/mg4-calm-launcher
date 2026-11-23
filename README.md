@@ -310,6 +310,18 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.101
+- **Niente segnaposto "Amazon Music" all'avvio**: il riquadro "in riproduzione" resta nascosto finché non scegli una sorgente (Radio/Libreria) o non parte la musica.
+- **Orologio pagina mappa allargato**: ora si vedono i minuti (prima era tagliato).
+- **Mappa: meno "pop" nello smart zoom**: carica in anticipo un'area più ampia.
+- **Comandi clima dal numero**: toccando il numero della temperatura si aprono i comandi del clima.
+
+#### 1.0.5-calm.101
+- **No "Amazon Music" placeholder at cold start**: the now-playing box stays hidden until you pick a source (Radio/Library) or music starts.
+- **Map-page clock widened**: the minutes now show (was cut off).
+- **Map: less pop-in during smart zoom**: it preloads a wider area.
+- **Climate from the number**: tapping the temperature number opens the climate controls.
+
 #### 1.0.5-calm.100
 - **Impostazioni riorganizzate**: la pagina Home era troppo piena, ora e' divisa in Home, "Readouts" (data, batteria, distanza, gomme) e "Media & nav" (navigatore, sorgenti, pulsante in alto).
 - **Interruttori "Map page"** nella Home: mostra o nascondi orologio e data sulla pagina a schermo intero della mappa (spegnili entrambi per la sola mappa).
