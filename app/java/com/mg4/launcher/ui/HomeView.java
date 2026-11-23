@@ -1886,7 +1886,6 @@ public final class HomeView extends LinearLayout {
                     if (musicCtl != null) musicCtl.getTransportControls().pause();   // ferma la libreria: torna alla sorgente auto
                     pendingSource = src;
                     pendingSourceUntil = SystemClock.uptimeMillis() + 3000;
-                    mediaEngaged = true;   // 1.0.5: l'utente ha scelto una sorgente: ora il riquadro può comparire
                     styleSources(src);
                     media.selectSource(src);
                 });
@@ -1899,7 +1898,7 @@ public final class HomeView extends LinearLayout {
             lib.setClickable(true);
             lib.setTag(LIBRARY);
             lib.setContentDescription("Music library");
-            lib.setOnClickListener(v -> { mediaEngaged = true; openMusic(); });
+            lib.setOnClickListener(v -> openMusic());
             srcRow.addView(lib, Ui.margins(Ui.lp(-2, -1), dp(8), 0, 0, 0));
         }
         int shown = SystemClock.uptimeMillis() < pendingSourceUntil ? pendingSource : m.source;
@@ -2199,9 +2198,12 @@ public final class HomeView extends LinearLayout {
         mSub.setText(idleNP ? "" : m.subtitle);
         // 1.0.4: riga vuota, o radio con comandi grandi (la banda è già nel riquadro della frequenza) = niente spazio
         mSub.setVisibility(idleNP || m.subtitle.isEmpty() || (radio && (big || Ui.K > 1.05f)) ? GONE : VISIBLE);
-        // 1.0.5: all'avvio il riquadro "in riproduzione" NON compare finché l'utente non preme Radio/Libreria/una
-        // sorgente o finché non parte davvero la musica. Così sparisce il segnaposto "Amazon Music" al primo avvio.
+        // 1.0.5: il riquadro "in riproduzione" compare SOLO quando qualcosa suona davvero (o è in pausa su una
+        // sorgente attiva), mai perché hai solo toccato Libreria/una sorgente e sei tornato indietro. "mediaEngaged"
+        // si accende quando parte l'audio e si spegne quando tutto torna inattivo: così sparisce il segnaposto
+        // "Amazon Music" sia all'avvio sia dopo aver aperto e chiuso la Libreria senza scegliere nulla.
         if (m.playing) mediaEngaged = true;
+        else if (idleNP) mediaEngaged = false;
         boolean showNP = mediaEngaged || m.playing || radio || libShowing || direct;
         if (mediaBody != null) mediaBody.setVisibility(showNP ? VISIBLE : GONE);
         // 1.0.5: spinge il brano sulla mappa a sfondo: in basso a sinistra compare "Via | Brano · Artista".

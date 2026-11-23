@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.104
+- **Niente segnaposto "Amazon Music" bloccato**: il riquadro "in riproduzione" compare solo quando qualcosa suona davvero (o è in pausa su una sorgente attiva), non perché hai aperto la Libreria e sei tornato indietro senza scegliere nulla.
+
+#### 1.0.5-calm.104
+- **No stuck "Amazon Music" placeholder**: the now-playing box shows only when something is actually playing (or paused on an active source), not just because you opened Library and backed out.
+
 #### 1.0.5-calm.103
 - **Orologio pagina mappa corretto**: la dimensione seguiva il font di sistema, così con un carattere grande si vedeva solo "10:". Ora ha una dimensione fissa e mostra sempre l'ora intera.
 
