@@ -69,15 +69,15 @@ public final class SettingsView extends FrameLayout {
     // 1.0.0 (punto 11): 7 sezioni nello stesso ordine su tutte le versioni - Auto, Home, Barra e pulsanti,
     // Radio e loghi, Aspetto, Avvio e app, Sistema. SEC_DRIVE è stato rinominato SEC_LAUNCH (ora "Avvio e app":
     // il lato guida si è spostato in Auto, i loghi radio si sono spostati qui sotto in SEC_LOGOS).
-    public static final int SEC_CAR = 0, SEC_HOME = 1, SEC_BAR = 2, SEC_LOGOS = 3, SEC_LOOK = 4, SEC_LAUNCH = 5, SEC_SYSTEM = 6;
+    public static final int SEC_CAR = 0, SEC_HOME = 1, SEC_DATA = 2, SEC_MEDIA = 3, SEC_BAR = 4, SEC_LOGOS = 5, SEC_LOOK = 6, SEC_LAUNCH = 7, SEC_SYSTEM = 8;
 
     /** Sezione da mostrare alla prossima apertura (es. Sistema dal popup degli aggiornamenti). */
     public static void openAt(int s) {
         section = s;
     }
-    private static final int[] SEC_ICON = {R.drawable.ic_car, R.drawable.ic_home, R.drawable.ic_buttons, R.drawable.ic_radio, R.drawable.ic_palette, R.drawable.ic_play, R.drawable.ic_gear};
-    private static final int[] SEC_NAME = {R.string.sec_car, R.string.sec_home, R.string.sec_bar, R.string.sec_logos, R.string.sec_look, R.string.sec_launch, R.string.sec_system};
-    private static final int[] SEC_SUB = {R.string.sec_car_sub, R.string.sec_home_sub, R.string.sec_bar_sub, R.string.sec_logos_sub, R.string.sec_look_sub, R.string.sec_launch_sub, R.string.sec_system_sub};
+    private static final int[] SEC_ICON = {R.drawable.ic_car, R.drawable.ic_home, R.drawable.ic_chart, R.drawable.ic_nav, R.drawable.ic_buttons, R.drawable.ic_radio, R.drawable.ic_palette, R.drawable.ic_play, R.drawable.ic_gear};
+    private static final int[] SEC_NAME = {R.string.sec_car, R.string.sec_home, R.string.sec_data, R.string.sec_media, R.string.sec_bar, R.string.sec_logos, R.string.sec_look, R.string.sec_launch, R.string.sec_system};
+    private static final int[] SEC_SUB = {R.string.sec_car_sub, R.string.sec_home_sub, R.string.sec_data_sub, R.string.sec_media_sub, R.string.sec_bar_sub, R.string.sec_logos_sub, R.string.sec_look_sub, R.string.sec_launch_sub, R.string.sec_system_sub};
     /** Spazio in alto a sinistra per la spia luci del sistema (come nella home). */
     private static final int SYSTEM_LIGHT_INSET = 64;
     private static final long QUIET_CHECK_MS = 30 * 60_000L;
@@ -448,6 +448,8 @@ public final class SettingsView extends FrameLayout {
         switch (s) {
             case SEC_CAR: buildCar(c, col); break;
             case SEC_HOME: buildHome(c, col); break;
+            case SEC_DATA: buildData(c, col); break;
+            case SEC_MEDIA: buildMedia(c, col); break;
             case SEC_BAR: buildBar(c, col); break;
             case SEC_LOGOS: buildLogos(c, col); break;
             case SEC_LOOK: buildLook(c, col); break;
@@ -604,7 +606,14 @@ public final class SettingsView extends FrameLayout {
                 toggle(c, prefs.joystickMedia(), on -> prefs.setJoystickMedia(on)), false));
         buildClusterLook(c, card);
         buildComfortControls(c, card);
-        // DiPlay si scarica/aggiorna dal riquadro "DiPlay" in fondo al menu, uguale al launcher.
+        buildMapPageControls(c, card);
+        col.addView(card, topFull(14));
+    }
+
+    // 1.0.5: "Readouts" - numeri e unita' (data, batteria, distanza, gomme); prima erano nella Home, troppo piena.
+    private void buildData(Context c, LinearLayout col) {
+        col.addView(label(c, "Readouts"));
+        LinearLayout card = card(c);
         card.addView(row(c, L.s(R.string.set_show_date), L.s(R.string.set_show_date_sub),
                 toggle(c, prefs.showDate(), on -> {
                     prefs.setShowDate(on);
@@ -628,13 +637,13 @@ public final class SettingsView extends FrameLayout {
                 choices(c, distNames, distSel, i -> {
                     prefs.setDistUnit(distVals[i]);
                     host.settingsChanged(true);
-                    showSection(SEC_HOME);
+                    showSection(section);
                 }), false));
         card.addView(row(c, L.s(R.string.set_tpms_title), L.s(R.string.set_tpms_sub),
                 toggle(c, prefs.showTpms(), on -> {
                     prefs.setShowTpms(on);
                     host.settingsChanged(true);
-                    showSection(SEC_HOME);
+                    showSection(section);
                 }), false));
         if (prefs.showTpms()) {
             String[] units = {Prefs.TYRE_AUTO, Prefs.TYRE_BAR, Prefs.TYRE_KPA, Prefs.TYRE_PSI};
@@ -644,7 +653,7 @@ public final class SettingsView extends FrameLayout {
                     choices(c, names, sel, i -> {
                         prefs.setTyreUnit(units[i]);
                         host.settingsChanged(false);
-                        showSection(SEC_HOME);
+                        showSection(section);
                     }), false));
         }
         // 1.0.2 (issue #8): temperatura interna come opzione, mai l'esterna.
@@ -658,7 +667,7 @@ public final class SettingsView extends FrameLayout {
                     choices(c, inNames, inSel, i -> {
                         prefs.setInsideTempMode(inVals[i]);
                         host.settingsChanged(true);
-                        showSection(SEC_HOME);
+                        showSection(section);
                     }), false));
         }
         // 1.0.2 (issue SWI69 #2): limite di ricarica Automatico (solo se l'auto lo supporta) / Mostra / Nascondi
@@ -669,13 +678,15 @@ public final class SettingsView extends FrameLayout {
                 choices(c, limNames, limSel, i -> {
                     prefs.setChargeLimitMode(limVals[i]);
                     host.settingsChanged(false);
-                    showSection(SEC_HOME);
+                    showSection(section);
                 }), true));
         col.addView(card, topFull(14));
+    }
 
-        // 1.0.0 (punto 11): riquadro mappa/media/CarPlay/AA - il navigatore che si apre dal riquadro di casa
-        col.addView(label(c, L.s(R.string.set_nav_default)), top(30));
-        card = card(c);
+    // 1.0.5: "Media & nav" - navigatore predefinito, sorgenti audio, pulsante in alto; prima in fondo alla Home.
+    private void buildMedia(Context c, LinearLayout col) {
+        col.addView(label(c, L.s(R.string.set_nav_default)));
+        LinearLayout card = card(c);
         // 1.0.4 (issue #27): app di navigazione: MG (predefinita), quella del telefono, oppure un'app installata
         String navPref = prefs.navApp();
         boolean navOther = !Prefs.NAV_AUTO.equals(navPref) && !Prefs.NAV_MG.equals(navPref) && !Prefs.NAV_PHONE.equals(navPref);
@@ -693,7 +704,7 @@ public final class SettingsView extends FrameLayout {
                 if (idx == navSel) return;
                 prefs.setNavApp(idx == 0 ? Prefs.NAV_MG : idx == 1 ? Prefs.NAV_PHONE : Prefs.NAV_AUTO);
                 host.settingsChanged(false);
-                showSection(SEC_HOME);
+                showSection(section);
             });
             ch.setPadding(tp(20), 0, tp(20), 0);
             if (i != navSel) ch.setBackground(Ui.pressable(c, t.panel, 16 * Ui.K, t));
@@ -718,7 +729,7 @@ public final class SettingsView extends FrameLayout {
                 prefs.setSourceShown(src, !now);
                 com.mg4.launcher.svc.Diag.put("home.sorgenti", sourcesTxt(srcIds, srcNames));
                 host.settingsChanged(true);
-                showSection(SEC_HOME);
+                showSection(section);
             });
             ch.setPadding(tp(20), 0, tp(20), 0);
             if (!on) ch.setBackground(Ui.pressable(c, t.panel, 16 * Ui.K, t));
@@ -741,7 +752,7 @@ public final class SettingsView extends FrameLayout {
                 if (idx == topSel) return;
                 prefs.setTopButton(Prefs.TOP_NONE);
                 host.settingsChanged(true);
-                showSection(SEC_HOME);
+                showSection(section);
             });
             ch.setPadding(tp(20), 0, tp(20), 0);
             if (!on) ch.setBackground(Ui.pressable(c, t.panel, 16 * Ui.K, t));
@@ -825,7 +836,7 @@ public final class SettingsView extends FrameLayout {
         Confirm.pick(this, t, L.s(R.string.top_pick_app), "", names, sel, L.s(R.string.btn_cancel), i -> {
             prefs.setTopButton(Prefs.TOP_APP + apps.get(i).packageName);
             host.settingsChanged(true);
-            showSection(SEC_HOME);
+            showSection(section);
         });
     }
 
@@ -999,7 +1010,7 @@ public final class SettingsView extends FrameLayout {
             prefs.setNavApp(apps.get(i).packageName);
             com.mg4.launcher.svc.Diag.put("nav.appScelta", apps.get(i).packageName + " (dalle impostazioni)");
             host.settingsChanged(false);
-            showSection(SEC_HOME);
+            showSection(section);
         });
     }
 
@@ -1613,6 +1624,19 @@ public final class SettingsView extends FrameLayout {
                     "When the car's forward-collision warning fires, automatically save a dashcam event (the 360 app does the pre/post buffer) and upload the clips to your private GitHub, same as the logs. Needs the dashcam USB present - does nothing without it. The 'Send clip' button by the 360 button uploads on demand either way.",
                     toggle(c, prefs.dashcamAutoUpload(), on -> prefs.setDashcamAutoUpload(on)), false));
         }
+    }
+
+    // 1.0.5: cosa mostrare sulla pagina "solo mappa" (a sinistra della Home con mappa a sfondo). Si aggiungeranno
+    // qui altre voci, tutte con il loro interruttore, nello stesso punto dell'orologio.
+    private void buildMapPageControls(Context c, LinearLayout card) {
+        if (!(prefs.mapBackground() && prefs.liveMap())) return;   // senza mappa a sfondo non c'è la pagina
+        card.addView(label(c, "Map page"), top(18));
+        card.addView(row(c, "Clock on the map page",
+                "Show the big digital clock on the left of the full-screen map page (the page to the left of Home).",
+                toggle(c, prefs.mapClock(), on -> { prefs.setMapClock(on); host.settingsChanged(true); }), false));
+        card.addView(row(c, "Date on the map page",
+                "Show the date under the clock on the full-screen map page.",
+                toggle(c, prefs.mapDate(), on -> { prefs.setMapDate(on); host.settingsChanged(true); }), false));
     }
 
     private void buildClusterLook(Context c, LinearLayout card) {

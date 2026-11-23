@@ -715,19 +715,26 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             // pagina "solo mappa" tutta a sinistra: trasparente sulla mappa fissa, con un orologio digitale
             // a sinistra, a metà altezza e leggermente rientrato (come lo sfondo di un telefono).
             FrameLayout cleanPage = new FrameLayout(this);
+            cleanClock = null;
+            cleanDate = null;
             LinearLayout clockCol = new LinearLayout(this);
             clockCol.setOrientation(LinearLayout.VERTICAL);
-            cleanClock = new android.widget.TextView(this);
-            cleanClock.setTextColor(0xFFFFFFFF);
-            cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 76);
-            cleanClock.setTypeface(com.mg4.launcher.ui.Ui.LIGHT);
-            cleanDate = new android.widget.TextView(this);
-            cleanDate.setTextColor(0xCCFFFFFF);
-            cleanDate.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24);
-            cleanDate.setTypeface(com.mg4.launcher.ui.Ui.MEDIUM);
-            clockCol.addView(cleanClock);
-            clockCol.addView(cleanDate, com.mg4.launcher.ui.Ui.margins(
-                    new LinearLayout.LayoutParams(-2, -2), com.mg4.launcher.ui.Ui.dp(this, 4), 0, 0, 0));
+            // le voci della pagina "solo mappa" si accendono/spengono dalle Impostazioni (sezione Home)
+            if (prefs.mapClock()) {
+                cleanClock = new android.widget.TextView(this);
+                cleanClock.setTextColor(0xFFFFFFFF);
+                cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 76);
+                cleanClock.setTypeface(com.mg4.launcher.ui.Ui.LIGHT);
+                clockCol.addView(cleanClock);
+            }
+            if (prefs.mapDate()) {
+                cleanDate = new android.widget.TextView(this);
+                cleanDate.setTextColor(0xCCFFFFFF);
+                cleanDate.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24);
+                cleanDate.setTypeface(com.mg4.launcher.ui.Ui.MEDIUM);
+                clockCol.addView(cleanDate, com.mg4.launcher.ui.Ui.margins(
+                        new LinearLayout.LayoutParams(-2, -2), com.mg4.launcher.ui.Ui.dp(this, 4), 0, 0, 0));
+            }
             FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-2, -2,
                     android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
             clp.leftMargin = com.mg4.launcher.ui.Ui.dp(this, 72);

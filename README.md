@@ -310,6 +310,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.100
+- **Impostazioni riorganizzate**: la pagina Home era troppo piena, ora e' divisa in Home, "Readouts" (data, batteria, distanza, gomme) e "Media & nav" (navigatore, sorgenti, pulsante in alto).
+- **Interruttori "Map page"** nella Home: mostra o nascondi orologio e data sulla pagina a schermo intero della mappa (spegnili entrambi per la sola mappa).
+
+#### 1.0.5-calm.100
+- **Settings reorganised**: the overcrowded Home page is split into Home, "Readouts" (date, battery, distance, tyres) and "Media & nav" (navigator, sources, top button).
+- **"Map page" toggles** in Home: show or hide the clock and date on the full-screen map page (turn both off for a bare map).
+
 #### 1.0.5-calm.99
 - **Orologio sulla pagina "solo mappa"**: con la mappa a sfondo, la pagina a sinistra mostra l'ora digitale a sinistra, a metà altezza.
 - **In radio spariscono i comandi play/pausa/avanti/indietro** al centro: in radio non servono, si vedono solo con le altre sorgenti.

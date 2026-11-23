@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.99",
-  "apk": "releases/MG4Launcher-1.0.5-calm.99.apk",
+  "version": "1.0.5-calm.100",
+  "apk": "releases/MG4Launcher-1.0.5-calm.100.apk",
   "size": 9074378,
-  "notes": "Clean-map page now shows a digital clock on the left. In radio mode the central play/pause/skip buttons are hidden (they don't apply to radio) - they show only for other media sources."
+  "notes": "Settings reorganised: the overcrowded Home page is split into Home, Readouts (date/battery/distance/tyres) and Media & nav. New 'Map page' toggles in Home let you show or hide the clock and date on the full-screen map page (turn both off for a bare map)."
 }

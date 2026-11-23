@@ -65,6 +65,12 @@ public final class Prefs {
     // 1.0.5: animazioni morbide (dissolvenze, micro-rimbalzo tocco, comparsa finestre) — accese di default.
     public boolean smoothAnim() { return sp.getBoolean("smoothAnim", true); }
     public void setSmoothAnim(boolean v) { sp.edit().putBoolean("smoothAnim", v).apply(); }
+
+    // 1.0.5: cosa mostrare sulla pagina "solo mappa" (mappa a sfondo) — orologio e data, accesi di default.
+    public boolean mapClock() { return sp.getBoolean("mapClock", true); }
+    public void setMapClock(boolean v) { sp.edit().putBoolean("mapClock", v).apply(); }
+    public boolean mapDate() { return sp.getBoolean("mapDate", true); }
+    public void setMapDate(boolean v) { sp.edit().putBoolean("mapDate", v).apply(); }
     public void setReclaimScreen(boolean v) { sp.edit().putBoolean("reclaimScreen", v).apply(); }
 
     public Prefs(Context c) {
