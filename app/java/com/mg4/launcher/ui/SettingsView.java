@@ -112,6 +112,9 @@ public final class SettingsView extends FrameLayout {
     // viste aggiornate di continuo
     private TextView diagText, logUploadSub, logSaveSub, updSub;
     private View logSaveBtn, updCheckBtn, updInstallBtn;
+    // 1.0.6: riga DiPlay nella sezione Aggiornamenti (accanto a quella del launcher), con etichette reali
+    private TextView dpUpdTitle, dpUpdSub;
+    private View dpUpdInstallBtn, dpUpdCheckBtn;
 
     public SettingsView(Context c, Theme t, Prefs prefs, Host host) {
         super(c);
@@ -191,7 +194,7 @@ public final class SettingsView extends FrameLayout {
             // Mostra sia il progresso sia l'esito finale (incluso l'errore) nel riquadro DiPlay; i codici di
             // stato brevi del solo controllo versione non sono testo da mostrare.
             lastDiPlayStatus = isDiPlayCode(text) ? null : text;
-            buildFooter(up.isBusy());
+            refreshUpdateViews(up.isBusy());   // aggiorna sia il footer sia la riga DiPlay della sezione Aggiornamenti
         });
         if (SystemClock.elapsedRealtime() - lastQuietCheck > QUIET_CHECK_MS || lastQuietCheck == 0) {
             lastQuietCheck = SystemClock.elapsedRealtime();
@@ -307,8 +310,9 @@ public final class SettingsView extends FrameLayout {
         // 1.0.5: se il controllo aggiornamenti DiPlay è spento, il riquadro DiPlay non compare per niente.
         if (prefs.diplayUpdateCheck()) {
         Updater.Release d = lastDiPlay;
-        String instVer = d != null ? d.installed : null;
-        boolean dpOffer = d == null || d.newer;              // offre installa/aggiorna finché non è confermata aggiornata
+        Updater.Release dpInst = up.installedDiPlay();        // 1.0.6: versione installata letta ora (niente etichette stantie)
+        String instVer = dpInst != null ? dpInst.installed : null;
+        boolean dpOffer = instVer == null || (d != null && d.newer);   // offre solo se non installata o se c'è davvero una versione più nuova
         String dpTitle = "DiPlay " + (instVer != null ? instVer : "(not installed)");
         String dpHeader = instVer == null
                 ? (d != null ? "Install DiPlay " + d.tag : "Install DiPlay")
@@ -371,8 +375,31 @@ public final class SettingsView extends FrameLayout {
         return "current".equals(s) || "install".equals(s) || "update".equals(s) || "error".equals(s);
     }
 
+    /** Aggiorna la riga DiPlay della sezione Aggiornamenti con versione installata e stato reali, letti al momento. */
+    private void refreshDiPlayRow(boolean busy) {
+        if (dpUpdSub == null) return;
+        Updater up = host.updater();
+        Updater.Release inst = up.installedDiPlay();          // letto ora dal sistema: niente etichette stantie
+        String ver = inst != null ? inst.installed : null;
+        if (dpUpdTitle != null) dpUpdTitle.setText(ver != null ? "DiPlay " + ver : "DiPlay (not installed)");
+        boolean newer = lastDiPlay != null && lastDiPlay.newer;
+        String sub;
+        if (lastDiPlayStatus != null) sub = lastDiPlayStatus;        // messaggio in corso (download/installazione/errore)
+        else if (!prefs.diplayUpdateCheck()) sub = ver != null ? "Installed · update check off" : "Not installed · update check off";
+        else if (lastDiPlay == null) sub = "Checking…";
+        else if (ver == null) sub = "Not installed · tap Install";
+        else if (newer) sub = "Update available: " + lastDiPlay.tag;
+        else sub = "Up to date";
+        dpUpdSub.setText(sub);
+        boolean canInstall = !busy && (ver == null || newer);
+        dpUpdInstallBtn.setVisibility(canInstall ? VISIBLE : GONE);
+        dpUpdCheckBtn.setEnabled(!busy);
+        dpUpdCheckBtn.setAlpha(busy ? 0.5f : 1f);
+    }
+
     private void refreshUpdateViews(boolean busy) {
         buildFooter(busy);
+        refreshDiPlayRow(busy);
         if (updSub != null) {
             Context c = getContext();
             updSub.setVisibility(VISIBLE);
@@ -1469,6 +1496,20 @@ public final class SettingsView extends FrameLayout {
         LinearLayout ur = row(c, "MG4 Launcher " + up.currentVersion(), "", btns, true);
         updSub = (TextView) ((ViewGroup) ur.getChildAt(0)).getChildAt(1);
         card.addView(ur);
+
+        // 1.0.6: riga DiPlay accanto a quella del launcher, con versione installata e stato reali (niente etichette stantie)
+        LinearLayout dpBtns = Ui.row(c);
+        dpUpdInstallBtn = button(c, L.s(R.string.btn_install), v -> up.installDiPlay());
+        ((TextView) dpUpdInstallBtn).setTextColor(t.panel);
+        dpUpdInstallBtn.setBackground(Ui.pressable(c, t.text, 16 * Ui.K, t));
+        dpBtns.addView(dpUpdInstallBtn, Ui.margins(Ui.lp(-2, tp(60)), 0, 0, dp(12), 0));
+        dpUpdCheckBtn = button(c, L.s(R.string.btn_check), v -> up.checkDiPlay());
+        dpBtns.addView(dpUpdCheckBtn, Ui.lp(-2, tp(60)));
+        LinearLayout dpr = row(c, "DiPlay", "", dpBtns, true);
+        dpUpdTitle = (TextView) ((ViewGroup) dpr.getChildAt(0)).getChildAt(0);
+        dpUpdSub = (TextView) ((ViewGroup) dpr.getChildAt(0)).getChildAt(1);
+        card.addView(dpr);
+
         col.addView(card, topFull(14));
 
         col.addView(label(c, L.s(R.string.set_diag_section)), top(30));
@@ -1526,6 +1567,7 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, L.s(R.string.uninstall_title), L.s(R.string.uninstall_sub), unBtn, false));
         col.addView(card, topFull(14));
 
+        up.checkDiPlay();              // 1.0.6: ricontrolla DiPlay all'apertura della sezione (etichette sempre aggiornate)
         refreshUpdateViews(up.isBusy());
     }
 
