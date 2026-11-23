@@ -157,6 +157,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             logs.start();
             com.mg4.launcher.svc.FirmwareExport.schedule(this);
             com.mg4.launcher.svc.DongleWatch.get(this, media).start();
+            com.mg4.launcher.svc.BtSiri.init(this);   // 1.0.6: prepara l'avvio di Siri via Bluetooth (microfono auto)
             // 1.0.5: dashcam incidenti — controllo collisione automatico, solo se l'app 360 è installata
             if (com.mg4.launcher.svc.DashcamClient.camInstalled(this)) com.mg4.launcher.svc.DashcamClient.get(this).startAutoWatch();
             com.mg4.launcher.svc.EmbedCheck.log(this);

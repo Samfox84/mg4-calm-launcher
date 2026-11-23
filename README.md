@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.108
+- **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.108
+- **Siri over Bluetooth (test)**: a new button in Settings (Startup and apps) starts Siri on the iPhone over the car's Bluetooth hands-free, so Siri uses the CAR's microphone instead of the silent CarPlay one.
+
 #### 1.0.6-calm.107
 - **DiPlay nella schermata Aggiornamenti**: DiPlay ha ora una sua riga accanto a MG4 Launcher, con la versione installata e lo stato letti dal vivo ogni volta (niente più etichetta "non installata" stantia). I pulsanti Installa/Aggiorna e Controlla sono lì.
 

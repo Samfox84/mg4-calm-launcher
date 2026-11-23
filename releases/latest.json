@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.107",
-  "apk": "releases/MG4Launcher-1.0.6-calm.107.apk",
+  "version": "1.0.6-calm.108",
+  "apk": "releases/MG4Launcher-1.0.6-calm.108.apk",
   "size": 9078474,
-  "notes": "DiPlay now appears in the update screen as its own row next to MG4 Launcher, with the real installed version and status read live each time - no more stale 'not installed' label. Its own Install/Update and Check buttons sit right there."
+  "notes": "New 'Siri over Bluetooth (test)' button in Settings (Startup and apps). It starts Siri over the car's Bluetooth hands-free, which uses the car's own microphone instead of CarPlay's silent one. The test for whether Bluetooth can give us the mic."
 }

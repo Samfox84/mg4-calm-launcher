@@ -10,6 +10,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- indicatori Bluetooth e Wi-Fi in alto a destra -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <!-- 1.0.6: avviare Siri via Bluetooth (profilo hands-free client) per usare il microfono dell'auto -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <!-- 1.0.3: rubrica del telefono Bluetooth per i "Preferiti telefono" del riquadro in basso -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- 1.0.4: il launcher scrive il tema giorno/notte nel sistema (UiModeManager.setNightMode) -->

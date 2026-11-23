@@ -634,6 +634,19 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "DiPlay microphone fix",
                 "On by default. Turns on the car's VR microphone routing while DiPlay is open, the same way the official MG CarPlay does, so Siri and message replies hear your voice. Turn off only if it affects other audio.",
                 toggle(c, prefs.diplayMicFix(), on -> { prefs.setDiplayMicFix(on); if (on) com.mg4.launcher.svc.DiPlayMic.enable(getContext()); }), false));
+        // 1.0.6 (test): avvia Siri via Bluetooth, così usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless
+        final TextView[] btSiriSub = new TextView[1];
+        View btSiriBtn = button(c, "Start", v -> {
+            String r = com.mg4.launcher.svc.BtSiri.triggerSiri(getContext());
+            if (btSiriSub[0] != null) btSiriSub[0].setText(r);
+        });
+        ((TextView) btSiriBtn).setTextColor(t.panel);
+        btSiriBtn.setBackground(Ui.pressable(c, t.text, 16 * Ui.K, t));
+        LinearLayout btSiriRow = row(c, "Siri over Bluetooth (test)",
+                "Starts Siri on your iPhone over Bluetooth hands-free, so Siri uses the CAR's microphone instead of CarPlay's silent one. Tap Start (CarPlay can stay running), then speak - if Siri hears you, this is the mic fix.",
+                btSiriBtn, false);
+        btSiriSub[0] = (TextView) ((ViewGroup) btSiriRow.getChildAt(0)).getChildAt(1);
+        card.addView(btSiriRow);
         card.addView(row(c, "Stop the HVAC pop-up",
                 "The car throws its own climate window on top whenever you turn the AC or heating on from off. On by default: the launcher auto-dismisses it so it never interrupts CarPlay, maps or music. A panel you open yourself is left alone.",
                 toggle(c, prefs.hvacPopupSuppress(), on -> prefs.setHvacPopupSuppress(on)), false));
