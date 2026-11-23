@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.105",
-  "apk": "releases/MG4Launcher-1.0.5-calm.105.apk",
+  "version": "1.0.6-calm.106",
+  "apk": "releases/MG4Launcher-1.0.6-calm.106.apk",
   "size": 9074378,
-  "notes": "Update screen: the DiPlay install result no longer appears under the MG4 Launcher title. Launcher and DiPlay updates are now reported on their own rows, so a DiPlay error or progress shows in the DiPlay box only."
+  "notes": "DiPlay microphone fix (on by default): while DiPlay is open the launcher turns on the car's VR mic routing - the same thing official MG CarPlay does - so Siri and message replies hear your voice. Nothing in DiPlay changes. The DiPlay update row now matches your installed build instead of offering a mismatched one."
 }

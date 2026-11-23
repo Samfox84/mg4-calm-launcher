@@ -640,6 +640,9 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     protected void onPause() {
         inFront = false;
         super.onPause();
+        // 1.0.6: il launcher cede lo schermo (spesso a DiPlay): attiva ora l'instradamento del microfono VR,
+        // così la cattura di DiPlay sente la voce. Il parametro resta impostato per tutta la sessione.
+        if (prefs != null && prefs.diplayMicFix()) com.mg4.launcher.svc.DiPlayMic.enable(this);
         if (!wrongFirmware && prefs != null && prefs.reclaimScreen() && root != null
                 && android.os.SystemClock.elapsedRealtime() - bootAt <= RECLAIM_WINDOW_MS) {
             root.removeCallbacks(reclaim);
@@ -888,6 +891,9 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             if (home != null) home.updateClock();
             updateCleanClock();
             logoPacksTick();
+            // 1.0.6: mentre DiPlay è davanti, riasserisce l'instradamento del microfono VR (nel caso la chip lo azzeri)
+            if (prefs != null && prefs.diplayMicFix() && isDiPlay(topPackage()))
+                com.mg4.launcher.svc.DiPlayMic.enable(c);
         }
     };
 

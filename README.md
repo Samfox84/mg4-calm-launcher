@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.106
+- **Correzione del microfono di DiPlay** (accesa di default): mentre DiPlay è aperta, il launcher attiva l'instradamento del microfono "VR" della chip audio — come fa il CarPlay MG originale — così Siri e le risposte ai messaggi sentono la voce. DiPlay non viene toccata. La riga di aggiornamento DiPlay ora combacia con la versione installata invece di proporne una non compatibile.
+
+#### 1.0.6-calm.106
+- **DiPlay microphone fix** (on by default): while DiPlay is open the launcher turns on the car's VR mic routing — the same thing official MG CarPlay does — so Siri and message replies hear your voice. Nothing in DiPlay changes. The DiPlay update row now matches the installed build instead of offering a mismatched one.
+
 #### 1.0.5-calm.105
 - **Aggiornamenti separati**: l'esito dell'installazione di DiPlay non compare più sotto il titolo "MG4 Launcher". Launcher e DiPlay hanno ciascuno la propria riga, così progresso ed errori di DiPlay restano nel riquadro DiPlay.
 

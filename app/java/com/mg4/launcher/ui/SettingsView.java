@@ -604,6 +604,9 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Check for DiPlay updates",
                 "Off by default. When off, the launcher never checks GitHub for a newer DiPlay and never shows a DiPlay update prompt - it just shows the installed version. Turn on only if you want to be told when a new DiPlay is out.",
                 toggle(c, prefs.diplayUpdateCheck(), on -> { prefs.setDiplayUpdateCheck(on); host.updater().checkDiPlay(); }), false));
+        card.addView(row(c, "DiPlay microphone fix",
+                "On by default. Turns on the car's VR microphone routing while DiPlay is open, the same way the official MG CarPlay does, so Siri and message replies hear your voice. Turn off only if it affects other audio.",
+                toggle(c, prefs.diplayMicFix(), on -> { prefs.setDiplayMicFix(on); if (on) com.mg4.launcher.svc.DiPlayMic.enable(getContext()); }), false));
         card.addView(row(c, "Stop the HVAC pop-up",
                 "The car throws its own climate window on top whenever you turn the AC or heating on from off. On by default: the launcher auto-dismisses it so it never interrupts CarPlay, maps or music. A panel you open yourself is left alone.",
                 toggle(c, prefs.hvacPopupSuppress(), on -> prefs.setHvacPopupSuppress(on)), false));
