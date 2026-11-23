@@ -729,20 +729,24 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             if (prefs.mapClock()) {
                 cleanClock = new android.widget.TextView(this);
                 cleanClock.setTextColor(0xFFFFFFFF);
-                cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 76);
+                // 1.0.5: dimensione in DIP, NON in SP: l'orologio non deve seguire il font di sistema. Con un
+                // font grande (accessibilità) a 76sp il testo debordava dal suo spazio e si vedevano solo le ore
+                // ("10:") senza i minuti. In DIP la dimensione è fissa e "10:50" ci sta sempre.
+                cleanClock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 76);
                 cleanClock.setTypeface(com.mg4.launcher.ui.Ui.LIGHT);
-                // 1.0.5: una riga sola, senza taglio: il font sottile a 76sp misurava stretto e tagliava i minuti.
-                cleanClock.setSingleLine(true);
                 cleanClock.setMaxLines(1);
                 cleanClock.setEllipsize(null);
-                cleanClock.setIncludeFontPadding(true);
-                cleanClock.setPadding(0, 0, com.mg4.launcher.ui.Ui.dp(this, 28), 0);
-                clockCol.addView(cleanClock);
+                cleanClock.setHorizontallyScrolling(false);   // niente scorrimento orizzontale (tagliava i minuti)
+                cleanClock.setIncludeFontPadding(false);
+                cleanClock.setGravity(android.view.Gravity.START);
+                // larghezza esplicita e generosa: il font sottile non può misurare stretto e tagliare la riga
+                clockCol.addView(cleanClock, new LinearLayout.LayoutParams(
+                        com.mg4.launcher.ui.Ui.dp(this, 380), LinearLayout.LayoutParams.WRAP_CONTENT));
             }
             if (prefs.mapDate()) {
                 cleanDate = new android.widget.TextView(this);
                 cleanDate.setTextColor(0xCCFFFFFF);
-                cleanDate.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24);
+                cleanDate.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 24);   // 1.0.5: in DIP come l'orologio
                 cleanDate.setTypeface(com.mg4.launcher.ui.Ui.MEDIUM);
                 clockCol.addView(cleanDate, com.mg4.launcher.ui.Ui.margins(
                         new LinearLayout.LayoutParams(-2, -2), com.mg4.launcher.ui.Ui.dp(this, 4), 0, 0, 0));

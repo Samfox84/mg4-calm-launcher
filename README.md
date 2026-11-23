@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.103
+- **Orologio pagina mappa corretto**: la dimensione seguiva il font di sistema, così con un carattere grande si vedeva solo "10:". Ora ha una dimensione fissa e mostra sempre l'ora intera.
+
+#### 1.0.5-calm.103
+- **Map-page clock fixed**: its size followed the system font, so a large font showed only "10:". It now uses a fixed size and always shows the full time.
+
 #### 1.0.5-calm.102
 - **Niente pulsante clima dedicato sulla barra**: i comandi del clima si aprono toccando il numero della temperatura; il pulsante sedili/volante scorre a sinistra per riempire lo spazio.
 - **Via e brano sulla mappa a sfondo**: in basso a sinistra compaiono la via in cui ti trovi e il brano in riproduzione, separati da una barra ("Via | Brano").

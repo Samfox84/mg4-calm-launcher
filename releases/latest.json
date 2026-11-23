@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.102",
-  "apk": "releases/MG4Launcher-1.0.5-calm.102.apk",
+  "version": "1.0.5-calm.103",
+  "apk": "releases/MG4Launcher-1.0.5-calm.103.apk",
   "size": 9074378,
-  "notes": "The climate pop-up no longer has its own button on the bar - tap the temperature number to open the climate controls, and the seat/wheel-heat button shifts left to fill the gap. On the background map, the bottom-left now shows the street you're on and the current track, split by a pipe."
+  "notes": "Map-page clock fixed: it was sized in system font units, so a large accessibility font cut it down to '10:'. It now uses a fixed size and always shows the full time."
 }
