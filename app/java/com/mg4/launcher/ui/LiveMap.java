@@ -34,6 +34,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private TileServer server;
     private boolean pageReady, started, haveFix, mapReady, offline;
     private android.location.Location lastLoc;
+    private String lastNP = "";   // 1.0.5: ultimo brano spinto sulla mappa ("Via | Brano")
     private final boolean nightDim;
 
     public LiveMap(Context c) { this(c, false); }
@@ -159,6 +160,28 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         });
     }
 
+    /** 1.0.5: mostra il brano in riproduzione in basso a sinistra, accanto al nome della via ("Via | Brano"). */
+    public void setNowPlaying(String text) {
+        final String t = text == null ? "" : text;
+        if (t.equals(lastNP)) return;   // niente aggiornamenti inutili alla WebView
+        lastNP = t;
+        if (!pageReady) return;
+        final String js = "window.setNowPlaying(" + jsStr(t) + ")";
+        post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
+    }
+
+    /** Racchiude una stringa come letterale JS sicuro (apici, backslash, a capo). */
+    private static String jsStr(String s) {
+        StringBuilder b = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch == '"' || ch == '\\') b.append('\\').append(ch);
+            else if (ch == '\n' || ch == '\r' || ch == '\t') b.append(' ');
+            else b.append(ch);
+        }
+        return b.append('"').toString();
+    }
+
     @Override public void onProviderDisabled(String p) {}
     @Override public void onProviderEnabled(String p) {}
     @Override public void onStatusChanged(String p, int s, Bundle b) {}
@@ -166,7 +189,14 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final class Bridge {
         @JavascriptInterface
         public void status(String s) {
-            if ("page-ready".equals(s)) { pageReady = true; if (lastLoc != null) post(() -> onLocationChanged(lastLoc)); }
+            if ("page-ready".equals(s)) {
+                pageReady = true;
+                if (lastLoc != null) post(() -> onLocationChanged(lastLoc));
+                if (!lastNP.isEmpty()) {   // 1.0.5: ripristina il brano se la pagina si è (ri)caricata dopo l'avvio musica
+                    final String js = "window.setNowPlaying(" + jsStr(lastNP) + ")";
+                    post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
+                }
+            }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }
             else if ("engine-ok".equals(s)) { mapReady = true; Diag.put("map.engine", "mappa offline ok"); post(() -> status.setVisibility(GONE)); }

@@ -310,6 +310,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.5-calm.102
+- **Niente pulsante clima dedicato sulla barra**: i comandi del clima si aprono toccando il numero della temperatura; il pulsante sedili/volante scorre a sinistra per riempire lo spazio.
+- **Via e brano sulla mappa a sfondo**: in basso a sinistra compaiono la via in cui ti trovi e il brano in riproduzione, separati da una barra ("Via | Brano").
+
+#### 1.0.5-calm.102
+- **No dedicated climate button on the bar**: the climate controls now open by tapping the temperature number; the seat/wheel-heat button shifts left to fill the gap.
+- **Street and track on the background map**: the bottom-left now shows the street you're on and the current track, split by a pipe ("Street | Track").
+
 #### 1.0.5-calm.101
 - **Niente segnaposto "Amazon Music" all'avvio**: il riquadro "in riproduzione" resta nascosto finché non scegli una sorgente (Radio/Libreria) o non parte la musica.
 - **Orologio pagina mappa allargato**: ora si vedono i minuti (prima era tagliato).

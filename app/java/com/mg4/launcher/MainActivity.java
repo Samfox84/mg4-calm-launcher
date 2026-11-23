@@ -55,6 +55,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     private int homeIndex = 0;   // 1.0.5: indice pagina Home (1 con mappa a sfondo, per la pagina "solo mappa" a sinistra)
     private int appsIndex = 1;   // 1.0.5: indice pagina App
     private android.widget.TextView cleanClock, cleanDate;   // 1.0.5: orologio della pagina "solo mappa"
+    private com.mg4.launcher.ui.LiveMap bgLiveMap;   // 1.0.5: mappa a sfondo (per mostrarci sopra il brano in corso)
     private AppsView apps;
     private Pager pager;
     private com.mg4.launcher.svc.ConnClient conn;
@@ -695,6 +696,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         homeIndex = bg ? 1 : 0;
         appsIndex = bg ? 2 : 1;
         int keepPage = pager != null ? pager.page() : homeIndex;
+        bgLiveMap = null;   // ricreata sotto solo in modalità mappa a sfondo
         pager = new Pager(this);
         home = new HomeView(this, theme, prefs, this, vehicle, media, nav);
         // Autotest passivo: dopo il layout, il launcher scrive nel log se l'animazione è pronta e da che lato
@@ -706,7 +708,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         // La mappa e il velo vivono nella root, dietro il Pager; le pagine sono trasparenti e scorrono sopra.
         if (bg) {
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(this).isDay();
-            root.addView(new com.mg4.launcher.ui.LiveMap(this, mapNight), new FrameLayout.LayoutParams(-1, -1));
+            bgLiveMap = new com.mg4.launcher.ui.LiveMap(this, mapNight);
+            root.addView(bgLiveMap, new FrameLayout.LayoutParams(-1, -1));
             android.view.View scrim = new android.view.View(this);
             scrim.setBackground(new android.graphics.drawable.GradientDrawable(
                     android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
@@ -969,6 +972,13 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     @Override
     public FrameLayout overlay() {
         return root;
+    }
+
+    @Override
+    public void setNowPlaying(String text) {
+        // 1.0.5: inoltra il brano in corso alla mappa a sfondo (se attiva); altrimenti non fa nulla
+        com.mg4.launcher.ui.LiveMap lm = bgLiveMap;
+        if (lm != null) lm.setNowPlaying(text);
     }
 
     @Override

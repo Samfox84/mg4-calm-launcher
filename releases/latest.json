@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5-calm.101",
-  "apk": "releases/MG4Launcher-1.0.5-calm.101.apk",
+  "version": "1.0.5-calm.102",
+  "apk": "releases/MG4Launcher-1.0.5-calm.102.apk",
   "size": 9074378,
-  "notes": "Cold start no longer shows the Amazon placeholder - the now-playing stays hidden until you pick a source or music plays. Map-page clock widened so the minutes show. Map preloads a wider area to cut pop-in during smart zoom. Tapping the temperature number now opens the climate controls."
+  "notes": "The climate pop-up no longer has its own button on the bar - tap the temperature number to open the climate controls, and the seat/wheel-heat button shifts left to fill the gap. On the background map, the bottom-left now shows the street you're on and the current track, split by a pipe."
 }

@@ -17,7 +17,8 @@
   #vignette{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:450;
       background:radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 34%, rgba(0,0,0,.42) 72%, rgba(0,0,0,.9) 100%);}
   #street{position:absolute;left:22px;bottom:24px;z-index:500;color:#EEF2F6;font:600 27px sans-serif;
-      letter-spacing:.2px;text-shadow:0 2px 12px rgba(0,0,0,.85);pointer-events:none;max-width:58%;}
+      letter-spacing:.2px;text-shadow:0 2px 12px rgba(0,0,0,.85);pointer-events:none;max-width:72%;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .me-dot{width:18px;height:18px;border-radius:50%;background:#4F9BF0;border:2px solid #cfe4ff;
           box-shadow:0 0 0 0 rgba(79,155,240,.55);animation:pulse 2s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,155,240,.55)}70%{box-shadow:0 0 0 20px rgba(79,155,240,0)}100%{box-shadow:0 0 0 0 rgba(79,155,240,0)}}
@@ -55,6 +56,13 @@
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
     function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 18; if(k<50)return 17; if(k<80)return 16; return 15; }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
+    var lastTrack='';
+    // "Via | Brano · Artista": la via a sinistra, il brano a destra, separati da una barra. Se manca uno, niente barra.
+    function renderStreet(){
+      var s=lastStreet||'', tk=lastTrack||'';
+      streetEl.textContent=(s&&tk)?(s+'   |   '+tk):(s||tk);
+    }
+    window.setNowPlaying=function(txt){ lastTrack=(txt||'').trim(); renderStreet(); };
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
     rebtn.addEventListener('click', function(){ setFollow(true); if(haveFix){ map.setView(me.getLatLng(), map.getZoom(), {animate:true}); } });
@@ -92,7 +100,7 @@
       }
       if(!loggedQ || (!lastStreet && nm)){ loggedQ=true;
         try{AndroidMap.status('query:'+(cnt?('z'+usedZ+' n='+cnt+' '+Object.keys(lset).slice(0,8).join('+')):'vuoto')+' road='+nm);}catch(e){} }
-      if(nm!==lastStreet){ lastStreet=nm; streetEl.textContent=nm; }
+      if(nm!==lastStreet){ lastStreet=nm; renderStreet(); }
     }
 
     function lerpStep(){

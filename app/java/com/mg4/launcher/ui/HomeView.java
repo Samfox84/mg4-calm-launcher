@@ -52,6 +52,9 @@ public final class HomeView extends LinearLayout {
 
         /** Contenitore a tutto schermo per le conferme. */
         FrameLayout overlay();
+
+        /** 1.0.5: brano in riproduzione da mostrare sulla mappa a sfondo ("Via | Brano"); stringa vuota = niente. */
+        void setNowPlaying(String text);
     }
 
     private static final int TAB_MAP = 0, TAB_MEDIA = 1, TAB_PHONE = 2;
@@ -171,6 +174,7 @@ public final class HomeView extends LinearLayout {
     // 0.8.2: gruppi Clima / Comfort, LKA e OPD
     private boolean grouped;
     private FrameLayout climaGroup, comfortGroup;
+    private View tempBoxView;   // 1.0.5: il numero dei gradi è l'ancora del pannello clima (niente più pulsante dedicato)
     private LinearLayout climaDots, comfortDots;
     /** Gruppo Guida (0.9.5): LKA, One Pedal, assistente ACC/TJA e pedale del freno in un solo pulsante. */
     private FrameLayout guidaGroup, projBtn;
@@ -2200,6 +2204,15 @@ public final class HomeView extends LinearLayout {
         if (m.playing) mediaEngaged = true;
         boolean showNP = mediaEngaged || m.playing || radio || libShowing || direct;
         if (mediaBody != null) mediaBody.setVisibility(showNP ? VISIBLE : GONE);
+        // 1.0.5: spinge il brano sulla mappa a sfondo: in basso a sinistra compare "Via | Brano · Artista".
+        // Senza mappa a sfondo l'host ignora la chiamata (nessun effetto).
+        String npForMap = "";
+        if (showNP && !idleNP && m.title != null) {
+            npForMap = m.title.trim();
+            if (m.subtitle != null && !m.subtitle.trim().isEmpty())
+                npForMap = (npForMap.isEmpty() ? "" : npForMap + "  ·  ") + m.subtitle.trim();
+        }
+        host.setNowPlaying(npForMap);
         // 1.0.5: con lo streaming diretto la copertina la gestisce applyDirectToPanel() in fondo; qui NON la tocchiamo,
         // altrimenti la copertina appariva un attimo e poi tornava l'onda.
         if (!direct) {
@@ -2552,6 +2565,9 @@ public final class HomeView extends LinearLayout {
         tempTv.setBackground(Ui.pressable(c, 0, 16, t));
         tempTv.setOnClickListener(v -> {
             Sfx.play(Sfx.S.OPEN);
+            // 1.0.5: con i gruppi il numero apre il pannello clima del launcher (A/C, AUTO, ricircolo, sedili, volante),
+            // così non serve il pulsante clima dedicato sulla barra. Senza gruppi apre l'app clima di sistema.
+            if (grouped) { openGroup(CLIMA); return; }
             if (host.canLaunch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity"))
                 host.launch("com.saicmotor.hmi.hvac", "com.saicmotor.hmi.hvac.HvacActivity");
             else if (com.mg4.launcher.svc.SysHvacPanel.supported(getContext()))
@@ -2559,6 +2575,7 @@ public final class HomeView extends LinearLayout {
         });
         tempBox.addView(tempTv, new LayoutParams(bs(112, 136), -2));
         tempBox.addView(barIcon(c, R.drawable.ic_chev_right, t.text, 0, arrow, arrowIcon, rad, L.s(R.string.temp_up), v -> changeTemp(1)));
+        tempBoxView = tempBox;
         bar.addView(tempBox, new LayoutParams(-2, btn));
 
         // ventola: ‹ livello ›, tocca l'icona = app Clima, tieni premuto = accendi/spegni il clima
@@ -2601,12 +2618,14 @@ public final class HomeView extends LinearLayout {
         seatRightBtn = heatButton(c, R.drawable.clima_sedile_riscaldato, true, L.s(R.string.seat_right), v -> { vehicle.pressSeatRight(); host.guardClimateMenu(); });
         grouped = prefs.groupedButtons();
         if (grouped) {
-            // un pulsante per gruppo: il tocco apre il riquadro sopra la barra, la pressione lunga fa il comando principale
+            // 1.0.5: il pulsante clima dedicato non è più sulla barra — il clima si apre toccando il numero dei gradi.
+            // climaGroup resta creato (fuori dalla barra) solo per tenere aggiornati i suoi indicatori di stato.
             climaGroup = groupButton(c, true);
-            bar.addView(climaGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(10), 0, 0, 0));
+            climaGroup.setVisibility(GONE);
+            // il comfort (sedili/volante) scorre a sinistra per riempire lo spazio lasciato libero
             comfortGroup = groupButton(c, false);
             comfortGroup.setVisibility(GONE);   // compare quando l'auto dice di avere almeno un comando
-            bar.addView(comfortGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(8), 0, 0, 0));
+            bar.addView(comfortGroup, Ui.margins(new LayoutParams(groupWidth(), btn), dp(10), 0, 0, 0));
         } else {
             bar.addView(acBtn, Ui.margins(new LayoutParams(btn, btn), dp(10), 0, 0, 0));
             bar.addView(autoBtn, Ui.margins(new LayoutParams(btn, btn), dp(8), 0, 0, 0));
@@ -3867,7 +3886,7 @@ public final class HomeView extends LinearLayout {
     private void styleGroups(VehicleClient.State s) {
         int recirc = s.loopMode < 0 ? -1 : s.loopMode == 0 ? 1 : 0;
         showDots(climaDots, (s.acOn == 1 ? 1 : 0) + (s.autoOn == 1 ? 1 : 0) + (recirc == 1 ? 1 : 0));
-        climaGroup.setAlpha(s.acOn < 0 && s.autoOn < 0 ? 0.45f : 1f);
+        if (climaGroup != null) climaGroup.setAlpha(s.acOn < 0 && s.autoOn < 0 ? 0.45f : 1f);
         boolean seatOn = s.seatLeft > 0 || s.seatRight > 0;
         showDots(comfortDots, (s.seatLeft > 0 ? 1 : 0) + (s.wheelHeat > 0 ? 1 : 0) + (s.seatRight > 0 ? 1 : 0));
         LinearLayout icons = (LinearLayout) comfortGroup.getChildAt(0);
@@ -4768,7 +4787,9 @@ public final class HomeView extends LinearLayout {
 
         /** Riquadro centrato sopra il pulsante del gruppo (dentro lo schermo), punta sul pulsante, buco nello scuro. */
         private void place() {
-            View anchor = drive ? carPanelView : guida ? guidaGroup : clima ? climaGroup : comfortGroup;
+            // 1.0.5: il pannello clima punta sul numero dei gradi (il pulsante clima dedicato non è più sulla barra)
+            View anchor = drive ? carPanelView : guida ? guidaGroup
+                    : clima ? (tempBoxView != null ? tempBoxView : climaGroup) : comfortGroup;
             if (anchor == null || barView == null || card.getWidth() == 0) return;
             int[] a = new int[2], root = new int[2], bar = new int[2];
             anchor.getLocationOnScreen(a);
