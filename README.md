@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.112
+- **Cattura del feed nav di CarPlay (per la diagnostica)**: "Invia log" ora include le righe di navigazione/CarPlay di tutto il dispositivo, così si può verificare se Waze (o Apple Maps) riempie il feed dei dati di svolta su questa auto — il passo decisivo per la mappa con percorso sul quadro. Nessun cambiamento visibile alla guida.
+
 #### 1.0.6-calm.111
 - **Mappa sul quadro: solo automatica**: tolti i due cursori di posizione. Il quadro non è touch e non si deve regolare nulla guidando: la mappa riempie il quadro e centra il pallino da sola, come un normale navigatore.
 
@@ -321,6 +324,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.112
+- **Capture the CarPlay nav feed (diagnostics)**: "Send log" now includes the whole device's navigation/CarPlay log lines, so we can check whether Waze (or Apple Maps) fills the turn-data feed on this car — the deciding step for a route line on the cluster. No visible change while driving.
 
 #### 1.0.6-calm.111
 - **Cluster map: automatic only**: removed the two position sliders. The cluster isn't a touchscreen and nothing should be adjusted while driving — the map fills the cluster and centres the dot on its own, like a normal sat-nav.

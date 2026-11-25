@@ -244,6 +244,34 @@ public final class Diag {
         sb.append("===== CRASH RECENTI (tutte le app) =====\n").append(crashes()).append('\n');
         sb.append("===== RadioFix =====\n").append(radioFix(c)).append('\n');
         sb.append("===== LOGCAT DEL LAUNCHER =====\n").append(logcat());
+        sb.append("\n===== CATTURA NAV CARPLAY (calm.112) =====\n").append(navcat());
+        return sb.toString();
+    }
+
+    /**
+     * calm.112: cattura dal logcat di TUTTO il dispositivo le righe legate a navigazione / CarPlay / cluster,
+     * per capire se Waze (o Apple Maps) riempie il feed ACTION_CARPLAY_NAVI_METADATA su questa auto.
+     * Richiede READ_LOGS (l'abbiamo come app di sistema). Tiene solo le ultime ~3000 righe utili.
+     */
+    private static String navcat() {
+        StringBuilder sb = new StringBuilder();
+        try {
+            Process p = Runtime.getRuntime().exec(new String[]{"logcat", "-d", "-v", "time", "-t", "60000"});
+            java.util.regex.Pattern pat = java.util.regex.Pattern.compile(
+                    "NaviView|allgo|RemoteUI|NavRoute|[Mm]aneuver|unction|[Cc]ar[Pp]lay|MapService|uidance|tbt|TBT|Cl_|SAIC_ADAPTER|navigation_type|InstrumentCluster|Mirroring|DIST_TO_NEXT|ROAD_AFTER|ICON_ID|EST_TIME|ROUTEGUIDANCE");
+            java.util.ArrayDeque<String> tail = new java.util.ArrayDeque<>();
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
+                String l;
+                while ((l = r.readLine()) != null) {
+                    if (pat.matcher(l).find()) { tail.addLast(l); while (tail.size() > 3000) tail.removeFirst(); }
+                }
+            }
+            p.waitFor();
+            for (String s : tail) sb.append(s).append('\n');
+            if (sb.length() == 0) sb.append("(nessuna riga nav/CarPlay nel logcat — con CarPlay+Waze attivi, guida un po' e premi Invia log)\n");
+        } catch (Exception e) {
+            sb.append("navcat non disponibile: ").append(e).append('\n');
+        }
         return sb.toString();
     }
 
