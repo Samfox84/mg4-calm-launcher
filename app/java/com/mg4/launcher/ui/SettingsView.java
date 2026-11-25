@@ -1711,7 +1711,7 @@ public final class SettingsView extends FrameLayout {
     private void buildCluster(Context c, LinearLayout col) {
         LinearLayout card = card(c);
         card.addView(row(c, "Map on the cluster",
-                "Draws the launcher's own live map on the instrument cluster (the screen behind the wheel), with your position. Independent of CarPlay/DiPlay — it only needs GPS and the offline map. OFF by default: leave off to keep DiPlay's cluster. If it misbehaves, turn it off; it can't stop the launcher. Everything it does goes to the diagnostic log.",
+                "Draws the launcher's own live map on the instrument cluster (the screen behind the wheel): your position, and the road AHEAD to your next turn drawn as a highlighted line (read from Apple/Google Maps via wired CarPlay). Only draws the line when it can confirm you're on that road, so it never shows a wrong route. Independent of DiPlay — needs GPS + the offline map. OFF by default. If it misbehaves, turn it off; it can't stop the launcher. Everything goes to the diagnostic log.",
                 toggle(c, prefs.clusterMap(), on -> {
                     prefs.setClusterMap(on);
                     com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);

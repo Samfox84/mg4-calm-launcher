@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.114
+- **Percorso IN AVANTI sul quadro (dove devo andare)**: la mappa del quadro ora disegna la **strada davanti fino alla prossima svolta** come linea evidenziata, non più solo dove sei stato. Legge dal feed CarPlay via cavo (Apple Maps o Google Maps) la distanza alla svolta e la strada dopo, e traccia quella strada sulla mappa offline, con un moncone tratteggiato sulla via successiva alla svolta. La geometria viene presa dal file mappa e convertita in coordinate reali leggendo le impostazioni della libreria a runtime; disegna **solo** se l'auto risulta sulla strada trovata (controllo di sicurezza), così non può mai mostrare una linea sbagliata. Si aggiorna a ogni posizione GPS e a ogni nuovo dato del feed (ricalcolo anche in caso di ricalcolo percorso). Funziona con Apple e Google Maps; Waze non invia questi dati. Microfono intatto (CarPlay via cavo).
+
 #### 1.0.6-calm.113
 - **Scheda "Cluster display" e percorso sul quadro**: nuova scheda dedicata nelle Impostazioni per tutto ciò che riguarda il quadro. La mappa sul quadro ora si posiziona nel riquadro visibile (due cursori di posizione da regolare **da fermi**) e può orientarsi verso la marcia (heading-up, con interruttore; la mappa dell'head-unit resta a nord). Nuova **fascia "prossima svolta"** (distanza, strada, orario d'arrivo) letta dal vivo dal feed CarPlay via cavo: funziona con **Apple Maps e Google Maps** (Waze non invia questi dati), senza toccare il microfono. Il percorso realmente guidato viene disegnato come **linea evidenziata** sul quadro. Il feed di navigazione ora viene letto dentro l'app (non solo nel logcat) e registrato per intero, e viene raccolta la geometria della strada sotto l'auto per tarare in sicurezza la linea del percorso **in avanti** nella prossima versione.
 
@@ -327,6 +330,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.114
+- **Route AHEAD on the cluster (where I'm going)**: the cluster map now draws the **road ahead to your next turn** as a highlighted line, not just where you've been. It reads the distance-to-turn and the road-after-turn from the wired CarPlay feed (Apple Maps or Google Maps) and traces that road on the offline map, with a dashed stub onto the road after the turn. The geometry is taken from the map file and converted to real coordinates by reading the map library's settings at runtime; it draws **only** when it can confirm the car is on the road it found (a safety check), so it can never show a wrong line. It updates on every GPS fix and every new feed update (so it re-draws on reroutes too). Works with Apple and Google Maps; Waze doesn't send this. Microphone untouched (wired CarPlay).
 
 #### 1.0.6-calm.113
 - **"Cluster display" tab and a route line on the dials**: a new dedicated Settings tab for everything about the instrument cluster. The cluster map now sits in the visible window (two position sliders to set **while parked**) and can turn to face your direction of travel (heading-up toggle; the head-unit map stays north). A new **next-turn banner** (distance, road, ETA) is read live from the wired CarPlay feed: it works with **Apple Maps and Google Maps** (Waze doesn't send this), with the microphone untouched. Your actual driven path is drawn as a **highlighted route line** on the cluster. The navigation feed is now read inside the app (not just in logcat) and logged in full, and the road geometry under the car is captured to safely calibrate the **forward** route line in the next version.

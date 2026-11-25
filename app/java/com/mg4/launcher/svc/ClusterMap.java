@@ -34,6 +34,10 @@ public final class ClusterMap {
     // calm.113: ultima manovra dal feed CarPlay, ripetuta quando la mappa (ri)appare
     private static volatile boolean lastTurnActive;
     private static volatile String lastTurnDist = "", lastTurnRoad = "", lastTurnEta = "";
+    // calm.114: ultimo percorso in avanti dal feed CarPlay
+    private static volatile boolean lastRouteActive;
+    private static volatile int lastRouteDistM = -1;
+    private static volatile String lastRouteRoad = "", lastRouteTurn = "";
 
     private ClusterMap() {}
 
@@ -50,6 +54,20 @@ public final class ClusterMap {
         final LiveMap m = liveMap;
         if (m == null) return;
         UI.post(() -> { try { m.setTurn(lastTurnActive, lastTurnDist, lastTurnRoad, lastTurnEta); } catch (Throwable ignored) {} });
+    }
+
+    /**
+     * calm.114: percorso IN AVANTI dal feed CarPlay (Apple/Google). distanza alla svolta in metri, strada
+     * dopo la svolta, eventuale direzione. La mappa del quadro traccia la strada davanti; se spenta, nulla.
+     */
+    public static void pushRoute(boolean active, int distM, String road, String turnHint) {
+        lastRouteActive = active;
+        lastRouteDistM = distM;
+        lastRouteRoad = road == null ? "" : road;
+        lastRouteTurn = turnHint == null ? "" : turnHint;
+        final LiveMap m = liveMap;
+        if (m == null) return;
+        UI.post(() -> { try { m.setRoute(lastRouteActive, lastRouteDistM, lastRouteRoad, lastRouteTurn); } catch (Throwable ignored) {} });
     }
 
     /** Show the cluster map if the setting is on, hide it if off. Reads the setting itself. */
@@ -148,8 +166,11 @@ public final class ClusterMap {
                 liveMap = map;
                 shownOn = cluster.getDisplayId();
                 // calm.113: ripristina la fascia manovra se un feed era già attivo
-                if (lastTurnActive) { final LiveMap fm = map;
-                    UI.postDelayed(() -> { try { fm.setTurn(true, lastTurnDist, lastTurnRoad, lastTurnEta); } catch (Throwable ignored) {} }, 1200); }
+                if (lastTurnActive || lastRouteActive) { final LiveMap fm = map;
+                    UI.postDelayed(() -> { try {
+                        if (lastTurnActive) fm.setTurn(true, lastTurnDist, lastTurnRoad, lastTurnEta);
+                        if (lastRouteActive) fm.setRoute(true, lastRouteDistM, lastRouteRoad, lastRouteTurn);
+                    } catch (Throwable ignored) {} }, 1200); }
                 Diag.put("cluster.map", "MOSTRATA sul display " + shownOn + " ('" + cluster.getName() + "') tentativo "
                         + (i + 1) + (types[i] == -1 ? " (tipo predefinito)" : " (tipo system-alert)"));
                 return;

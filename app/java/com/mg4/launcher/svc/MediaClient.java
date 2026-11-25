@@ -2253,6 +2253,7 @@ public final class MediaClient {
             controller = null;
             browser = null;
             ClusterMap.pushTurn(false, "", "", "");   // calm.113: niente feed → nascondi la fascia manovra
+            ClusterMap.pushRoute(false, -1, "", "");  // calm.114: e nascondi il percorso
             if (running) main.postDelayed(MediaClient.this::connectBrowser, 5000);
         }
     };
@@ -2278,10 +2279,16 @@ public final class MediaClient {
             if (!active && (!dist.trim().isEmpty() || !road.isEmpty())) active = true;
             Diag.put("carplay.manovra", (active ? "attiva" : "ferma") + " · " + dist + " · " + road + " · " + eta
                     + " · icon " + bv(b, "ICON_ID") + " · rem " + bv(b, "REM_TIME_TO_DEST") + " · tot " + bv(b, "TOTAL_DIST_REM"));
-            String key = active + "|" + dist + "|" + road + "|" + eta;
-            boolean want = true;
-            try { want = com.mg4.launcher.ui.Prefs.get(ctx).clusterTurn(); } catch (Throwable ignored) {}
-            if (!key.equals(lastTbtKey)) { lastTbtKey = key; if (want) ClusterMap.pushTurn(active, dist, road, eta); }
+            int meters = parseMeters(b);
+            Diag.putQuiet("carplay.manovra.metri", meters);
+            String key = active + "|" + dist + "|" + road + "|" + eta + "|" + meters;
+            if (!key.equals(lastTbtKey)) {
+                lastTbtKey = key;
+                boolean banner = true;
+                try { banner = com.mg4.launcher.ui.Prefs.get(ctx).clusterTurn(); } catch (Throwable ignored) {}
+                if (banner) ClusterMap.pushTurn(active, dist, road, eta);   // fascia testo
+                ClusterMap.pushRoute(active, meters, road, "");            // linea del percorso in avanti
+            }
         } catch (Throwable e) {
             Diag.error("carplay.manovra", e.toString());
         }
@@ -2291,5 +2298,22 @@ public final class MediaClient {
     private static String bv(Bundle b, String k) {
         try { Object o = b.get(k); return o == null ? "" : String.valueOf(o).trim(); }
         catch (Throwable e) { return ""; }
+    }
+
+    /** calm.114: distanza alla prossima svolta in METRI, dal feed (numero + unità m/km/mi/ft/yd). -1 se assente. */
+    private static int parseMeters(Bundle b) {
+        try {
+            String num = bv(b, "DIST_TO_NEXT_JUNCTION").replaceAll("[^0-9.,]", "").replace(',', '.');
+            if (num.isEmpty()) return -1;
+            double v = Double.parseDouble(num);
+            String u = bv(b, "DIST_TO_NEXT_JUNCTION_UNIT").toLowerCase(java.util.Locale.ROOT);
+            double m;
+            if (u.contains("km")) m = v * 1000.0;
+            else if (u.contains("mi")) m = v * 1609.34;
+            else if (u.contains("ft")) m = v * 0.3048;
+            else if (u.contains("yd")) m = v * 0.9144;
+            else m = v;   // metri (o unità assente)
+            return (int) Math.round(m);
+        } catch (Throwable e) { return -1; }
     }
 }

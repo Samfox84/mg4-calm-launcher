@@ -37,6 +37,8 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private String lastNP = "";   // 1.0.5: ultimo brano spinto sulla mappa ("Via | Brano")
     // calm.113: ultima manovra dal feed CarPlay (Apple/Google), per ripristinarla se la pagina si ricarica
     private boolean turnActive; private String turnDist = "", turnRoad = "", turnEta = "";
+    // calm.114: percorso in avanti (distanza alla svolta in metri, strada dopo, direzione)
+    private boolean routeActive; private int routeDistM = -1; private String routeRoad = "", routeTurn = "";
     private final boolean nightDim;
     private final float anchorX, anchorY;   // calm.110: dove tenere il pallino sullo schermo (0..1), 0.5 = centro
     private final boolean headingUp;         // calm.113: mappa orientata verso la marcia (solo quadro)
@@ -194,6 +196,20 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
     }
 
+    /**
+     * calm.114: percorso IN AVANTI — distanza (m) alla prossima svolta, strada dopo la svolta e un eventuale
+     * suggerimento di direzione, dal feed CarPlay. La pagina traccia la strada davanti sulla mappa offline.
+     */
+    public void setRoute(boolean active, int distM, String road, String turnHint) {
+        this.routeActive = active;
+        this.routeDistM = distM;
+        this.routeRoad = road == null ? "" : road;
+        this.routeTurn = turnHint == null ? "" : turnHint;
+        if (!pageReady) return;
+        final String js = "window.setRoute(" + active + "," + distM + "," + jsStr(routeRoad) + "," + jsStr(routeTurn) + ")";
+        post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
+    }
+
     /** Racchiude una stringa come letterale JS sicuro (apici, backslash, a capo). */
     private static String jsStr(String s) {
         StringBuilder b = new StringBuilder("\"");
@@ -221,6 +237,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
                     post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
                 }
                 if (turnActive) setTurn(true, turnDist, turnRoad, turnEta);   // calm.113: ripristina la fascia manovra
+                if (routeActive) setRoute(true, routeDistM, routeRoad, routeTurn);   // calm.114: ripristina il percorso
             }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }

@@ -139,6 +139,123 @@
           +' f='+(first?first.x.toFixed(1)+','+first.y.toFixed(1):'?')+' l='+(last?last.x.toFixed(1)+','+last.y.toFixed(1):'?'));
       }catch(e){ try{AndroidMap.status('calib: err '+e);}catch(x){} }
     }
+
+    // ===== calm.114: PERCORSO IN AVANTI (dove DEVO andare) ==============================
+    // Legge il feed CarPlay (Apple/Google: distanza alla prossima svolta + strada dopo) e disegna la
+    // strada DAVANTI fino alla svolta, sulla mappa offline. Geometria dal file mappa, convertita in
+    // lat/lon leggendo le impostazioni della libreria a runtime. Disegna SOLO se l'auto risulta sulla
+    // strada trovata (controllo di sicurezza): così non può mai disegnare una linea sbagliata.
+    var routeGlow=null, routeLine=null, routeTurn=null, lastBrg=-1, vLogged=false;
+    var navActive=false, navDistM=-1, navRoad='', navTurn='';
+    function lonNx(lon){ return (lon+180)/360; }
+    function latNy(lat){ var r=lat*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2; }
+    function nxLon(nx){ return nx*360-180; }
+    function nyLat(ny){ return Math.atan(Math.sinh(Math.PI*(1-2*ny)))*180/Math.PI; }
+    function viewInfo(){
+      var V=null; try{ if(layer.views&&layer.views.forEach) layer.views.forEach(function(v){ if(!V)V=v; }); }catch(e){}
+      if(!V||!V.tileCache) return null;
+      return { ts:(V.tileCache.tileSize||512), ld:(V.levelDiff==null?1:V.levelDiff), md:(V.maxDataLevel==null?15:V.maxDataLevel) };
+    }
+    // Strade vicine al punto, come polilinee in lat/lon (converte la geometria del tile → coordinate vere).
+    function roadsNear(lat,lon,Zd){
+      var vi=viewInfo(); if(!vi) return [];
+      var o=Math.min(Math.round(Zd)-vi.ld, vi.md); if(o<0)o=0;
+      var c=Math.floor(lonNx(lon)*(1<<o)), u=Math.floor(latNy(lat)*(1<<o));
+      var arr=featuresAt(lat,lon,Zd), out=[];
+      for(var i=0;i<arr.length;i++){ var e=arr[i]; if(!e.feature||e.feature.geomType!==2||!isRoad(e.layerName)) continue;
+        var g=e.feature.geom, nm=roadName(propsOf(e))||'';
+        for(var a=0;a<g.length;a++){ var seg=g[a]; if(!seg||seg.length<2) continue;
+          var pts=[]; for(var b=0;b<seg.length;b++){ var p=seg[b];
+            var gnx=(c+p.x/vi.ts)/(1<<o), gny=(u+p.y/vi.ts)/(1<<o);
+            pts.push([nyLat(gny), nxLon(gnx)]); }
+          out.push({name:nm, pts:pts}); } }
+      return out;
+    }
+    // metri tra due [lat,lon]
+    function md(a,b){ try{ return L.latLng(a[0],a[1]).distanceTo(L.latLng(b[0],b[1])); }catch(e){ return 1e9; } }
+    // proiezione del punto P sul segmento A-B (in metri locali), ritorna {d, t, pt}
+    function projSeg(P,A,B){
+      var kx=Math.cos(P[0]*Math.PI/180)*111320, ky=110540;
+      var ax=(A[1]-P[1])*kx, ay=(A[0]-P[0])*ky, bx=(B[1]-P[1])*kx, by=(B[0]-P[0])*ky;
+      var dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy;
+      var t = L2>0 ? -(ax*dx+ay*dy)/L2 : 0; t=Math.max(0,Math.min(1,t));
+      var px=ax+t*dx, py=ay+t*dy; var d=Math.sqrt(px*px+py*py);
+      var pt=[A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t];
+      return {d:d, t:t, pt:pt};
+    }
+    // aggancia l'auto alla strada più vicina; ritorna {road, seg, t, pt, d}
+    function snap(lat,lon,roads){
+      var best=null, P=[lat,lon];
+      for(var i=0;i<roads.length;i++){ var pts=roads[i].pts;
+        for(var j=0;j<pts.length-1;j++){ var pr=projSeg(P,pts[j],pts[j+1]);
+          if(!best||pr.d<best.d) best={road:i,seg:j,t:pr.t,pt:pr.pt,d:pr.d}; } }
+      return best;
+    }
+    function bearingOf(a,b){ // gradi 0..360
+      var y=Math.sin((b[1]-a[1])*Math.PI/180)*Math.cos(b[0]*Math.PI/180);
+      var x=Math.cos(a[0]*Math.PI/180)*Math.sin(b[0]*Math.PI/180)-Math.sin(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.cos((b[1]-a[1])*Math.PI/180);
+      var d=Math.atan2(y,x)*180/Math.PI; return (d+360)%360;
+    }
+    function angDiff(a,b){ var d=Math.abs(a-b)%360; return d>180?360-d:d; }
+    // cammina lungo la strada agganciata nella direzione di marcia, fino a distM metri
+    function walkForward(road, snapInfo, brg, distM){
+      var pts=road.pts, out=[snapInfo.pt];
+      // direzione: avanti (j+1..) o indietro (j..0) secondo quale tangente somiglia alla rotta
+      var segA=pts[snapInfo.seg], segB=pts[snapInfo.seg+1];
+      var fwdBrg=bearingOf(segA,segB);
+      var forward = (brg<0) ? true : angDiff(brg,fwdBrg)<=90;
+      var acc=0, cur=snapInfo.pt;
+      if(forward){
+        for(var j=snapInfo.seg+1;j<pts.length;j++){ var step=md(cur,pts[j]); if(acc+step>=distM){ var r=(distM-acc)/step; out.push([cur[0]+(pts[j][0]-cur[0])*r, cur[1]+(pts[j][1]-cur[1])*r]); return {pts:out, done:true, end:out[out.length-1]}; } acc+=step; out.push(pts[j]); cur=pts[j]; }
+      } else {
+        for(var k=snapInfo.seg;k>=0;k--){ var step2=md(cur,pts[k]); if(acc+step2>=distM){ var r2=(distM-acc)/step2; out.push([cur[0]+(pts[k][0]-cur[0])*r2, cur[1]+(pts[k][1]-cur[1])*r2]); return {pts:out, done:true, end:out[out.length-1]}; } acc+=step2; out.push(pts[k]); cur=pts[k]; }
+      }
+      return {pts:out, done:false, end:cur, acc:acc};   // finito il tile prima della svolta
+    }
+    function clearRoute(){ try{ if(routeLine){routeLine.setLatLngs([]); routeGlow.setLatLngs([]);} if(routeTurn) routeTurn.setLatLngs([]); }catch(e){} }
+    function drawRoute(pts, turnPts){
+      try{
+        if(!routeLine){
+          routeGlow=L.polyline([],{color:'#1E5FAE',weight:18,opacity:.35,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+          routeLine=L.polyline([],{color:'#4F9BF0',weight:8,opacity:.98,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+          routeTurn=L.polyline([],{color:'#7FC0FF',weight:8,opacity:.98,lineJoin:'round',lineCap:'round',dashArray:'2,10',interactive:false}).addTo(map);
+        }
+        routeGlow.setLatLngs(pts); routeLine.setLatLngs(pts); routeTurn.setLatLngs(turnPts||[]);
+      }catch(e){ try{AndroidMap.status('route: draw err '+e);}catch(x){} }
+    }
+    var lastRouteLog=0;
+    function retrace(lat,lon,brg){
+      try{
+        if(!vLogged){ vLogged=true; var vi0=viewInfo(); try{AndroidMap.status('route: view ts='+(vi0?vi0.ts:'?')+' ld='+(vi0?vi0.ld:'?')+' md='+(vi0?vi0.md:'?')+' z='+map.getZoom().toFixed(1));}catch(x){} }
+        if(!navActive || navDistM<=0){ clearRoute(); return; }
+        var roads=roadsNear(lat,lon,15); if(!roads.length) roads=roadsNear(lat,lon,14);
+        if(!roads.length){ clearRoute(); logRoute('no-roads'); return; }
+        var sn=snap(lat,lon,roads); if(!sn){ clearRoute(); return; }
+        if(sn.d>35){ clearRoute(); logRoute('off-road d='+sn.d.toFixed(0)+'m'); return; }   // sicurezza: auto non sulla strada
+        var dist=Math.min(navDistM, 2500);
+        var w=walkForward(roads[sn.road], sn, brg, dist);
+        var line=w.pts; var turn=[];
+        // moncone della svolta: strada dopo la svolta, per nome, dal punto di svolta
+        if(w.done && navRoad){
+          var jr=roadsNear(w.end[0], w.end[1], 15), want=navRoad.toLowerCase();
+          var cand=null, cd=1e9;
+          for(var i=0;i<jr.length;i++){ var nm=(jr[i].name||'').toLowerCase(); if(nm && (nm.indexOf(want)>=0||want.indexOf(nm)>=0)){
+              var s2=snap(w.end[0],w.end[1],[jr[i]]); if(s2 && s2.d<cd){ cd=s2.d; cand={r:jr[i],s:s2}; } } }
+          if(cand && cd<40){ var tw=walkForward(cand.r, cand.s, -1, 80); turn=tw.pts; }
+        }
+        drawRoute(line, turn);
+        logRoute('ok road="'+(roads[sn.road].name||'?')+'" snap='+sn.d.toFixed(0)+'m pts='+line.length+' dist='+dist.toFixed(0)+' after="'+navRoad+'" turnPts='+turn.length);
+      }catch(e){ clearRoute(); try{AndroidMap.status('route: err '+e);}catch(x){} }
+    }
+    function logRoute(s){ var n=Date.now(); if(n-lastRouteLog<2500) return; lastRouteLog=n; try{AndroidMap.status('route: '+s);}catch(e){} }
+    // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione
+    window.setRoute=function(active, distM, road, turnHint){
+      navActive=!!active;
+      navDistM=(typeof distM==='number'&&distM>0)?distM:-1;
+      navRoad=(road||'').trim(); navTurn=(turnHint||'').trim();
+      if(curLL) retrace(curLL[0],curLL[1],lastBrg); else if(!navActive) clearRoute();
+    };
+
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
     function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 18; if(k<50)return 17; if(k<80)return 16; return 15; }
@@ -201,7 +318,7 @@
     }
     window.setPos=function(lat,lon,speed,bearing){
       var ll=[lat,lon];
-      if(typeof bearing==='number') setBearing(bearing);   // calm.113: heading-up
+      if(typeof bearing==='number'){ setBearing(bearing); if(bearing>=0) lastBrg=bearing; }   // calm.113: heading-up
       if(!haveFix){ me.addTo(map); map.setView(anchorCenter(ll,17),17); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
       // scorrimento morbido verso il nuovo punto invece di saltare
       animFrom=curLL||ll; animTo=ll; curLL=ll; animStart=Date.now();
@@ -211,8 +328,8 @@
         if(b!==lastBucket){ lastBucket=b; map.setView(anchorCenter(ll,tz), tz, {animate:true}); }
       }
       streetAt(lat,lon);
-      addTrail(lat,lon);       // calm.113: traccia evidenziata del percorso guidato
-      calibDump(lat,lon);      // calm.113: dati per tarare il percorso in avanti
+      retrace(lat,lon,lastBrg); // calm.114: percorso IN AVANTI fino alla prossima svolta
+      calibDump(lat,lon);       // calm.113: geometria strada (diagnostica)
     };
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     try{AndroidMap.status('page-ready');}catch(e){}
