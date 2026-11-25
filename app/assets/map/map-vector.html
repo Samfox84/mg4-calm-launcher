@@ -38,6 +38,10 @@
   function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
   console.log('map: page start, origin='+location.origin);
   if(q('dim')==='1'){ var nd=document.getElementById('nightdim'); if(nd) nd.style.display='block'; }
+  // calm.110: dove tenere il pallino sullo schermo (0..1). Serve sul QUADRO, dove il riquadro visibile
+  // non è centrato sulla finestra: spostando l'ancora si rimette il pallino al centro di ciò che si vede.
+  var AX=parseFloat(q('ax')); if(isNaN(AX)||AX<0||AX>1) AX=0.5;
+  var AY=parseFloat(q('ay')); if(isNaN(AY)||AY<0||AY>1) AY=0.5;
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
@@ -49,6 +53,16 @@
     if (layer.on){ layer.on('load', ok); layer.on('tileload', function(){ tileN++; }); layer.on('tileerror', function(){ try{AndroidMap.status('engine-error:tileerror');}catch(e){} }); }
     layer.addTo(map);
     console.log('map: layer added');
+
+    // calm.110: centro che mette il pallino al punto (AX,AY) dello schermo invece che al centro della finestra.
+    function anchorCenter(ll, z){
+      try{
+        z = (z==null) ? map.getZoom() : z;
+        var s=map.getSize();
+        var p=map.project(ll, z).add([s.x*(0.5-AX), s.y*(0.5-AY)]);
+        return map.unproject(p, z);
+      }catch(e){ return ll; }
+    }
 
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
@@ -65,9 +79,9 @@
     window.setNowPlaying=function(txt){ lastTrack=(txt||'').trim(); renderStreet(); };
     function setFollow(on){ follow=on; rebtn.style.display=on?'none':'block'; }
     map.on('dragstart', function(){ setFollow(false); });
-    rebtn.addEventListener('click', function(){ setFollow(true); if(haveFix){ map.setView(me.getLatLng(), map.getZoom(), {animate:true}); } });
+    rebtn.addEventListener('click', function(){ setFollow(true); if(haveFix){ map.setView(anchorCenter(me.getLatLng()), map.getZoom(), {animate:true}); } });
 
-    function resize(){ try{ map.invalidateSize(true); }catch(e){} }
+    function resize(){ try{ map.invalidateSize(true); if(haveFix && follow && curLL){ map.setView(anchorCenter(curLL), map.getZoom(), {animate:false}); } }catch(e){} }
     window.addEventListener('resize', resize);
     setTimeout(resize,150); setTimeout(resize,600); setTimeout(resize,1500);
 
@@ -109,18 +123,18 @@
       var p=Math.min(1,(Date.now()-animStart)/ANIM_MS);
       var lat=animFrom[0]+(animTo[0]-animFrom[0])*p, lon=animFrom[1]+(animTo[1]-animFrom[1])*p;
       me.setLatLng([lat,lon]);
-      if(follow){ map.panTo([lat,lon],{animate:false}); }
+      if(follow){ map.panTo(anchorCenter([lat,lon]),{animate:false}); }
       if(p<1){ animReq=true; requestAnimationFrame(lerpStep); } else { curLL=animTo; animFrom=animTo=null; }
     }
     window.setPos=function(lat,lon,speed){
       var ll=[lat,lon];
-      if(!haveFix){ me.addTo(map); map.setView(ll,17); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
+      if(!haveFix){ me.addTo(map); map.setView(anchorCenter(ll,17),17); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
       // scorrimento morbido verso il nuovo punto invece di saltare
       animFrom=curLL||ll; animTo=ll; curLL=ll; animStart=Date.now();
       if(!animReq){ animReq=true; requestAnimationFrame(lerpStep); }
       if(follow && typeof speed==='number' && speed>=0){
         var tz=zoomForSpeed(speed), b=Math.round(tz*2);
-        if(b!==lastBucket){ lastBucket=b; map.setZoom(tz,{animate:true}); }
+        if(b!==lastBucket){ lastBucket=b; map.setView(anchorCenter(ll,tz), tz, {animate:true}); }
       }
       streetAt(lat,lon);
     };

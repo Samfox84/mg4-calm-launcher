@@ -310,11 +310,17 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.110
+- **Mappa sul quadro: pallino centrato da solo**: la mappa ora riempie il display del quadro bordo a bordo e si ricentra sul pallino appena la vista si assesta (da fermi, prima di partire), così il pallino resta al centro da solo — niente regolazioni mentre si guida. Lo zoom automatico in base alla velocità è ancorato al pallino anche sul quadro, e il movimento resta morbido tra una posizione GPS e l'altra. I due cursori in Impostazioni (orizzontale/verticale) restano solo come riserva, per il raro caso in cui il pallino sembri ancora spostato.
+
 #### 1.0.6-calm.109
 - **Mappa sul quadro (test)**: nuovo interruttore in Impostazioni che disegna la mappa dal vivo del launcher (solo la posizione, con il pallino che si muove) sul QUADRO strumenti dietro al volante, come secondo display. Non è navigazione passo-passo. Spento di default: lascialo spento per continuare a usare il quadro di DiPlay. Se non fa nulla o si comporta male, spegnilo — non può bloccare il launcher. Ogni passo viene scritto nel log diagnostico (chiavi cluster.map.*).
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.110
+- **Cluster map: auto-centred dot**: the cluster map now fills the cluster display edge-to-edge and re-centres on the blue dot the moment the view settles (parked, before you set off), so the dot sits centred on its own — no manual adjustment while driving. The speed-based zoom stays anchored on the dot on the cluster too, and movement stays smooth between GPS fixes. Two Settings sliders (horizontal/vertical) remain as an optional backup only, for the rare case the dot still looks off.
 
 #### 1.0.6-calm.109
 - **Map on the cluster (test)**: a new Settings toggle draws the launcher's own live position map (position only, with a moving dot) on the instrument CLUSTER behind the wheel, as a second display. Not turn-by-turn. Off by default — leave it off to keep using DiPlay's cluster. If it does nothing or misbehaves, turn it off; it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.* keys).

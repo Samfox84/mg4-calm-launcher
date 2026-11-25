@@ -36,11 +36,15 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private android.location.Location lastLoc;
     private String lastNP = "";   // 1.0.5: ultimo brano spinto sulla mappa ("Via | Brano")
     private final boolean nightDim;
+    private final float anchorX, anchorY;   // calm.110: dove tenere il pallino sullo schermo (0..1), 0.5 = centro
 
     public LiveMap(Context c) { this(c, false); }
-    public LiveMap(Context c, boolean nightDim) {
+    public LiveMap(Context c, boolean nightDim) { this(c, nightDim, 0.5f, 0.5f); }
+    public LiveMap(Context c, boolean nightDim, float ax, float ay) {
         super(c);
         this.nightDim = nightDim;
+        this.anchorX = ax;
+        this.anchorY = ay;
         setBackgroundColor(0xFF0E1114);
         web = new WebView(c);
         web.setBackgroundColor(0xFF0E1114);
@@ -77,7 +81,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try {
                 int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html" + (nightDim ? "?dim=1" : ""));
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : ""));
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());

@@ -58,6 +58,16 @@ public final class ClusterMap {
 
     public static void stop() { UI.post(() -> hide("stop")); }
 
+    /** Re-show with the latest position setting (used when the user nudges the cluster position sliders). */
+    public static void restart(Context c) {
+        if (c == null) return;
+        final Context app = c.getApplicationContext();
+        boolean on = false;
+        try { on = Prefs.get(app).clusterMap(); } catch (Throwable ignored) {}
+        if (!on) return;
+        UI.post(() -> { try { hide("riposiziono"); show(app); } catch (Throwable t) { Diag.error("cluster.map", "restart: " + t); } });
+    }
+
     private static void show(Context app) {
         logDisplays(app);
         Display cluster = findClusterDisplay(app);
@@ -74,7 +84,9 @@ public final class ClusterMap {
 
         LiveMap map;
         try {
-            map = new LiveMap(app, true);   // nightDim=true: variante calma/scura adatta al quadro
+            Prefs p = Prefs.get(app);
+            map = new LiveMap(app, true, p.clusterPosX() / 100f, p.clusterPosY() / 100f);   // nightDim + ancora del pallino
+            Diag.put("cluster.map", "posizione pallino X=" + p.clusterPosX() + "% Y=" + p.clusterPosY() + "%");
         } catch (Throwable t) {
             Diag.error("cluster.map", "LiveMap non creata: " + t);
             return;
@@ -89,7 +101,22 @@ public final class ClusterMap {
                 p = new Presentation(app, cluster);
                 p.setTitle("Calm cluster map");
                 p.setCancelable(false);
-                if (types[i] != -1 && p.getWindow() != null) p.getWindow().setType(types[i]);
+                android.view.Window w = p.getWindow();
+                if (w != null) {
+                    if (types[i] != -1) w.setType(types[i]);
+                    // Riempi il display del quadro bordo a bordo: così la mappa copre tutto e il pallino
+                    // finisce da solo al centro, senza regolazioni manuali.
+                    try {
+                        w.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFF0E1114));
+                        w.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+                        w.setGravity(android.view.Gravity.FILL);
+                        w.getDecorView().setPadding(0, 0, 0, 0);
+                        android.view.WindowManager.LayoutParams lp = w.getAttributes();
+                        lp.horizontalMargin = 0f; lp.verticalMargin = 0f;
+                        w.setAttributes(lp);
+                    } catch (Throwable ignored) {}
+                }
                 p.setContentView(map);
                 p.show();
                 presentation = p;
