@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.108",
-  "apk": "releases/MG4Launcher-1.0.6-calm.108.apk",
+  "version": "1.0.6-calm.109",
+  "apk": "releases/MG4Launcher-1.0.6-calm.109.apk",
   "size": 9078474,
-  "notes": "New 'Siri over Bluetooth (test)' button in Settings (Startup and apps). It starts Siri over the car's Bluetooth hands-free, which uses the car's own microphone instead of CarPlay's silent one. The test for whether Bluetooth can give us the mic."
+  "notes": "New (test): 'Map on the cluster' toggle in Settings, off by default. Draws the launcher's own live position map on the instrument cluster (position only, not turn-by-turn). Leave it off to keep using DiPlay's cluster; if it does nothing or misbehaves, turn it off - it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.*)."
 }
