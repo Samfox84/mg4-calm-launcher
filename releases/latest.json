@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.114",
-  "apk": "releases/MG4Launcher-1.0.6-calm.114.apk",
+  "version": "1.0.6-calm.115",
+  "apk": "releases/MG4Launcher-1.0.6-calm.115.apk",
   "size": 9090762,
-  "notes": "Route AHEAD on the cluster: the map now draws the road ahead to your next turn as a highlighted line, read from Apple Maps or Google Maps over wired CarPlay (Waze does not send this). It only draws when it confirms you are on that road, so it never shows a wrong line. New 'Cluster display' settings tab: turn the cluster map on, set the dot position while parked, heading-up and next-turn banner. Mic stays working."
+  "notes": "Route reaches further: the cluster map now preloads the offline road tiles ahead and stitches them, so the highlighted route runs all the way to your next turn (not just the on-screen bit). The 'Amazon Music' label no longer pops up over the map. New option in Settings (Media and nav) to hide the Map/Media/CarPlay buttons. Apple/Google only (Waze sends no turn data); mic stays working."
 }
