@@ -120,6 +120,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         });
         goFullscreen();
         build();
+        // calm.109 (TEST): mappa sul quadro, solo se accesa nelle impostazioni (spenta di default). Best-effort.
+        com.mg4.launcher.svc.ClusterMap.refresh(this);
         // Calm Launcher: animazione d'avvio (logo che pulsa + anello di colori), una volta all'avvio a freddo
         if (theme != null) {
             final StartupSplash sp = new StartupSplash(this, theme.bg, theme.battery, theme.accent);

@@ -310,8 +310,14 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.109
+- **Mappa sul quadro (test)**: nuovo interruttore in Impostazioni che disegna la mappa dal vivo del launcher (solo la posizione, con il pallino che si muove) sul QUADRO strumenti dietro al volante, come secondo display. Non è navigazione passo-passo. Spento di default: lascialo spento per continuare a usare il quadro di DiPlay. Se non fa nulla o si comporta male, spegnilo — non può bloccare il launcher. Ogni passo viene scritto nel log diagnostico (chiavi cluster.map.*).
+
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.109
+- **Map on the cluster (test)**: a new Settings toggle draws the launcher's own live position map (position only, with a moving dot) on the instrument CLUSTER behind the wheel, as a second display. Not turn-by-turn. Off by default — leave it off to keep using DiPlay's cluster. If it does nothing or misbehaves, turn it off; it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.* keys).
 
 #### 1.0.6-calm.108
 - **Siri over Bluetooth (test)**: a new button in Settings (Startup and apps) starts Siri on the iPhone over the car's Bluetooth hands-free, so Siri uses the CAR's microphone instead of the silent CarPlay one.

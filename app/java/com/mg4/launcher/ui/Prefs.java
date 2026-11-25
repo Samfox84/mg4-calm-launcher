@@ -155,6 +155,9 @@ public final class Prefs {
     public void setResumeMedia(boolean b) { sp.edit().putBoolean("resumeMedia", b).apply(); }
     public boolean liveMap() { return sp.getBoolean("liveMap", false); }                 // mappa dal vivo "dove siamo" (sperimentale)
     public void setLiveMap(boolean b) { sp.edit().putBoolean("liveMap", b).apply(); }
+    // calm.109 (TEST): mappa dal vivo sul QUADRO (secondo display). Spenta di default: DiPlay resta il ripiego.
+    public boolean clusterMap() { return sp.getBoolean("clusterMap", false); }
+    public void setClusterMap(boolean b) { sp.edit().putBoolean("clusterMap", b).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }
 
     public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante

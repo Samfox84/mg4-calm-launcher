@@ -618,6 +618,13 @@ public final class SettingsView extends FrameLayout {
                     prefs.setLiveMap(on);
                     host.settingsChanged(true);
                 }), false));
+        // calm.109 (TEST): la stessa mappa dal vivo, ma sul QUADRO (secondo display). Solo posizione, non navigazione.
+        card.addView(row(c, "Map on the cluster (test)",
+                "EXPERIMENTAL. Draws the launcher's own live position map on the instrument cluster (the screen behind the wheel). Position only, not turn-by-turn. OFF by default — leave off to keep using DiPlay's cluster. If it does nothing or misbehaves, turn it off; it can't stop the launcher. Everything it does is written to the diagnostic log.",
+                toggle(c, prefs.clusterMap(), on -> {
+                    prefs.setClusterMap(on);
+                    com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);
+                }), false));
         card.addView(row(c, "Resume last source on start",
                 "Off by default: the launcher starts silent. Turn on to auto-resume whatever was last playing (radio, Bluetooth...) when the car powers on.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));
