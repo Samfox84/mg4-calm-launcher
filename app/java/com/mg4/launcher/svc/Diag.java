@@ -30,6 +30,9 @@ public final class Diag {
     private static final Map<String, String> VALUES = new TreeMap<>();
     private static final ArrayDeque<String> ERRORS = new ArrayDeque<>();
     private static final ArrayDeque<String> EVENTS = new ArrayDeque<>();
+    // calm.113: campioni di geometria strada sotto l'auto (verità = GPS), per tarare il percorso in avanti.
+    // Canale separato così non toglie spazio agli eventi del feed nav.
+    private static final ArrayDeque<String> CALIB = new ArrayDeque<>();
 
     private Diag() {}
 
@@ -56,6 +59,19 @@ public final class Diag {
     /** Come put, ma senza riempire gli eventi (valori che cambiano di continuo, es. corrente). */
     public static synchronized void putQuiet(String key, Object value) {
         VALUES.put(key, String.valueOf(value));
+    }
+
+    /** calm.113: campione di calibrazione del percorso (canale dedicato, non tocca gli eventi del feed nav). */
+    public static synchronized void calib(String line) {
+        CALIB.addLast(now() + "  " + line);
+        while (CALIB.size() > 300) CALIB.removeFirst();
+    }
+
+    private static synchronized String calibDump() {
+        if (CALIB.isEmpty()) return "(nessun campione — accendi la mappa sul quadro e guida un po')\n";
+        StringBuilder sb = new StringBuilder();
+        for (String s : CALIB) sb.append(s).append('\n');
+        return sb.toString();
     }
 
     public static synchronized void error(String where, String msg) {
@@ -241,6 +257,7 @@ public final class Diag {
                 .append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append(" · ").append(Build.DISPLAY).append("\n\n");
         sb.append("===== VALORI ATTUALI =====\n").append(dump()).append('\n');
         sb.append("===== EVENTI RECENTI =====\n").append(events()).append('\n');
+        sb.append("===== CALIBRAZIONE PERCORSO (calm.113) =====\n").append(calibDump()).append('\n');
         sb.append("===== CRASH RECENTI (tutte le app) =====\n").append(crashes()).append('\n');
         sb.append("===== RadioFix =====\n").append(radioFix(c)).append('\n');
         sb.append("===== LOGCAT DEL LAUNCHER =====\n").append(logcat());
@@ -263,7 +280,7 @@ public final class Diag {
             try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
                 String l;
                 while ((l = r.readLine()) != null) {
-                    if (pat.matcher(l).find()) { tail.addLast(l); while (tail.size() > 3000) tail.removeFirst(); }
+                    if (pat.matcher(l).find()) { tail.addLast(l); while (tail.size() > 500) tail.removeFirst(); }
                 }
             }
             p.waitFor();

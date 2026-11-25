@@ -69,15 +69,15 @@ public final class SettingsView extends FrameLayout {
     // 1.0.0 (punto 11): 7 sezioni nello stesso ordine su tutte le versioni - Auto, Home, Barra e pulsanti,
     // Radio e loghi, Aspetto, Avvio e app, Sistema. SEC_DRIVE è stato rinominato SEC_LAUNCH (ora "Avvio e app":
     // il lato guida si è spostato in Auto, i loghi radio si sono spostati qui sotto in SEC_LOGOS).
-    public static final int SEC_CAR = 0, SEC_HOME = 1, SEC_DATA = 2, SEC_MEDIA = 3, SEC_BAR = 4, SEC_LOGOS = 5, SEC_LOOK = 6, SEC_LAUNCH = 7, SEC_SYSTEM = 8;
+    public static final int SEC_CAR = 0, SEC_HOME = 1, SEC_DATA = 2, SEC_MEDIA = 3, SEC_BAR = 4, SEC_LOGOS = 5, SEC_LOOK = 6, SEC_LAUNCH = 7, SEC_SYSTEM = 8, SEC_CLUSTER = 9;
 
     /** Sezione da mostrare alla prossima apertura (es. Sistema dal popup degli aggiornamenti). */
     public static void openAt(int s) {
         section = s;
     }
-    private static final int[] SEC_ICON = {R.drawable.ic_car, R.drawable.ic_home, R.drawable.ic_chart, R.drawable.ic_nav, R.drawable.ic_buttons, R.drawable.ic_radio, R.drawable.ic_palette, R.drawable.ic_play, R.drawable.ic_gear};
-    private static final int[] SEC_NAME = {R.string.sec_car, R.string.sec_home, R.string.sec_data, R.string.sec_media, R.string.sec_bar, R.string.sec_logos, R.string.sec_look, R.string.sec_launch, R.string.sec_system};
-    private static final int[] SEC_SUB = {R.string.sec_car_sub, R.string.sec_home_sub, R.string.sec_data_sub, R.string.sec_media_sub, R.string.sec_bar_sub, R.string.sec_logos_sub, R.string.sec_look_sub, R.string.sec_launch_sub, R.string.sec_system_sub};
+    private static final int[] SEC_ICON = {R.drawable.ic_car, R.drawable.ic_home, R.drawable.ic_chart, R.drawable.ic_nav, R.drawable.ic_buttons, R.drawable.ic_radio, R.drawable.ic_palette, R.drawable.ic_play, R.drawable.ic_gear, R.drawable.ic_nav};
+    private static final int[] SEC_NAME = {R.string.sec_car, R.string.sec_home, R.string.sec_data, R.string.sec_media, R.string.sec_bar, R.string.sec_logos, R.string.sec_look, R.string.sec_launch, R.string.sec_system, R.string.sec_cluster};
+    private static final int[] SEC_SUB = {R.string.sec_car_sub, R.string.sec_home_sub, R.string.sec_data_sub, R.string.sec_media_sub, R.string.sec_bar_sub, R.string.sec_logos_sub, R.string.sec_look_sub, R.string.sec_launch_sub, R.string.sec_system_sub, R.string.sec_cluster_sub};
     /** Spazio in alto a sinistra per la spia luci del sistema (come nella home). */
     private static final int SYSTEM_LIGHT_INSET = 64;
     private static final long QUIET_CHECK_MS = 30 * 60_000L;
@@ -490,6 +490,7 @@ public final class SettingsView extends FrameLayout {
             case SEC_LOGOS: buildLogos(c, col); break;
             case SEC_LOOK: buildLook(c, col); break;
             case SEC_LAUNCH: buildLaunch(c, col); break;
+            case SEC_CLUSTER: buildCluster(c, col); break;
             default: buildSystem(c, col); break;
         }
         refreshTick.run();
@@ -618,13 +619,7 @@ public final class SettingsView extends FrameLayout {
                     prefs.setLiveMap(on);
                     host.settingsChanged(true);
                 }), false));
-        // calm.109 (TEST): la stessa mappa dal vivo, ma sul QUADRO (secondo display). Solo posizione, non navigazione.
-        card.addView(row(c, "Map on the cluster (test)",
-                "EXPERIMENTAL. Draws the launcher's own live position map on the instrument cluster (the screen behind the wheel). Position only, not turn-by-turn. OFF by default — leave off to keep using DiPlay's cluster. If it does nothing or misbehaves, turn it off; it can't stop the launcher. Everything it does is written to the diagnostic log.",
-                toggle(c, prefs.clusterMap(), on -> {
-                    prefs.setClusterMap(on);
-                    com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);
-                }), false));
+        // calm.113: la mappa sul QUADRO e le sue regolazioni hanno ora una scheda dedicata ("Cluster display").
         card.addView(row(c, "Resume last source on start",
                 "Off by default: the launcher starts silent. Turn on to auto-resume whatever was last playing (radio, Bluetooth...) when the car powers on.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));
@@ -663,7 +658,6 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Joystick controls media",
                 "Make the steering-wheel joystick skip and play/pause whatever's actually playing - CarPlay, DiPlay or your own library - not just the car's USB/Bluetooth. Left/right = previous/next; long-press the joystick = play/pause. The car's own sources are left to the system so nothing double-skips. (The joystick must be in its media mode.)",
                 toggle(c, prefs.joystickMedia(), on -> prefs.setJoystickMedia(on)), false));
-        buildClusterLook(c, card);
         buildComfortControls(c, card);
         buildMapPageControls(c, card);
         col.addView(card, topFull(14));
@@ -1711,6 +1705,70 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, "Date on the map page",
                 "Show the date under the clock on the full-screen map page.",
                 toggle(c, prefs.mapDate(), on -> { prefs.setMapDate(on); host.settingsChanged(true); }), false));
+    }
+
+    /** calm.113: scheda dedicata al QUADRO (instrument cluster) — mappa, orientamento, manovra, posizione, aspetto DiPlay. */
+    private void buildCluster(Context c, LinearLayout col) {
+        LinearLayout card = card(c);
+        card.addView(row(c, "Map on the cluster",
+                "Draws the launcher's own live map on the instrument cluster (the screen behind the wheel), with your position. Independent of CarPlay/DiPlay — it only needs GPS and the offline map. OFF by default: leave off to keep DiPlay's cluster. If it misbehaves, turn it off; it can't stop the launcher. Everything it does goes to the diagnostic log.",
+                toggle(c, prefs.clusterMap(), on -> {
+                    prefs.setClusterMap(on);
+                    com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);
+                }), false));
+        card.addView(row(c, "Face the way I'm driving",
+                "Heading-up: the cluster map turns so straight-ahead is always up, like a sat-nav. Off = north always up. Only the cluster map turns; the head-unit map stays north.",
+                toggle(c, prefs.clusterHeading(), on -> {
+                    prefs.setClusterHeading(on);
+                    com.mg4.launcher.svc.ClusterMap.restart(getContext());
+                }), false));
+        card.addView(row(c, "Next-turn banner (Apple / Google Maps)",
+                "Shows the next turn — distance, road and ETA — as a banner on the cluster map, read live from wired CarPlay. Works with Apple Maps and Google Maps (Waze doesn't send this). The microphone is unaffected.",
+                toggle(c, prefs.clusterTurn(), on -> {
+                    prefs.setClusterTurn(on);
+                    if (!on) com.mg4.launcher.svc.ClusterMap.pushTurn(false, "", "", "");
+                }), false));
+        col.addView(card, topFull(14));
+
+        // posizione del pallino nel "buco" visibile del quadro — da regolare da FERMI
+        LinearLayout pos = card(c);
+        pos.addView(Ui.text(c, "Nudge map position", Ui.ts(18), t.text, Ui.MEDIUM), top(4));
+        pos.addView(Ui.text(c, "Set while parked. Moves where your position sits on the cluster, so the dot lands in the window the car leaves visible.", Ui.ts(14), t.sub, Ui.REGULAR), top(4));
+
+        final android.widget.SeekBar sx = new android.widget.SeekBar(c);
+        sx.setMax(100); sx.setProgress(prefs.clusterPosX());
+        sx.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
+        final TextView sxVal = Ui.text(c, prefs.clusterPosX() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
+        sx.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { sxVal.setText(p + "%"); }
+            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterPosX(sb.getProgress()); com.mg4.launcher.svc.ClusterMap.restart(getContext()); }
+        });
+        pos.addView(Ui.text(c, "Left ↔ right", Ui.ts(15), t.sub, Ui.REGULAR), top(12));
+        LinearLayout xBox = Ui.row(c); xBox.setGravity(Gravity.CENTER_VERTICAL);
+        xBox.addView(sx); xBox.addView(sxVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
+        pos.addView(xBox, top(4));
+
+        final android.widget.SeekBar sy = new android.widget.SeekBar(c);
+        sy.setMax(100); sy.setProgress(prefs.clusterPosY());
+        sy.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
+        final TextView syVal = Ui.text(c, prefs.clusterPosY() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
+        sy.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { syVal.setText(p + "%"); }
+            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterPosY(sb.getProgress()); com.mg4.launcher.svc.ClusterMap.restart(getContext()); }
+        });
+        pos.addView(Ui.text(c, "Up ↕ down", Ui.ts(15), t.sub, Ui.REGULAR), top(12));
+        LinearLayout yBox = Ui.row(c); yBox.setGravity(Gravity.CENTER_VERTICAL);
+        yBox.addView(sy); yBox.addView(syVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
+        pos.addView(yBox, top(4));
+        col.addView(pos, topFull(14));
+
+        // aspetto del cluster DiPlay (colore tenuto / luminosità / preset)
+        LinearLayout look = card(c);
+        look.addView(Ui.text(c, "DiPlay cluster look", Ui.ts(18), t.text, Ui.MEDIUM), top(4));
+        buildClusterLook(c, look);
+        col.addView(look, topFull(14));
     }
 
     private void buildClusterLook(Context c, LinearLayout card) {

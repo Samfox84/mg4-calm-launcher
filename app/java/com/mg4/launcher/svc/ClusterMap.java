@@ -30,8 +30,27 @@ public final class ClusterMap {
     private static final Handler UI = new Handler(Looper.getMainLooper());
     private static Presentation presentation;
     private static int shownOn = -1;
+    private static volatile LiveMap liveMap;   // calm.113: mappa attiva sul quadro (per la fascia manovra)
+    // calm.113: ultima manovra dal feed CarPlay, ripetuta quando la mappa (ri)appare
+    private static volatile boolean lastTurnActive;
+    private static volatile String lastTurnDist = "", lastTurnRoad = "", lastTurnEta = "";
 
     private ClusterMap() {}
+
+    /**
+     * calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google Maps). App-agnostica: Apple e
+     * Google riempiono gli stessi campi, Waze no. Chiamata dal MediaClient quando il feed cambia; se la
+     * mappa del quadro non è mostrata non fa nulla.
+     */
+    public static void pushTurn(boolean active, String dist, String road, String eta) {
+        lastTurnActive = active;
+        lastTurnDist = dist == null ? "" : dist;
+        lastTurnRoad = road == null ? "" : road;
+        lastTurnEta = eta == null ? "" : eta;
+        final LiveMap m = liveMap;
+        if (m == null) return;
+        UI.post(() -> { try { m.setTurn(lastTurnActive, lastTurnDist, lastTurnRoad, lastTurnEta); } catch (Throwable ignored) {} });
+    }
 
     /** Show the cluster map if the setting is on, hide it if off. Reads the setting itself. */
     public static void refresh(Context c) {
@@ -58,6 +77,19 @@ public final class ClusterMap {
 
     public static void stop() { UI.post(() -> hide("stop")); }
 
+    /**
+     * calm.113: ricrea la mappa del quadro per applicare un cambio di orientamento (heading-up) o di
+     * posizione del pallino. Se la mappa è spenta non fa nulla.
+     */
+    public static void restart(Context c) {
+        if (c == null) return;
+        final Context app = c.getApplicationContext();
+        boolean on = false;
+        try { on = Prefs.get(app).clusterMap(); } catch (Throwable ignored) {}
+        if (!on) return;
+        UI.post(() -> { try { hide("riavvio per nuove impostazioni"); show(app); } catch (Throwable t) { Diag.error("cluster.map", "restart: " + t); } });
+    }
+
     private static void show(Context app) {
         logDisplays(app);
         Display cluster = findClusterDisplay(app);
@@ -74,7 +106,12 @@ public final class ClusterMap {
 
         LiveMap map;
         try {
-            map = new LiveMap(app, true);   // nightDim=true: variante calma/scura, pallino centrato automaticamente
+            // calm.113: posizione del pallino nel "buco" visibile (regolabile) + orientamento verso la marcia
+            Prefs p = Prefs.get(app);
+            float ax = p.clusterPosX() / 100f, ay = p.clusterPosY() / 100f;
+            boolean headingUp = p.clusterHeading();
+            Diag.put("cluster.map.pos", "ancora " + p.clusterPosX() + "%," + p.clusterPosY() + "% · heading-up " + headingUp);
+            map = new LiveMap(app, true, ax, ay, headingUp);   // nightDim=true: variante calma/scura
         } catch (Throwable t) {
             Diag.error("cluster.map", "LiveMap non creata: " + t);
             return;
@@ -108,7 +145,11 @@ public final class ClusterMap {
                 p.setContentView(map);
                 p.show();
                 presentation = p;
+                liveMap = map;
                 shownOn = cluster.getDisplayId();
+                // calm.113: ripristina la fascia manovra se un feed era già attivo
+                if (lastTurnActive) { final LiveMap fm = map;
+                    UI.postDelayed(() -> { try { fm.setTurn(true, lastTurnDist, lastTurnRoad, lastTurnEta); } catch (Throwable ignored) {} }, 1200); }
                 Diag.put("cluster.map", "MOSTRATA sul display " + shownOn + " ('" + cluster.getName() + "') tentativo "
                         + (i + 1) + (types[i] == -1 ? " (tipo predefinito)" : " (tipo system-alert)"));
                 return;
@@ -128,6 +169,7 @@ public final class ClusterMap {
     }
 
     private static void hide(String why) {
+        liveMap = null;
         if (presentation != null) {
             try { presentation.dismiss(); Diag.put("cluster.map", "chiusa (" + why + ")"); }
             catch (Throwable t) { Diag.error("cluster.map", "chiusura: " + t); }

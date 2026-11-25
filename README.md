@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.113
+- **Scheda "Cluster display" e percorso sul quadro**: nuova scheda dedicata nelle Impostazioni per tutto ciò che riguarda il quadro. La mappa sul quadro ora si posiziona nel riquadro visibile (due cursori di posizione da regolare **da fermi**) e può orientarsi verso la marcia (heading-up, con interruttore; la mappa dell'head-unit resta a nord). Nuova **fascia "prossima svolta"** (distanza, strada, orario d'arrivo) letta dal vivo dal feed CarPlay via cavo: funziona con **Apple Maps e Google Maps** (Waze non invia questi dati), senza toccare il microfono. Il percorso realmente guidato viene disegnato come **linea evidenziata** sul quadro. Il feed di navigazione ora viene letto dentro l'app (non solo nel logcat) e registrato per intero, e viene raccolta la geometria della strada sotto l'auto per tarare in sicurezza la linea del percorso **in avanti** nella prossima versione.
+
 #### 1.0.6-calm.112
 - **Cattura del feed nav di CarPlay (per la diagnostica)**: "Invia log" ora include le righe di navigazione/CarPlay di tutto il dispositivo, così si può verificare se Waze (o Apple Maps) riempie il feed dei dati di svolta su questa auto — il passo decisivo per la mappa con percorso sul quadro. Nessun cambiamento visibile alla guida.
 
@@ -324,6 +327,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.113
+- **"Cluster display" tab and a route line on the dials**: a new dedicated Settings tab for everything about the instrument cluster. The cluster map now sits in the visible window (two position sliders to set **while parked**) and can turn to face your direction of travel (heading-up toggle; the head-unit map stays north). A new **next-turn banner** (distance, road, ETA) is read live from the wired CarPlay feed: it works with **Apple Maps and Google Maps** (Waze doesn't send this), with the microphone untouched. Your actual driven path is drawn as a **highlighted route line** on the cluster. The navigation feed is now read inside the app (not just in logcat) and logged in full, and the road geometry under the car is captured to safely calibrate the **forward** route line in the next version.
 
 #### 1.0.6-calm.112
 - **Capture the CarPlay nav feed (diagnostics)**: "Send log" now includes the whole device's navigation/CarPlay log lines, so we can check whether Waze (or Apple Maps) fills the turn-data feed on this car — the deciding step for a route line on the cluster. No visible change while driving.

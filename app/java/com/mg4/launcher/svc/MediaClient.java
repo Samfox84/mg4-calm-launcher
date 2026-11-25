@@ -2239,20 +2239,57 @@ public final class MediaClient {
         public void onSessionEvent(String event, Bundle extras) {
             if ("ACTION_CARPLAY_NAVI_METADATA".equals(event) && extras != null) {
                 tbt = extras;
-                Diag.put("carplay.navigazione", extras.toString());
+                onTbt("evento", extras);
             }
         }
 
         @Override
         public void onExtrasChanged(Bundle extras) {
-            if (extras != null && extras.containsKey("IS_TBT_ACTIVE")) tbt = extras;
+            if (extras != null && extras.containsKey("IS_TBT_ACTIVE")) { tbt = extras; onTbt("extras", extras); }
         }
 
         @Override
         public void onSessionDestroyed() {
             controller = null;
             browser = null;
+            ClusterMap.pushTurn(false, "", "", "");   // calm.113: niente feed → nascondi la fascia manovra
             if (running) main.postDelayed(MediaClient.this::connectBrowser, 5000);
         }
     };
+
+    /**
+     * calm.113: feed di navigazione CarPlay (Apple/Google Maps). Registra l'intero bundle (così vediamo
+     * esattamente quali campi manda ogni app, Google compreso) e manda la "prossima manovra" alla mappa
+     * del quadro. App-agnostico: Apple e Google riempiono gli stessi campi; Waze non manda nulla.
+     */
+    private String lastTbtKey = "";
+    private void onTbt(String via, Bundle b) {
+        if (b == null) return;
+        try {
+            Diag.put("carplay.navigazione", via + " · " + b.toString());   // bundle completo per taratura
+        } catch (Throwable ignored) {}
+        try {
+            boolean active = b.getBoolean("IS_TBT_ACTIVE", false);
+            String dist = (bv(b, "DIST_TO_NEXT_JUNCTION") + " " + bv(b, "DIST_TO_NEXT_JUNCTION_UNIT")).trim();
+            String road = bv(b, "ROAD_AFTER_JUNCTION");
+            String eta = bv(b, "EST_TIME_ARRIVAL");
+            if (!eta.isEmpty()) eta = "ETA " + eta;
+            // alcune app non impostano IS_TBT_ACTIVE: se c'è una manovra, consideralo attivo
+            if (!active && (!dist.trim().isEmpty() || !road.isEmpty())) active = true;
+            Diag.put("carplay.manovra", (active ? "attiva" : "ferma") + " · " + dist + " · " + road + " · " + eta
+                    + " · icon " + bv(b, "ICON_ID") + " · rem " + bv(b, "REM_TIME_TO_DEST") + " · tot " + bv(b, "TOTAL_DIST_REM"));
+            String key = active + "|" + dist + "|" + road + "|" + eta;
+            boolean want = true;
+            try { want = com.mg4.launcher.ui.Prefs.get(ctx).clusterTurn(); } catch (Throwable ignored) {}
+            if (!key.equals(lastTbtKey)) { lastTbtKey = key; if (want) ClusterMap.pushTurn(active, dist, road, eta); }
+        } catch (Throwable e) {
+            Diag.error("carplay.manovra", e.toString());
+        }
+    }
+
+    /** Legge un campo del bundle come stringa, qualunque sia il tipo, senza "null". */
+    private static String bv(Bundle b, String k) {
+        try { Object o = b.get(k); return o == null ? "" : String.valueOf(o).trim(); }
+        catch (Throwable e) { return ""; }
+    }
 }

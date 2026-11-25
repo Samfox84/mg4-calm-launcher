@@ -158,6 +158,19 @@ public final class Prefs {
     // calm.109 (TEST): mappa dal vivo sul QUADRO (secondo display). Spenta di default: DiPlay resta il ripiego.
     public boolean clusterMap() { return sp.getBoolean("clusterMap", false); }
     public void setClusterMap(boolean b) { sp.edit().putBoolean("clusterMap", b).apply(); }
+    // calm.113: posizione del PALLINO nel buco visibile del quadro (il quadro disegna i suoi strumenti sopra la
+    // mappa e ne rivela solo un riquadro, a destra). 0..100 (X: 64 = verso destra, Y: 48). Si tara una volta da fermi.
+    public int clusterPosX() { return Math.max(0, Math.min(100, sp.getInt("clusterPosX", 64))); }
+    public int clusterPosY() { return Math.max(0, Math.min(100, sp.getInt("clusterPosY", 48))); }
+    public void setClusterPosX(int v) { sp.edit().putInt("clusterPosX", Math.max(0, Math.min(100, v))).apply(); }
+    public void setClusterPosY(int v) { sp.edit().putInt("clusterPosY", Math.max(0, Math.min(100, v))).apply(); }
+    // calm.113: mappa del quadro orientata verso la direzione di marcia (heading-up). Accesa di default.
+    public boolean clusterHeading() { return sp.getBoolean("clusterHeading", true); }
+    public void setClusterHeading(boolean b) { sp.edit().putBoolean("clusterHeading", b).apply(); }
+
+    // calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google) sulla mappa del quadro
+    public boolean clusterTurn() { return sp.getBoolean("clusterTurn", true); }
+    public void setClusterTurn(boolean b) { sp.edit().putBoolean("clusterTurn", b).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }
 
     public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante

@@ -35,6 +35,8 @@
     <string name="sec_data_sub" formatted="false">Date, battery, distance, tyres</string>
     <string name="sec_media" formatted="false">Media &amp; nav</string>
     <string name="sec_media_sub" formatted="false">Nav app, sources, top button</string>
+    <string name="sec_cluster" formatted="false">Cluster display</string>
+    <string name="sec_cluster_sub" formatted="false">Map on the dials, heading, next turn</string>
     <string name="sec_look" formatted="false">Appearance</string>
     <string name="sec_look_sub" formatted="false">Theme, size, language</string>
     <string name="sec_drive" formatted="false">Driving</string>

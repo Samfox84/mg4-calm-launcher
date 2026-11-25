@@ -25,6 +25,13 @@
   #recenter{position:absolute;right:16px;bottom:150px;z-index:600;display:none;
             background:#1B2024;color:#E7ECF0;border:1px solid #2A3036;border-radius:28px;
             padding:15px 26px;font:600 22px sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.4);}
+  /* calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google). In alto, sopra il velo. */
+  #turn{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:620;display:none;
+        max-width:88%;background:rgba(16,19,22,.82);color:#EEF2F6;border:1px solid #2A3036;
+        border-radius:16px;padding:10px 18px;font:700 26px sans-serif;letter-spacing:.2px;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 14px rgba(0,0,0,.6);}
+  #turn .d{color:#4F9BF0;}
+  #turn .e{color:#AEB6BF;font-weight:600;font-size:20px;}
 </style>
 </head>
 <body>
@@ -32,6 +39,7 @@
 <div id="vignette"></div>
 <div id="nightdim"></div>
 <div id="street"></div>
+<div id="turn"></div>
 <div id="recenter">Recenter</div>
 <script>
   window.onerror=function(m,src,ln){ try{console.error('map: onerror '+m+' @'+src+':'+ln);}catch(e){} };
@@ -42,6 +50,7 @@
   // non è centrato sulla finestra: spostando l'ancora si rimette il pallino al centro di ciò che si vede.
   var AX=parseFloat(q('ax')); if(isNaN(AX)||AX<0||AX>1) AX=0.5;
   var AY=parseFloat(q('ay')); if(isNaN(AY)||AY<0||AY>1) AY=0.5;
+  var ROT=q('rot')==='1';   // calm.113: heading-up (mappa ruota verso la marcia) — solo quadro
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
@@ -64,8 +73,72 @@
       }catch(e){ return ll; }
     }
 
+    // calm.113: heading-up — ruota TUTTA la mappa attorno al pallino (AX,AY) verso la direzione di marcia.
+    // Gli overlay (via, fascia manovra, velo) sono fratelli di #map, quindi restano dritti e leggibili.
+    var mapEl=document.getElementById('map'), dispBearing=0, rotReady=false;
+    function applyRotation(){
+      if(!ROT || !mapEl) return;
+      if(!rotReady){ mapEl.style.transformOrigin=(AX*100)+'% '+(AY*100)+'%';
+        mapEl.style.transition='transform .8s linear'; rotReady=true; }
+      // scala 1.35: copre gli angoli quando la vista è ruotata, così non appare nero vicino al pallino
+      mapEl.style.transform='scale(1.35) rotate('+(-dispBearing)+'deg)';
+    }
+    function setBearing(b){
+      if(!ROT || typeof b!=='number' || b<0) return;
+      var d=((b-dispBearing+540)%360)-180;   // via più corta (evita il giro 359→0)
+      dispBearing+=d; applyRotation();
+    }
+    if(ROT){ applyRotation(); }
+
+    // calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google Maps). Solo testo del feed.
+    var turnEl=document.getElementById('turn');
+    window.setTurn=function(active, dist, road, eta){
+      if(!turnEl) return;
+      if(!active){ turnEl.style.display='none'; return; }
+      var d=(dist||'').trim(), r=(road||'').trim(), e=(eta||'').trim();
+      if(!d && !r){ turnEl.style.display='none'; return; }
+      var html='';
+      if(d) html+='<span class="d">▸ '+d+'</span>';
+      if(r) html+=(d?'&nbsp;&nbsp;':'')+r;
+      if(e) html+='&nbsp;&nbsp;<span class="e">'+e+'</span>';
+      turnEl.innerHTML=html; turnEl.style.display='block';
+    };
+
     var meIcon=L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]});
     var me=L.marker([52.5,-2.5],{icon:meIcon,interactive:false,keyboard:false});
+
+    // calm.113: TRACCIA evidenziata = percorso realmente guidato (GPS). Sempre corretta, nessun dato mappa.
+    var trailPts=[], trailLine=null, trailGlow=null, lastTrailLL=null;
+    function addTrail(lat,lon){
+      try{
+        if(lastTrailLL){ if(L.latLng(lat,lon).distanceTo(L.latLng(lastTrailLL[0],lastTrailLL[1]))<4) return; }
+        lastTrailLL=[lat,lon]; trailPts.push([lat,lon]); if(trailPts.length>500) trailPts.shift();
+        if(!trailLine){
+          trailGlow=L.polyline([],{color:'#2E6FB7',weight:14,opacity:.30,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+          trailLine=L.polyline([],{color:'#4F9BF0',weight:6,opacity:.95,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+        }
+        trailGlow.setLatLngs(trailPts); trailLine.setLatLngs(trailPts);
+      }catch(e){}
+    }
+    // calm.113: CALIBRAZIONE — ogni ~3s registra la geometria della strada sotto l'auto (verità = GPS),
+    // per tarare in modo sicuro il tracciamento del percorso in AVANTI nella prossima versione.
+    var lastCalib=0;
+    function calibDump(lat,lon){
+      var now=Date.now(); if(now-lastCalib<3000) return; lastCalib=now;
+      try{
+        var zs=[15,14,16], best=null, bz=-1;
+        for(var zi=0; zi<zs.length && !best; zi++){ var arr=featuresAt(lat,lon,zs[zi]);
+          for(var i=0;i<arr.length;i++){ var e=arr[i]; if(e.feature&&e.feature.geomType===2&&isRoad(e.layerName)){ best=e; bz=zs[zi]; break; } } }
+        if(!best){ try{AndroidMap.status('calib: gps='+lat.toFixed(5)+','+lon.toFixed(5)+' road=none');}catch(x){} return; }
+        var g=best.feature.geom, nm=roadName(propsOf(best))||'?';
+        var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,np=0,first=null,last=null;
+        for(var a=0;a<g.length;a++){ var seg=g[a]; for(var b=0;b<seg.length;b++){ var pt=seg[b]; np++; if(!first)first=pt; last=pt;
+            if(pt.x<minx)minx=pt.x; if(pt.x>maxx)maxx=pt.x; if(pt.y<miny)miny=pt.y; if(pt.y>maxy)maxy=pt.y; } }
+        AndroidMap.status('calib: gps='+lat.toFixed(5)+','+lon.toFixed(5)+' z='+bz+' road='+nm+' pts='+np
+          +' x['+minx.toFixed(1)+'..'+maxx.toFixed(1)+'] y['+miny.toFixed(1)+'..'+maxy.toFixed(1)+']'
+          +' f='+(first?first.x.toFixed(1)+','+first.y.toFixed(1):'?')+' l='+(last?last.x.toFixed(1)+','+last.y.toFixed(1):'?'));
+      }catch(e){ try{AndroidMap.status('calib: err '+e);}catch(x){} }
+    }
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
     function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 18; if(k<50)return 17; if(k<80)return 16; return 15; }
@@ -126,8 +199,9 @@
       if(follow){ map.panTo(anchorCenter([lat,lon]),{animate:false}); }
       if(p<1){ animReq=true; requestAnimationFrame(lerpStep); } else { curLL=animTo; animFrom=animTo=null; }
     }
-    window.setPos=function(lat,lon,speed){
+    window.setPos=function(lat,lon,speed,bearing){
       var ll=[lat,lon];
+      if(typeof bearing==='number') setBearing(bearing);   // calm.113: heading-up
       if(!haveFix){ me.addTo(map); map.setView(anchorCenter(ll,17),17); haveFix=true; curLL=ll; me.setLatLng(ll); try{AndroidMap.status('fix');}catch(e){} }
       // scorrimento morbido verso il nuovo punto invece di saltare
       animFrom=curLL||ll; animTo=ll; curLL=ll; animStart=Date.now();
@@ -137,6 +211,8 @@
         if(b!==lastBucket){ lastBucket=b; map.setView(anchorCenter(ll,tz), tz, {animate:true}); }
       }
       streetAt(lat,lon);
+      addTrail(lat,lon);       // calm.113: traccia evidenziata del percorso guidato
+      calibDump(lat,lon);      // calm.113: dati per tarare il percorso in avanti
     };
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     try{AndroidMap.status('page-ready');}catch(e){}

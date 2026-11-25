@@ -35,16 +35,21 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private boolean pageReady, started, haveFix, mapReady, offline;
     private android.location.Location lastLoc;
     private String lastNP = "";   // 1.0.5: ultimo brano spinto sulla mappa ("Via | Brano")
+    // calm.113: ultima manovra dal feed CarPlay (Apple/Google), per ripristinarla se la pagina si ricarica
+    private boolean turnActive; private String turnDist = "", turnRoad = "", turnEta = "";
     private final boolean nightDim;
     private final float anchorX, anchorY;   // calm.110: dove tenere il pallino sullo schermo (0..1), 0.5 = centro
+    private final boolean headingUp;         // calm.113: mappa orientata verso la marcia (solo quadro)
 
     public LiveMap(Context c) { this(c, false); }
     public LiveMap(Context c, boolean nightDim) { this(c, nightDim, 0.5f, 0.5f); }
-    public LiveMap(Context c, boolean nightDim, float ax, float ay) {
+    public LiveMap(Context c, boolean nightDim, float ax, float ay) { this(c, nightDim, ax, ay, false); }
+    public LiveMap(Context c, boolean nightDim, float ax, float ay, boolean headingUp) {
         super(c);
         this.nightDim = nightDim;
         this.anchorX = ax;
         this.anchorY = ay;
+        this.headingUp = headingUp;
         setBackgroundColor(0xFF0E1114);
         web = new WebView(c);
         web.setBackgroundColor(0xFF0E1114);
@@ -81,7 +86,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try {
                 int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : ""));
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : "") + (headingUp ? "&rot=1" : ""));
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());
@@ -157,9 +162,10 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         if (!haveFix) { haveFix = true; Diag.put("map.stato", "posizione ok"); }
         final double lat = l.getLatitude(), lon = l.getLongitude();
         final float spd = l.hasSpeed() ? l.getSpeed() : -1f;   // m/s dal GPS
+        final float brg = l.hasBearing() ? l.getBearing() : -1f;   // calm.113: direzione di marcia per heading-up
         if (!pageReady) return;
         post(() -> {
-            try { web.evaluateJavascript("window.setPos(" + lat + "," + lon + "," + spd + ")", null); } catch (Throwable ignored) {}
+            try { web.evaluateJavascript("window.setPos(" + lat + "," + lon + "," + spd + "," + brg + ")", null); } catch (Throwable ignored) {}
             if (mapReady) status.setVisibility(GONE);
         });
     }
@@ -171,6 +177,20 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         lastNP = t;
         if (!pageReady) return;
         final String js = "window.setNowPlaying(" + jsStr(t) + ")";
+        post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
+    }
+
+    /**
+     * calm.113: mostra la "prossima manovra" dal feed CarPlay (Apple/Google Maps) come fascia in alto sul
+     * quadro. App-agnostica: Apple e Google riempiono gli stessi campi; con Waze resta nascosta.
+     */
+    public void setTurn(boolean active, String dist, String road, String eta) {
+        this.turnActive = active;
+        this.turnDist = dist == null ? "" : dist;
+        this.turnRoad = road == null ? "" : road;
+        this.turnEta = eta == null ? "" : eta;
+        if (!pageReady) return;
+        final String js = "window.setTurn(" + active + "," + jsStr(turnDist) + "," + jsStr(turnRoad) + "," + jsStr(turnEta) + ")";
         post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
     }
 
@@ -200,6 +220,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
                     final String js = "window.setNowPlaying(" + jsStr(lastNP) + ")";
                     post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
                 }
+                if (turnActive) setTurn(true, turnDist, turnRoad, turnEta);   // calm.113: ripristina la fascia manovra
             }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }
@@ -210,6 +231,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             else if ("tiles-error".equals(s)) { Diag.put("map.stato", "riquadri OFFLINE (niente internet)"); post(() -> { status.setText(offline ? "" : "Map offline – no data signal"); status.setVisibility(offline ? GONE : VISIBLE); }); }
             else if (s != null && s.startsWith("size:")) { Diag.put("map.size", s.substring(5)); }
             else if (s != null && s.startsWith("query:")) { Diag.put("map.query", s.substring(6)); }
+            else if (s != null && s.startsWith("calib:")) { Diag.calib(s.substring(6)); }   // calm.113: taratura percorso
             else if ("fix".equals(s)) { post(() -> { if (mapReady) status.setVisibility(GONE); }); }
         }
     }
