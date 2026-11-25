@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.113",
-  "apk": "releases/MG4Launcher-1.0.6-calm.113.apk",
-  "size": 9086666,
-  "notes": "New (test): 'Map on the cluster' toggle in Settings, off by default. Draws the launcher's own live position map on the instrument cluster (position only, not turn-by-turn). Leave it off to keep using DiPlay's cluster; if it does nothing or misbehaves, turn it off - it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.*)."
+  "version": "1.0.6-calm.114",
+  "apk": "releases/MG4Launcher-1.0.6-calm.114.apk",
+  "size": 9090762,
+  "notes": "Route AHEAD on the cluster: the map now draws the road ahead to your next turn as a highlighted line, read from Apple Maps or Google Maps over wired CarPlay (Waze does not send this). It only draws when it confirms you are on that road, so it never shows a wrong line. New 'Cluster display' settings tab: turn the cluster map on, set the dot position while parked, heading-up and next-turn banner. Mic stays working."
 }
