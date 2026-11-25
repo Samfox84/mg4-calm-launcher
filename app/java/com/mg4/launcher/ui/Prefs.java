@@ -158,12 +158,6 @@ public final class Prefs {
     // calm.109 (TEST): mappa dal vivo sul QUADRO (secondo display). Spenta di default: DiPlay resta il ripiego.
     public boolean clusterMap() { return sp.getBoolean("clusterMap", false); }
     public void setClusterMap(boolean b) { sp.edit().putBoolean("clusterMap", b).apply(); }
-    // calm.110: posizione del pallino sul quadro, 0..100 (50 = centro). Il riquadro visibile del quadro
-    // può non essere centrato sulla finestra, quindi si sposta l'ancora per rimettere il pallino al centro.
-    public int clusterPosX() { return Math.max(0, Math.min(100, sp.getInt("clusterPosX", 50))); }
-    public int clusterPosY() { return Math.max(0, Math.min(100, sp.getInt("clusterPosY", 50))); }
-    public void setClusterPosX(int v) { sp.edit().putInt("clusterPosX", Math.max(0, Math.min(100, v))).apply(); }
-    public void setClusterPosY(int v) { sp.edit().putInt("clusterPosY", Math.max(0, Math.min(100, v))).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }
 
     public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante

@@ -58,16 +58,6 @@ public final class ClusterMap {
 
     public static void stop() { UI.post(() -> hide("stop")); }
 
-    /** Re-show with the latest position setting (used when the user nudges the cluster position sliders). */
-    public static void restart(Context c) {
-        if (c == null) return;
-        final Context app = c.getApplicationContext();
-        boolean on = false;
-        try { on = Prefs.get(app).clusterMap(); } catch (Throwable ignored) {}
-        if (!on) return;
-        UI.post(() -> { try { hide("riposiziono"); show(app); } catch (Throwable t) { Diag.error("cluster.map", "restart: " + t); } });
-    }
-
     private static void show(Context app) {
         logDisplays(app);
         Display cluster = findClusterDisplay(app);
@@ -84,9 +74,7 @@ public final class ClusterMap {
 
         LiveMap map;
         try {
-            Prefs p = Prefs.get(app);
-            map = new LiveMap(app, true, p.clusterPosX() / 100f, p.clusterPosY() / 100f);   // nightDim + ancora del pallino
-            Diag.put("cluster.map", "posizione pallino X=" + p.clusterPosX() + "% Y=" + p.clusterPosY() + "%");
+            map = new LiveMap(app, true);   // nightDim=true: variante calma/scura, pallino centrato automaticamente
         } catch (Throwable t) {
             Diag.error("cluster.map", "LiveMap non creata: " + t);
             return;

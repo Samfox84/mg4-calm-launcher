@@ -625,34 +625,6 @@ public final class SettingsView extends FrameLayout {
                     prefs.setClusterMap(on);
                     com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);
                 }), false));
-        // calm.110: posizione del pallino sul quadro (il riquadro visibile può non essere centrato sulla finestra)
-        final android.widget.SeekBar cmx = new android.widget.SeekBar(c);
-        cmx.setMax(100); cmx.setProgress(prefs.clusterPosX());
-        cmx.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
-        final TextView cmxVal = Ui.text(c, prefs.clusterPosX() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
-        cmx.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { cmxVal.setText(p + "%"); }
-            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
-            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterPosX(sb.getProgress()); com.mg4.launcher.svc.ClusterMap.restart(getContext()); }
-        });
-        LinearLayout cmxBox = Ui.row(c); cmxBox.setGravity(Gravity.CENTER_VERTICAL);
-        cmxBox.addView(cmx); cmxBox.addView(cmxVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
-        card.addView(row(c, "Cluster map: horizontal position",
-                "Backup only — the cluster map centres itself automatically. Leave at 50% unless the dot still looks off-centre; then nudge it once, parked, and it stays. Never needs touching while driving.", cmxBox, false));
-
-        final android.widget.SeekBar cmy = new android.widget.SeekBar(c);
-        cmy.setMax(100); cmy.setProgress(prefs.clusterPosY());
-        cmy.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
-        final TextView cmyVal = Ui.text(c, prefs.clusterPosY() + "%", Ui.ts(16), t.sub, Ui.REGULAR);
-        cmy.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { cmyVal.setText(p + "%"); }
-            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
-            public void onStopTrackingTouch(android.widget.SeekBar sb) { prefs.setClusterPosY(sb.getProgress()); com.mg4.launcher.svc.ClusterMap.restart(getContext()); }
-        });
-        LinearLayout cmyBox = Ui.row(c); cmyBox.setGravity(Gravity.CENTER_VERTICAL);
-        cmyBox.addView(cmy); cmyBox.addView(cmyVal, Ui.margins(Ui.lp(-2, -2), dp(10), 0, 0, 0));
-        card.addView(row(c, "Cluster map: vertical position",
-                "Only used when the cluster map is on. Slide so the blue dot sits vertically centred on the cluster. 50% = window centre.", cmyBox, false));
         card.addView(row(c, "Resume last source on start",
                 "Off by default: the launcher starts silent. Turn on to auto-resume whatever was last playing (radio, Bluetooth...) when the car powers on.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));

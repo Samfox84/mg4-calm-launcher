@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.111
+- **Mappa sul quadro: solo automatica**: tolti i due cursori di posizione. Il quadro non è touch e non si deve regolare nulla guidando: la mappa riempie il quadro e centra il pallino da sola, come un normale navigatore.
+
 #### 1.0.6-calm.110
 - **Mappa sul quadro: pallino centrato da solo**: la mappa ora riempie il display del quadro bordo a bordo e si ricentra sul pallino appena la vista si assesta (da fermi, prima di partire), così il pallino resta al centro da solo — niente regolazioni mentre si guida. Lo zoom automatico in base alla velocità è ancorato al pallino anche sul quadro, e il movimento resta morbido tra una posizione GPS e l'altra. I due cursori in Impostazioni (orizzontale/verticale) restano solo come riserva, per il raro caso in cui il pallino sembri ancora spostato.
 
@@ -318,6 +321,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.111
+- **Cluster map: automatic only**: removed the two position sliders. The cluster isn't a touchscreen and nothing should be adjusted while driving — the map fills the cluster and centres the dot on its own, like a normal sat-nav.
 
 #### 1.0.6-calm.110
 - **Cluster map: auto-centred dot**: the cluster map now fills the cluster display edge-to-edge and re-centres on the blue dot the moment the view settles (parked, before you set off), so the dot sits centred on its own — no manual adjustment while driving. The speed-based zoom stays anchored on the dot on the cluster too, and movement stays smooth between GPS fixes. Two Settings sliders (horizontal/vertical) remain as an optional backup only, for the rare case the dot still looks off.
