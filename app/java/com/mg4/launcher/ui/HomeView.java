@@ -1216,6 +1216,8 @@ public final class HomeView extends LinearLayout {
         else tl.setMargins(dp(28) + inset, 0, 0, tabsBottom());
         f.addView(tabs, tl);
         tabsBox = tabs;
+        // calm.115: opzione per nascondere i pulsanti Mappa/Media/CarPlay (il CarPlay via cavo ha la sua icona in barra)
+        if (prefs.hideSwitchTabs()) tabs.setVisibility(GONE);
         // i preferiti partono subito dopo Mappa/Media (solo a sinistra; con mappa a sfondo le schede sono a destra)
         tabs.addOnLayoutChangeListener((v, l, tp, r, b, ol, ot, or, ob) -> {
             if (favBottom == null || bgMap || r - l == or - ol) return;
@@ -2173,6 +2175,13 @@ public final class HomeView extends LinearLayout {
         }
     }
 
+    /** calm.115: true se il testo è solo il nome dell'app musicale online (segnaposto), non un brano reale. */
+    private static boolean isAppLabel(String s) {
+        if (s == null) return false;
+        String t = s.trim();
+        return t.equalsIgnoreCase("Amazon Music") || t.equalsIgnoreCase("Spotify") || t.equalsIgnoreCase("Online");
+    }
+
     public void onMedia(MediaClient.State m) {
         boolean radio = m.source == MediaClient.SRC_RADIO;
         showSources(m);
@@ -2210,9 +2219,12 @@ public final class HomeView extends LinearLayout {
         // Senza mappa a sfondo l'host ignora la chiamata (nessun effetto).
         String npForMap = "";
         if (showNP && !idleNP && m.title != null) {
-            npForMap = m.title.trim();
-            if (m.subtitle != null && !m.subtitle.trim().isEmpty())
-                npForMap = (npForMap.isEmpty() ? "" : npForMap + "  ·  ") + m.subtitle.trim();
+            // calm.115: non spingere sulla mappa il nome dell'app online ("Amazon Music"/"Spotify") come se
+            // fosse un brano — era la scritta che "spuntava" in basso a sinistra sopra le altre schermate.
+            String tt = isAppLabel(m.title) ? "" : m.title.trim();
+            String ss = (m.subtitle == null || isAppLabel(m.subtitle)) ? "" : m.subtitle.trim();
+            if (!tt.isEmpty() && !ss.isEmpty()) npForMap = tt + "  ·  " + ss;
+            else npForMap = tt.isEmpty() ? ss : tt;
         }
         host.setNowPlaying(npForMap);
         // 1.0.5: con lo streaming diretto la copertina la gestisce applyDirectToPanel() in fondo; qui NON la tocchiamo,

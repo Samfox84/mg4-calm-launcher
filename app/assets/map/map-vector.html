@@ -223,31 +223,93 @@
         routeGlow.setLatLngs(pts); routeLine.setLatLngs(pts); routeTurn.setLatLngs(turnPts||[]);
       }catch(e){ try{AndroidMap.status('route: draw err '+e);}catch(x){} }
     }
+    function getView(){ var V=null; try{ if(layer.views&&layer.views.forEach) layer.views.forEach(function(v){ if(!V)V=v; }); }catch(e){} return V; }
+    // punto a `m` metri da (lat,lon) lungo la rotta `brg`
+    function dest(lat,lon,brg,m){ var R=6378137, d=m/R, b=brg*Math.PI/180, la=lat*Math.PI/180, lo=lon*Math.PI/180;
+      var la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(b));
+      var lo2=lo+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la), Math.cos(d)-Math.sin(la)*Math.sin(la2));
+      return [la2*180/Math.PI, ((lo2*180/Math.PI+540)%360)-180]; }
+    // PRELOAD (idea di Sam): carica dal file mappa OFFLINE i tile lungo il corridoio davanti, così la
+    // geometria c'è anche fuori dallo schermo e la linea arriva fino alla svolta, non solo al bordo visibile.
+    var lastPrefetch=0;
+    function prefetch(lat,lon,brg,distM){
+      var now=Date.now(); if(now-lastPrefetch<3000) return; lastPrefetch=now;
+      try{
+        var V=getView(), vi=viewInfo(); if(!V||!V.tileCache||!vi||brg<0) return;
+        var o=Math.min(15-vi.ld, vi.md); if(o<0)o=0;
+        var steps=Math.min(30, Math.max(2, Math.ceil(distM/120))), seen={}, loaded=0;
+        for(var s=0;s<=steps;s++){ var p=dest(lat,lon,brg,distM*s/steps);
+          var c=Math.floor(lonNx(p[1])*(1<<o)), u=Math.floor(latNy(p[0])*(1<<o));
+          for(var ox=-1;ox<=1;ox++) for(var oy=-1;oy<=1;oy++){ var k=(c+ox)+'/'+(u+oy); if(seen[k])continue; seen[k]=1;
+            try{ var pr=V.tileCache.get({z:o,x:c+ox,y:u+oy}); if(pr&&pr.catch) pr.catch(function(){}); loaded++; }catch(e){} } }
+        logRoute('prefetch '+loaded+' tiles z='+o+' ahead '+Math.round(distM)+'m');
+      }catch(e){}
+    }
+    // Raccoglie le strade attorno all'auto E lungo il corridoio davanti (dai tile già caricati/precaricati).
+    function collectRoads(lat,lon,brg,distM){
+      var pool=[], seen={};
+      function add(lt,ln){ var rs=roadsNear(lt,ln,15); if(!rs.length) rs=roadsNear(lt,ln,14);
+        for(var i=0;i<rs.length;i++){ var r=rs[i]; if(r.pts.length<2) continue;
+          var key=(r.name||'')+'|'+r.pts[0][0].toFixed(5)+','+r.pts[0][1].toFixed(5)+'|'+r.pts[r.pts.length-1][0].toFixed(5)+'|'+r.pts.length;
+          if(seen[key])continue; seen[key]=1; pool.push(r); } }
+      add(lat,lon);
+      if(brg>=0){ var steps=Math.min(20, Math.max(1, Math.ceil(distM/180)));
+        for(var s=1;s<=steps;s++){ var p=dest(lat,lon,brg,distM*s/steps); add(p[0],p[1]); } }
+      return pool;
+    }
+    // Router greedy sulla rete di segmenti: parte dall'auto, segue la strada più dritta (preferendo lo
+    // stesso nome), unendo i segmenti connessi anche tra tile diversi, fino a distM metri.
+    function traceGraph(pool, carLat, carLon, brg, distM){
+      var segs=[];
+      for(var i=0;i<pool.length;i++){ var pts=pool[i].pts; for(var j=0;j<pts.length-1;j++) segs.push({a:pts[j], b:pts[j+1], name:pool[i].name||''}); }
+      if(!segs.length) return null;
+      var best=null, P=[carLat,carLon];
+      for(var s=0;s<segs.length;s++){ var pr=projSeg(P,segs[s].a,segs[s].b); if(!best||pr.d<best.d) best={s:s,pr:pr}; }
+      if(!best) return null;
+      if(best.pr.d>35) return {offRoad:true, d:best.pr.d};
+      var seg=segs[best.s], start=best.pr.pt;
+      var fb=bearingOf(seg.a,seg.b), toB=(brg<0)?true:angDiff(brg,fb)<=90;
+      var line=[start], acc=0, cur=start, node=(toB?seg.b:seg.a), curName=seg.name, guard=0;
+      while(acc<distM && guard++<600){
+        var step=md(cur,node);
+        if(step>0 && acc+step>=distM){ var r=(distM-acc)/step; line.push([cur[0]+(node[0]-cur[0])*r, cur[1]+(node[1]-cur[1])*r]); acc=distM; break; }
+        acc+=step; line.push(node);
+        var inBrg=bearingOf(cur,node), bestNext=null, bestScore=1e9;
+        for(var s2=0;s2<segs.length;s2++){ var sg=segs[s2];
+          var ea=md(node,sg.a)<9, eb=md(node,sg.b)<9; if(!ea&&!eb) continue;
+          var other=ea?sg.b:sg.a; if(md(other,cur)<3) continue;   // non tornare indietro
+          var ob=bearingOf(node,other), turn=angDiff(inBrg,ob); if(turn>=100) continue;
+          var score=turn + ((sg.name&&sg.name===curName)?0:22);
+          if(score<bestScore){ bestScore=score; bestNext={other:other,name:sg.name}; } }
+        if(!bestNext) break;
+        cur=node; node=bestNext.other; curName=bestNext.name;
+      }
+      return {line:line, acc:acc, reached:acc>=distM*0.95, end:line[line.length-1]};
+    }
     var lastRouteLog=0;
+    function logRoute(s){ var n=Date.now(); if(n-lastRouteLog<2500) return; lastRouteLog=n; try{AndroidMap.status('route: '+s);}catch(e){} }
     function retrace(lat,lon,brg){
       try{
         if(!vLogged){ vLogged=true; var vi0=viewInfo(); try{AndroidMap.status('route: view ts='+(vi0?vi0.ts:'?')+' ld='+(vi0?vi0.ld:'?')+' md='+(vi0?vi0.md:'?')+' z='+map.getZoom().toFixed(1));}catch(x){} }
         if(!navActive || navDistM<=0){ clearRoute(); return; }
-        var roads=roadsNear(lat,lon,15); if(!roads.length) roads=roadsNear(lat,lon,14);
-        if(!roads.length){ clearRoute(); logRoute('no-roads'); return; }
-        var sn=snap(lat,lon,roads); if(!sn){ clearRoute(); return; }
-        if(sn.d>35){ clearRoute(); logRoute('off-road d='+sn.d.toFixed(0)+'m'); return; }   // sicurezza: auto non sulla strada
-        var dist=Math.min(navDistM, 2500);
-        var w=walkForward(roads[sn.road], sn, brg, dist);
-        var line=w.pts; var turn=[];
-        // moncone della svolta: strada dopo la svolta, per nome, dal punto di svolta
-        if(w.done && navRoad){
-          var jr=roadsNear(w.end[0], w.end[1], 15), want=navRoad.toLowerCase();
-          var cand=null, cd=1e9;
-          for(var i=0;i<jr.length;i++){ var nm=(jr[i].name||'').toLowerCase(); if(nm && (nm.indexOf(want)>=0||want.indexOf(nm)>=0)){
-              var s2=snap(w.end[0],w.end[1],[jr[i]]); if(s2 && s2.d<cd){ cd=s2.d; cand={r:jr[i],s:s2}; } } }
-          if(cand && cd<40){ var tw=walkForward(cand.r, cand.s, -1, 80); turn=tw.pts; }
+        var dist=Math.min(navDistM, 5000);
+        var pool=collectRoads(lat,lon,brg,dist);
+        var res=traceGraph(pool, lat,lon,brg, dist);
+        if(!res){ clearRoute(); logRoute('no-roads'); prefetch(lat,lon,brg,dist); return; }
+        if(res.offRoad){ clearRoute(); logRoute('off-road d='+res.d.toFixed(0)+'m'); return; }   // sicurezza: non sulla strada
+        var turn=[];
+        if(res.reached && navRoad){
+          var jr=roadsNear(res.end[0],res.end[1],15); if(!jr.length) jr=roadsNear(res.end[0],res.end[1],14);
+          var want=navRoad.toLowerCase(), cand=null, cd=1e9;
+          for(var i=0;i<jr.length;i++){ var nm=(jr[i].name||'').toLowerCase(); if(nm&&(nm.indexOf(want)>=0||want.indexOf(nm)>=0)){
+              var s2=snap(res.end[0],res.end[1],[jr[i]]); if(s2&&s2.d<cd){cd=s2.d; cand={r:jr[i],s:s2};} } }
+          if(cand&&cd<40){ var tw=walkForward(cand.r,cand.s,-1,80); turn=tw.pts; }
         }
-        drawRoute(line, turn);
-        logRoute('ok road="'+(roads[sn.road].name||'?')+'" snap='+sn.d.toFixed(0)+'m pts='+line.length+' dist='+dist.toFixed(0)+' after="'+navRoad+'" turnPts='+turn.length);
+        drawRoute(res.line, turn);
+        logRoute('ok pts='+res.line.length+' reach='+res.acc.toFixed(0)+'/'+dist.toFixed(0)+(res.reached?'':' SHORT')+' after="'+navRoad+'" t='+turn.length);
+        if(!res.reached) prefetch(lat,lon,brg,dist);   // precarica i tile davanti: la prossima passata arriva più lontano
       }catch(e){ clearRoute(); try{AndroidMap.status('route: err '+e);}catch(x){} }
     }
-    function logRoute(s){ var n=Date.now(); if(n-lastRouteLog<2500) return; lastRouteLog=n; try{AndroidMap.status('route: '+s);}catch(e){} }
     // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione
     window.setRoute=function(active, distM, road, turnHint){
       navActive=!!active;

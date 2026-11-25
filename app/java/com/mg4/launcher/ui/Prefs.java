@@ -171,6 +171,10 @@ public final class Prefs {
     // calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google) sulla mappa del quadro
     public boolean clusterTurn() { return sp.getBoolean("clusterTurn", true); }
     public void setClusterTurn(boolean b) { sp.edit().putBoolean("clusterTurn", b).apply(); }
+
+    // calm.115: nascondi i pulsanti Mappa/Media/CarPlay in basso (il CarPlay via cavo ha la sua icona nella barra)
+    public boolean hideSwitchTabs() { return sp.getBoolean("hideSwitchTabs", false); }
+    public void setHideSwitchTabs(boolean b) { sp.edit().putBoolean("hideSwitchTabs", b).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }
 
     public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante

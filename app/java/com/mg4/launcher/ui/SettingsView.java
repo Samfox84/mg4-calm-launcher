@@ -620,6 +620,9 @@ public final class SettingsView extends FrameLayout {
                     host.settingsChanged(true);
                 }), false));
         // calm.113: la mappa sul QUADRO e le sue regolazioni hanno ora una scheda dedicata ("Cluster display").
+        card.addView(row(c, "Hide the Map / Media / CarPlay buttons",
+                "Hides the little Map/Media/CarPlay switch buttons at the bottom of the home screen. Wired CarPlay has its own icon in the bottom bar now, so these are usually redundant. Off by default; turn on for a cleaner screen, turn back off if you can't get to a panel.",
+                toggle(c, prefs.hideSwitchTabs(), on -> { prefs.setHideSwitchTabs(on); host.settingsChanged(true); }), false));
         card.addView(row(c, "Resume last source on start",
                 "Off by default: the launcher starts silent. Turn on to auto-resume whatever was last playing (radio, Bluetooth...) when the car powers on.",
                 toggle(c, prefs.resumeMedia(), on -> prefs.setResumeMedia(on)), false));

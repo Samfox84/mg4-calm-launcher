@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.115
+- **Percorso più lungo: precarica la strada davanti**: la mappa del quadro ora **precarica dal file offline i tile lungo il corridoio davanti** e unisce la geometria delle strade anche tra tile diversi, così la linea del percorso arriva fino alla prossima svolta invece di fermarsi al bordo visibile. Un piccolo "router" segue la strada più dritta (preferendo lo stesso nome) stiktando i segmenti connessi. L'intero bundle del feed CarPlay continua a essere registrato per intero nel log: se Apple o Google inviano un riassunto del percorso o più svolte in anticipo, si vedrà lì.
+- **Scritta "Amazon Music"**: non viene più spinta sulla mappa come se fosse un brano (era quella che spuntava in basso a sinistra sopra le altre schermate).
+- **Pulsanti Mappa/Media/CarPlay**: nuova opzione in Impostazioni (Media e nav) per nasconderli — il CarPlay via cavo ha la sua icona nella barra in basso. Spenta di default.
+
 #### 1.0.6-calm.114
 - **Percorso IN AVANTI sul quadro (dove devo andare)**: la mappa del quadro ora disegna la **strada davanti fino alla prossima svolta** come linea evidenziata, non più solo dove sei stato. Legge dal feed CarPlay via cavo (Apple Maps o Google Maps) la distanza alla svolta e la strada dopo, e traccia quella strada sulla mappa offline, con un moncone tratteggiato sulla via successiva alla svolta. La geometria viene presa dal file mappa e convertita in coordinate reali leggendo le impostazioni della libreria a runtime; disegna **solo** se l'auto risulta sulla strada trovata (controllo di sicurezza), così non può mai mostrare una linea sbagliata. Si aggiorna a ogni posizione GPS e a ogni nuovo dato del feed (ricalcolo anche in caso di ricalcolo percorso). Funziona con Apple e Google Maps; Waze non invia questi dati. Microfono intatto (CarPlay via cavo).
 
@@ -330,6 +335,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.115
+- **Longer route: preloads the road ahead**: the cluster map now **preloads the offline map tiles along the corridor ahead** and stitches road geometry across tiles, so the route line reaches all the way to your next turn instead of stopping at the visible edge. A small "router" follows the straightest road (preferring the same name), joining connected segments. The full CarPlay feed bundle is still logged verbatim — so if Apple or Google ever send a route summary or several upcoming turns, it'll show there.
+- **"Amazon Music" label**: no longer pushed onto the map as if it were a track (that was the text popping up bottom-left over other screens).
+- **Map/Media/CarPlay buttons**: new option in Settings (Media & nav) to hide them — wired CarPlay has its own bottom-bar icon now. Off by default.
 
 #### 1.0.6-calm.114
 - **Route AHEAD on the cluster (where I'm going)**: the cluster map now draws the **road ahead to your next turn** as a highlighted line, not just where you've been. It reads the distance-to-turn and the road-after-turn from the wired CarPlay feed (Apple Maps or Google Maps) and traces that road on the offline map, with a dashed stub onto the road after the turn. The geometry is taken from the map file and converted to real coordinates by reading the map library's settings at runtime; it draws **only** when it can confirm the car is on the road it found (a safety check), so it can never show a wrong line. It updates on every GPS fix and every new feed update (so it re-draws on reroutes too). Works with Apple and Google Maps; Waze doesn't send this. Microphone untouched (wired CarPlay).
