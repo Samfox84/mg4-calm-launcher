@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.110",
-  "apk": "releases/MG4Launcher-1.0.6-calm.110.apk",
-  "size": 9082570,
+  "version": "1.0.6-calm.111",
+  "apk": "releases/MG4Launcher-1.0.6-calm.111.apk",
+  "size": 9078474,
   "notes": "New (test): 'Map on the cluster' toggle in Settings, off by default. Draws the launcher's own live position map on the instrument cluster (position only, not turn-by-turn). Leave it off to keep using DiPlay's cluster; if it does nothing or misbehaves, turn it off - it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.*)."
 }
