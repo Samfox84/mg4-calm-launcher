@@ -1,0 +1,62 @@
+name: Release Calm Launcher (build + publish to car)
+
+# Builds the APK on CI (where Google's build tools are reachable), signs it with the
+# committed keys/platform.p12 (the same accepted key as every prior calm.* release),
+# copies it into releases/, updates releases/latest.json, and pushes to main so the
+# car's in-launcher updater picks it up. Manual trigger only.
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: "Release notes shown in the car updater (optional)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Build (aapt2 -> javac -> D8 -> sign v1+v2 with keys/platform.p12)
+        env:
+          MG4_LOG_TOKEN: ${{ secrets.MG4_LOG_TOKEN }}
+        run: |
+          chmod +x build.sh tools/aapt2
+          ./build.sh
+      - name: Publish into releases/ and update latest.json
+        env:
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -e
+          source version.properties
+          APK="build/MG4Launcher-${VERSION_NAME}.apk"
+          test -f "$APK"
+          mkdir -p releases
+          cp -f "$APK" "releases/MG4Launcher-${VERSION_NAME}.apk"
+          SIZE=$(stat -c%s "releases/MG4Launcher-${VERSION_NAME}.apk")
+          DEFAULT_NOTES="New (test): 'Map on the cluster' toggle in Settings, off by default. Draws the launcher's own live position map on the instrument cluster (position only, not turn-by-turn). Leave it off to keep using DiPlay's cluster; if it does nothing or misbehaves, turn it off - it can't stop the launcher. Every step is written to the diagnostic log (cluster.map.*)."
+          NOTES_TEXT="${NOTES:-$DEFAULT_NOTES}"
+          if [ -z "$NOTES_TEXT" ]; then NOTES_TEXT="$DEFAULT_NOTES"; fi
+          jq -n --arg v "$VERSION_NAME" \
+                --arg apk "releases/MG4Launcher-${VERSION_NAME}.apk" \
+                --argjson size "$SIZE" \
+                --arg notes "$NOTES_TEXT" \
+                '{version:$v, apk:$apk, size:$size, notes:$notes}' > releases/latest.json
+          echo "--- latest.json ---"; cat releases/latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "releases/MG4Launcher-${VERSION_NAME}.apk" releases/latest.json
+          git commit -m "Release ${VERSION_NAME}"
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        with:
+          name: calm-launcher-apk
+          path: build/*.apk
+          if-no-files-found: error
