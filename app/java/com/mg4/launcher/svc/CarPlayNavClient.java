@@ -46,6 +46,9 @@ public final class CarPlayNavClient {
     private int navMeters = -1;
     private String navEta = "";
     private int navIcon = -1;
+    private String navDest = "";      // calm.128: nome destinazione (dal feed)
+    private int navTotalM = -1;       // calm.128: distanza totale rimanente (m)
+    private String lastDestKey = "";  // per non ri-spingere/ri-cercare uguale
     private long lastUpdate;
 
     public CarPlayNavClient(Context c) { this.ctx = c.getApplicationContext(); }
@@ -180,6 +183,22 @@ public final class CarPlayNavClient {
                 }
             } catch (Throwable ignored) {}
         }
+        // calm.128: nome destinazione + distanza totale rimanente. I nomi delle chiavi variano, quindi li cerchiamo
+        // per contenuto: una chiave String che contiene "DEST" = nome; un intero con "TOTAL"+"DIST" = distanza totale.
+        try {
+            for (String k : b.keySet()) {
+                String ku = k.toUpperCase(java.util.Locale.ROOT);
+                Object v = b.get(k);
+                if (v instanceof String && ku.contains("DEST") && !ku.contains("DIST")) {
+                    String s = ((String) v).trim();
+                    if (!s.isEmpty() && !s.equals(navDest)) { navDest = s; changed = true; }
+                } else if (v instanceof Integer && ku.contains("TOTAL") && ku.contains("DIST")) {
+                    int tv = (Integer) v;
+                    if (tv > 0) navTotalM = tv;
+                }
+            }
+        } catch (Throwable ignored) {}
+
         if (!changed) return;
         lastUpdate = android.os.SystemClock.uptimeMillis();
 
@@ -193,5 +212,11 @@ public final class CarPlayNavClient {
         try { banner = com.mg4.launcher.ui.Prefs.get(ctx).clusterTurn(); } catch (Throwable ignored) {}
         if (banner) ClusterMap.pushTurn(active, distText, navRoad, eta);
         ClusterMap.pushRoute(active, navMeters, navRoad, "");
+
+        // calm.128: spingi la destinazione (nome + distanza totale) per la bandierina, solo quando cambia
+        if (!navDest.isEmpty() && navTotalM > 0) {
+            String key = navDest + "@" + (navTotalM / 200);
+            if (!key.equals(lastDestKey)) { lastDestKey = key; ClusterMap.pushDest(navDest, navTotalM); }
+        }
     }
 }

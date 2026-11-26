@@ -223,6 +223,15 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
     }
 
+    // calm.128: destinazione (nome + distanza totale, m) per la bandierina.
+    private String destName = ""; private int destTotalM = -1;
+    public void setDest(String name, int totalM) {
+        this.destName = name == null ? "" : name; this.destTotalM = totalM;
+        if (!pageReady) return;
+        final String js = "window.setDest(" + jsStr(destName) + "," + totalM + ")";
+        post(() -> { try { web.evaluateJavascript(js, null); } catch (Throwable ignored) {} });
+    }
+
     /** Racchiude una stringa come letterale JS sicuro (apici, backslash, a capo). */
     private static String jsStr(String s) {
         StringBuilder b = new StringBuilder("\"");
@@ -251,6 +260,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
                 }
                 if (turnActive) setTurn(true, turnDist, turnRoad, turnEta);   // calm.113: ripristina la fascia manovra
                 if (routeActive) setRoute(true, routeDistM, routeRoad, routeTurn);   // calm.114: ripristina il percorso
+                if (!destName.isEmpty()) setDest(destName, destTotalM);   // calm.128: ripristina la bandierina destinazione
             }
             else if ("webgl-yes".equals(s)) { Diag.put("map.webgl", "si (mappe vettoriali offline possibili)"); }
             else if ("webgl-no".equals(s)) { Diag.put("map.webgl", "no (serviranno riquadri raster offline)"); }

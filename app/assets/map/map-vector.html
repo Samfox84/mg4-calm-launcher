@@ -34,6 +34,7 @@
   #turn .d{color:#4F9BF0;}
   #turn .e{color:#AEB6BF;font-weight:600;font-size:17px;}
   #turn .r{display:block;font-weight:700;margin-bottom:1px;}   /* calm.122: riga della via (quadro, due righe) */
+  .destflag{font:24px/1 sans-serif;color:#FF5A5A;text-shadow:0 0 3px #000,0 1px 4px rgba(0,0,0,.8);}   /* calm.128: bandierina destinazione */
 </style>
 </head>
 <body>
@@ -175,6 +176,8 @@
     // strada trovata (controllo di sicurezza): così non può mai disegnare una linea sbagliata.
     var routeGlow=null, routeLine=null, routeTurn=null, lastBrg=-1, vLogged=false;
     var navActive=false, navDistM=-1, navRoad='', navTurn='';
+    var navDest='', navTotalM=-1, destMarker=null, destDone='';   // calm.128: bandierina destinazione (nome + distanza totale)
+    function normName(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
     function lonNx(lon){ return (lon+180)/360; }
     function latNy(lat){ var r=lat*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2; }
     function nxLon(nx){ return nx*360-180; }
@@ -337,7 +340,7 @@
         // calm.126: STICKY. La linea sparisce SOLO quando la navigazione finisce. In tutti gli altri casi incerti
         // (fermo, strada non chiara, fuori strada un attimo) si TIENE l'ultima linea buona invece di cancellarla,
         // così non lampeggia e non sparisce mentre guidi.
-        if(!navActive){ clearRoute(); return; }
+        if(!navActive){ clearRoute(); clearDest(); return; }
         if(navDistM<=0){ return; }                 // distanza 0 momentanea (sei sulla svolta): tieni la linea
         var dist=Math.min(navDistM, 5000);
         var haveHeading = brg>=0;
@@ -379,8 +382,54 @@
       navActive=!!active;
       navDistM=(typeof distM==='number'&&distM>0)?distM:-1;
       navRoad=(road||'').trim(); navTurn=(turnHint||'').trim();
-      if(curLL) retrace(curLL[0],curLL[1],lastBrg); else if(!navActive) clearRoute();
+      if(!navActive){ clearRoute(); clearDest(); }
+      if(curLL) retrace(curLL[0],curLL[1],lastBrg);
     };
+
+    // calm.128: BANDIERINA destinazione. Dal feed CarPlay abbiamo il NOME della destinazione e la distanza TOTALE.
+    // Cerchiamo nel map OFFLINE un luogo/strada con quel nome in un ANELLO a circa quella distanza dall'auto: la
+    // distanza fa da filtro (di solito c'è un solo "Palmers Hill" a ~N miglia). Mettiamo una bandierina là.
+    function flagIcon(){ return L.divIcon({className:'',html:'<div class="destflag">⚑</div>',iconSize:[26,26],iconAnchor:[4,24]}); }
+    function clearDest(){ if(destMarker){ try{map.removeLayer(destMarker);}catch(e){} destMarker=null; } destDone=''; }
+    window.setDest=function(name,totalM){
+      var n=(name||'').trim();
+      if(n) navDest=n;
+      if(typeof totalM==='number'&&totalM>0) navTotalM=totalM;
+      maybeFindDest();
+    };
+    function maybeFindDest(){
+      if(!navActive || !navDest || navTotalM<=0 || !curLL) return;
+      var key=navDest+'@'+Math.round(navTotalM/200);   // ri-cerca solo se cambia il nome o la distanza (a grana grossa)
+      if(key===destDone) return;
+      destDone=key;
+      var R=navTotalM, carLat=curLL[0], carLon=curLL[1];
+      // precarica i tile dell'anello, poi (dato un attimo per caricarli) cerca il nome
+      var radii=[0.5*R,0.68*R,0.85*R,1.0*R];
+      for(var ri=0;ri<radii.length;ri++) for(var b=0;b<360;b+=20){ var p=dest(carLat,carLon,b,radii[ri]); loadTileAt(p[0],p[1],13); }
+      logRoute('cerco destinazione "'+navDest+'" a ~'+(R/1609).toFixed(1)+'mi');
+      setTimeout(function(){ runDestSearch(carLat,carLon,R,navDest); }, 1700);
+      setTimeout(function(){ if(!destMarker) runDestSearch(carLat,carLon,R,navDest); }, 4000);
+    }
+    function loadTileAt(lat,lon,z){ try{ var V=getView(); if(!V||!V.tileCache) return; var c=Math.floor(lonNx(lon)*(1<<z)), u=Math.floor(latNy(lat)*(1<<z)); var pr=V.tileCache.get({z:z,x:c,y:u}); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} }
+    function runDestSearch(carLat,carLon,R,name){
+      try{
+        var target=normName(name); if(target.length<3) return;
+        var best=null, radii=[0.45*R,0.6*R,0.75*R,0.9*R,1.05*R];
+        for(var ri=0;ri<radii.length;ri++) for(var b=0;b<360;b+=12){
+          var p=dest(carLat,carLon,b,radii[ri]);
+          var arr=featuresAt(p[0],p[1],13); if(!arr.length) arr=featuresAt(p[0],p[1],12);
+          for(var i=0;i<arr.length;i++){ var nm=normName(roadName(propsOf(arr[i]))||''); if(nm.length<3) continue;
+            if(nm.indexOf(target)>=0||target.indexOf(nm)>=0){
+              var d=L.latLng(carLat,carLon).distanceTo(L.latLng(p[0],p[1])), err=Math.abs(d-R);
+              if(!best||err<best.err) best={lat:p[0],lon:p[1],err:err};
+            }
+          }
+        }
+        if(best){ placeDestFlag(best.lat,best.lon); logRoute('destinazione "'+name+'" trovata (scarto '+(best.err/1609).toFixed(1)+'mi)'); }
+        else logRoute('destinazione "'+name+'" non trovata nell\'anello');
+      }catch(e){ logRoute('dest err '+e); }
+    }
+    function placeDestFlag(lat,lon){ try{ if(destMarker) map.removeLayer(destMarker); destMarker=L.marker([lat,lon],{icon:flagIcon(),interactive:false,keyboard:false}); destMarker.addTo(map); }catch(e){} }
 
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;

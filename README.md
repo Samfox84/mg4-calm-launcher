@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.128
+- **Bandierina destinazione**: dal feed CarPlay prendiamo il NOME destinazione e la distanza totale, e cerchiamo nel map offline un luogo/strada con quel nome in un ANELLO a circa quella distanza dall'auto (la distanza fa da filtro: di solito ce n'è uno solo). Mettiamo una bandierina là, così vedi DOVE stai andando anche prima che la linea sia completa. Funziona con nomi reali di strade/luoghi, non con soprannomi salvati ("Casa") né numeri civici. Primo tentativo: il log dice se la trova.
+
 #### 1.0.6-calm.127
 - **La linea del percorso non sparisce più**: prima si cancellava e ridisegnava a ogni istante (il lampeggio). Ora è "sticky": si cancella SOLO quando la navigazione finisce. In ogni momento incerto (fermo, strada non chiara, un attimo fuori strada) tiene l'ultima linea buona invece di sparire. Dal codice del feed CarPlay confermato che non arriva la rotta completa né le coordinate della destinazione: solo la prossima svolta, la strada, il nome destinazione e quante svolte mancano — quindi la linea resta il tratto ricostruito davanti, ma ora stabile.
 
@@ -387,6 +390,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.128
+- **Destination flag**: from the CarPlay feed we take the destination NAME and total distance, and search the offline map for a place/road with that name in a RING at roughly that distance from the car (the distance filters it — usually only one). We drop a flag there, so you can see WHERE you're heading before the line is complete. Works for real road/place names, not saved nicknames ("Home") or house numbers. First attempt: the log says whether it found it.
 
 #### 1.0.6-calm.127
 - **Route line no longer disappears**: it used to clear and redraw every instant (the flashing). It's now sticky: it clears ONLY when navigation ends. On any uncertain moment (stopped, road unclear, a brief off-road blip) it holds the last good line instead of vanishing. Confirmed from the CarPlay feed's own code that the full route and destination coordinates are never sent — only the next turn, road name, destination name and remaining turn count — so the line is the reconstructed stretch ahead, but now steady.

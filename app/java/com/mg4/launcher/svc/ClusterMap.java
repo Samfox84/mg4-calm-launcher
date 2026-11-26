@@ -70,6 +70,15 @@ public final class ClusterMap {
         UI.post(() -> { try { m.setRoute(lastRouteActive, lastRouteDistM, lastRouteRoad, lastRouteTurn); } catch (Throwable ignored) {} });
     }
 
+    private static volatile String lastDestName = ""; private static volatile int lastDestTotalM = -1;
+    /** calm.128: destinazione (nome + distanza totale rimanente, m) per la bandierina sulla mappa del quadro. */
+    public static void pushDest(String name, int totalM) {
+        lastDestName = name == null ? "" : name; lastDestTotalM = totalM;
+        final LiveMap m = liveMap;
+        if (m == null) return;
+        UI.post(() -> { try { m.setDest(lastDestName, lastDestTotalM); } catch (Throwable ignored) {} });
+    }
+
     /** Show the cluster map if the setting is on, hide it if off. Reads the setting itself. */
     public static void refresh(Context c) {
         if (c == null) return;
