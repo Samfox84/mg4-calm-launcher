@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.121",
-  "apk": "releases/MG4Launcher-1.0.6-calm.121.apk",
-  "size": 9094858,
-  "notes": "Big batch: music streaming fixed (was sending a bad URL so only cached tracks played; now streams + caches, with a green dot for offline tracks and the library closes when you pick something); street name removed from main/apps screens (kept on cluster, full-screen map, and under the car); no screensaver while the map is full-screen; auto-saves+sends a log when you park or stop 30s; Send log button added next to Check; DiPlay row removed. Please test and send a log (or just park - it should send itself)."
+  "version": "1.0.6-calm.122",
+  "apk": "releases/MG4Launcher-1.0.6-calm.122.apk",
+  "size": 9098954,
+  "notes": "calm.122: ETA ora leggibile, pill quadro due righe sotto il pallino, percorso evidenziato stabile, ripiego streaming musica"
 }
