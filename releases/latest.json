@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.116",
-  "apk": "releases/MG4Launcher-1.0.6-calm.116.apk",
-  "size": 9090762,
-  "notes": "Big fix: the offline-map road lookup was using reversed coordinates, so it never found any roads (street name blank, route couldn't draw). Now fixed, so the forward route on the cluster finally has data. Also: radio no longer opens by itself at launch; cluster map position default set to your 76/55. Use Apple or Google Maps (not Waze) and send the log after."
+  "version": "1.0.6-calm.117",
+  "apk": "releases/MG4Launcher-1.0.6-calm.117.apk",
+  "size": 9094858,
+  "notes": "New map zoom: tuned speed-based curve so 20-35 mph is one steady band (no more breathing), a bit wider overall, plus a Map zoom slider in Settings > Cluster display to shift it wider or closer. Works with the route fix from the last build - use Apple or Google Maps and send the log after your drive."
 }
