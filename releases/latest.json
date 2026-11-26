@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.120",
-  "apk": "releases/MG4Launcher-1.0.6-calm.120.apk",
+  "version": "1.0.6-calm.121",
+  "apk": "releases/MG4Launcher-1.0.6-calm.121.apk",
   "size": 9094858,
-  "notes": "Nav feed - fixed the connection: we were binding a service only the system can bind (that SecurityException in your log). Now we bind RemoteUIService, which forwards the same navigation data. Open the app parked with Apple/Google Maps navigating and the log should now say registrato plus carplay.navfeed lines. Also hid Granville Road on the background map. Send the log."
+  "notes": "Big batch: music streaming fixed (was sending a bad URL so only cached tracks played; now streams + caches, with a green dot for offline tracks and the library closes when you pick something); street name removed from main/apps screens (kept on cluster, full-screen map, and under the car); no screensaver while the map is full-screen; auto-saves+sends a log when you park or stop 30s; Send log button added next to Check; DiPlay row removed. Please test and send a log (or just park - it should send itself)."
 }
