@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.119",
-  "apk": "releases/MG4Launcher-1.0.6-calm.119.apk",
+  "version": "1.0.6-calm.120",
+  "apk": "releases/MG4Launcher-1.0.6-calm.120.apk",
   "size": 9094858,
-  "notes": "Two tweaks to test alongside the feed: the next-turn + ETA pill now sits right by the dot on the cluster (inside the visible window), and Granville Road on the home page is now a native label centered under the car instead of behind the climate control. Use Apple or Google Maps and send the log after."
+  "notes": "Nav feed - fixed the connection: we were binding a service only the system can bind (that SecurityException in your log). Now we bind RemoteUIService, which forwards the same navigation data. Open the app parked with Apple/Google Maps navigating and the log should now say registrato plus carplay.navfeed lines. Also hid Granville Road on the background map. Send the log."
 }
