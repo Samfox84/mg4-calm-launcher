@@ -306,9 +306,8 @@ public final class SettingsView extends FrameLayout {
                 busy && lastStatus != null ? lastStatus : L.s(r != null ? R.string.upd_current : R.string.upd_unknown)),
             new LinearLayout.LayoutParams(-1, -2));
 
-        // --- DiPlay (stessa fork, stesso stile: rileva versione e aggiorna da qui) ---
-        // 1.0.5: se il controllo aggiornamenti DiPlay è spento, il riquadro DiPlay non compare per niente.
-        if (prefs.diplayUpdateCheck()) {
+        // --- DiPlay: riquadro rimosso dal menu (calm.121) ---
+        if (false && prefs.diplayUpdateCheck()) {
         Updater.Release d = lastDiPlay;
         Updater.Release dpInst = up.installedDiPlay();        // 1.0.6: versione installata letta ora (niente etichette stantie)
         String instVer = dpInst != null ? dpInst.installed : null;
@@ -1510,6 +1509,9 @@ public final class SettingsView extends FrameLayout {
         btns.addView(updInstallBtn, Ui.margins(Ui.lp(-2, tp(60)), 0, 0, dp(12), 0));
         updCheckBtn = button(c, L.s(R.string.btn_check), v -> up.check(prefs.updateRepo(), prefs.githubToken()));
         btns.addView(updCheckBtn, Ui.lp(-2, tp(60)));
+        // calm.121: pulsante "Send log" accanto a Check, per inviare il log al volo
+        View sendLogTop = button(c, "Send log", v -> saveLog());
+        btns.addView(sendLogTop, Ui.margins(Ui.lp(-2, tp(60)), dp(12), 0, 0, 0));
         LinearLayout ur = row(c, "MG4 Launcher " + up.currentVersion(), "", btns, true);
         updSub = (TextView) ((ViewGroup) ur.getChildAt(0)).getChildAt(1);
         card.addView(ur);
@@ -1525,7 +1527,7 @@ public final class SettingsView extends FrameLayout {
         LinearLayout dpr = row(c, "DiPlay", "", dpBtns, true);
         dpUpdTitle = (TextView) ((ViewGroup) dpr.getChildAt(0)).getChildAt(0);
         dpUpdSub = (TextView) ((ViewGroup) dpr.getChildAt(0)).getChildAt(1);
-        card.addView(dpr);
+        // calm.121: riga DiPlay rimossa dal menu (DiPlay non è installato/usato). I controlli restano ma non mostrati.
 
         col.addView(card, topFull(14));
 

@@ -1306,8 +1306,9 @@ public final class HomeView extends LinearLayout {
         if (prefs.liveMap()) {
             // Calm Launcher: mappa reale dal vivo "dove siamo" (AuDHD), si ricentra mentre si guida
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
-            LiveMap homeMap = new LiveMap(c, mapNight, 0.5f, 0.5f, false, false, true);   // calm.119: hideStreet=true (via nativa sotto l'auto)
-            homeMap.setStreetSink(this::showHomeStreet);
+            // calm.121: mappa a tutto schermo (scheda Mappa) → mostra la via; la scritta sotto l'auto la gestisce la mappa a sfondo
+            LiveMap homeMap = new LiveMap(c, mapNight, 0.5f, 0.5f, false, false, false);
+            homeMap.setKeepScreenOn(true);   // calm.121: niente salvaschermo con la mappa a tutto schermo
             f.addView(homeMap, new FrameLayout.LayoutParams(-1, -1));
         } else {
             Bars.MapDecor decor = new Bars.MapDecor(c);
@@ -2188,7 +2189,7 @@ public final class HomeView extends LinearLayout {
     }
 
     /** calm.119: mostra il nome della via come testo nativo, centrato sotto l'auto (solo se l'auto è mostrata). */
-    private void showHomeStreet(String name) {
+    public void showHomeStreet(String name) {
         if (streetLabel == null) return;
         String n = name == null ? "" : name.trim();
         boolean show = !n.isEmpty() && carShown;
@@ -3305,6 +3306,7 @@ public final class HomeView extends LinearLayout {
             directAudio = true;
             if (idx >= 0 && idx < list.size() && directServer != null) directServer.notePlayed(list.get(idx).id);
             musicPlayer.play(list, idx);
+            close();   // calm.121: scelto un brano/album → chiudi il menu libreria
         }
 
         void updateNowBar() {
@@ -3476,6 +3478,12 @@ public final class HomeView extends LinearLayout {
             String sub = s.artist + (s.album == null || s.album.isEmpty() ? "" : "  \u00b7  " + s.album);
             tx.addView(Ui.oneLine(Ui.text(c, sub, big ? 16 : 14, t.sub, Ui.REGULAR)));
             row.addView(tx, Ui.margins(Ui.lpWeight(0, -2, 1), dp(14), 0, 0, 0));
+            // calm.121: pallino di stato — verde = in cache offline (suona senza dati), spento = si streamma
+            View dot = new View(c);
+            boolean cached = new com.mg4.launcher.svc.MusicCache(c).isCached(s.id);
+            dot.setBackground(Ui.round(cached ? 0xFF35C759 : t.chip, dp(5)));
+            dot.setContentDescription(cached ? "Offline" : "Stream");
+            row.addView(dot, Ui.margins(new LayoutParams(dp(10), dp(10)), dp(10), 0, dp(2), 0));
             row.setOnClickListener(v -> { Sfx.click(); playSong(s, list, idx); });
             listCol.addView(row, new LayoutParams(-1, -2));
         }

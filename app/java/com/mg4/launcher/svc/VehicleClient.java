@@ -467,6 +467,7 @@ public final class VehicleClient {
                         if (Float.isNaN(s.speedRaw) || Math.abs(s.speedRaw) >= 0.5f) stoppedSince = -1;
                         else if (stoppedSince < 0) stoppedSince = t;
                         Diag.putQuiet("auto.velocità/marcia", s.speedRaw + " / " + s.gearRaw);
+                        maybeLogOnStop(s.gearRaw, t);   // calm.121: salva+invia il log quando parcheggi o ti fermi
                     } catch (Exception e) {
                         Diag.putQuiet("auto.velocità/marcia", "non leggibili: " + e.getClass().getSimpleName());
                     }
@@ -725,6 +726,26 @@ public final class VehicleClient {
     private static volatile float lastSpeedRaw = Float.NaN;
     private static volatile int lastGearRaw = Integer.MIN_VALUE;
     private static volatile long lastMotionAt, stoppedSince = -1;
+    // calm.121: salva+invia un log quando metti in P o quando sei fermo da 30s (così non lo dimentichi parcheggiando)
+    private static volatile Runnable logTrigger;
+    private static int lastGearForLog = Integer.MIN_VALUE;
+    private static boolean loggedThisStop = false;
+    private static long lastLogAt = 0;
+    public static void setLogTrigger(Runnable r) { logTrigger = r; }
+    private void maybeLogOnStop(int gear, long now) {
+        boolean park = (gear == GEAR_P && lastGearForLog != GEAR_P);
+        lastGearForLog = gear;
+        long ss = stoppedSince;
+        if (ss < 0) loggedThisStop = false;   // in movimento → riarma per la prossima sosta
+        boolean stopped30 = (ss > 0 && now - ss >= 30_000L && !loggedThisStop);
+        if ((park || stopped30) && logTrigger != null) {
+            loggedThisStop = true;
+            if (now - lastLogAt < 180_000L) return;   // max una volta ogni 3 min (niente spam nel traffico stop&go)
+            lastLogAt = now;
+            Diag.put("log.trigger", park ? "messa in P → salvo e invio il log" : "ferma da 30s → salvo e invio il log");
+            try { logTrigger.run(); } catch (Throwable ignored) {}
+        }
+    }
     /** Ferma da almeno 2 minuti di fila (non un semaforo): solo così si forza un aggiornamento. */
     private static final long STOPPED_FOR_MS = 2 * 60_000L;
 

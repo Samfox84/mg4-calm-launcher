@@ -92,26 +92,30 @@ public final class Subsonic {
     public boolean configured() { return !base.isEmpty() && !user.isEmpty(); }
 
     // ---- autenticazione (salt + token md5) ----
-    private String auth() {
+    private String auth() { return auth(true); }
+    // calm.121: gli endpoint BINARI (stream, copertina) NON devono avere &f=json — con alcuni server
+    // (Navidrome/Subsonic) f=json fa restituire un piccolo JSON d'errore invece dell'audio → "salvato 0 KB"
+    // e MediaPlayer errore what=1. Solo le chiamate JSON (catalogo) usano f=json.
+    private String auth(boolean json) {
         String salt = Long.toHexString(Double.doubleToLongBits(Math.random())) + Long.toHexString(System.nanoTime());
         String token = SubsonicParse.authToken(pass, salt);
         return "u=" + Uri.encode(user) + "&t=" + token + "&s=" + salt
-                + "&v=" + API + "&c=" + CLIENT + "&f=json";
+                + "&v=" + API + "&c=" + CLIENT + (json ? "&f=json" : "");
     }
 
     private String endpoint(String method, String extra) {
         return base + "/rest/" + method + ".view?" + auth() + (extra == null || extra.isEmpty() ? "" : "&" + extra);
     }
 
-    /** URL diretto per lo streaming di un brano (usato dal player). */
+    /** URL diretto per lo streaming di un brano (usato dal player). Senza f=json (endpoint binario). */
     public String streamUrl(String id) {
-        return endpoint("stream", "id=" + Uri.encode(id) + "&maxBitRate=0");
+        return base + "/rest/stream.view?" + auth(false) + "&id=" + Uri.encode(id) + "&maxBitRate=0";
     }
 
-    /** URL della copertina. */
+    /** URL della copertina. Senza f=json (endpoint binario). */
     public String coverUrl(String coverArt, int size) {
         if (coverArt == null || coverArt.isEmpty()) return null;
-        return endpoint("getCoverArt", "id=" + Uri.encode(coverArt) + "&size=" + size);
+        return base + "/rest/getCoverArt.view?" + auth(false) + "&id=" + Uri.encode(coverArt) + "&size=" + size;
     }
 
     // ---- HTTP GET -> JSON "subsonic-response" ----

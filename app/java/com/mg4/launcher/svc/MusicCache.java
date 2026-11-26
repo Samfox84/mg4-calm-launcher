@@ -33,12 +33,21 @@ public final class MusicCache {
     /** File locale se il brano e' in cache (e lo "tocca" per l'LRU), altrimenti null. */
     public File cached(String id) {
         File f = fileFor(id);
-        if (f.isFile() && f.length() > 0) {
+        if (f.isFile() && f.length() > 10 * 1024) {   // calm.121: ignora file minuscoli rotti (vecchi 0 KB) → si ri-streamma
             //noinspection ResultOfMethodCallIgnored
             f.setLastModified(System.currentTimeMillis());
             return f;
         }
+        if (f.isFile() && f.length() <= 10 * 1024) { //noinspection ResultOfMethodCallIgnored
+            f.delete(); }   // pulisci i rotti
         return null;
+    }
+
+    /** calm.121: true se il brano è in cache offline (per il pallino di stato nella lista), SENZA toccare l'LRU. */
+    public boolean isCached(String id) {
+        if (id == null) return false;
+        File f = fileFor(id);
+        return f.isFile() && f.length() > 10 * 1024;   // almeno 10 KB: un file minuscolo è un errore, non un brano
     }
 
     /** Scarica il brano in cache in background (se non c'e' gia'). */
@@ -52,7 +61,14 @@ public final class MusicCache {
                     c = (HttpURLConnection) new URL(url).openConnection();
                     c.setConnectTimeout(12000);
                     c.setReadTimeout(30000);
-                    if (c.getResponseCode() != 200) return;
+                    c.setInstanceFollowRedirects(true);
+                    int code = c.getResponseCode();
+                    String ct = c.getContentType();
+                    if (code != 200) { Diag.put("musica.cache.file", "stream HTTP " + code + " ct=" + ct); return; }
+                    // calm.121: se il server risponde JSON/testo (errore) invece di audio, NON salvare un file rotto
+                    if (ct != null && (ct.contains("json") || ct.contains("xml") || ct.startsWith("text"))) {
+                        Diag.put("musica.cache.file", "stream NON audio (ct=" + ct + ") → errore server, non salvo"); return;
+                    }
                     InputStream in = c.getInputStream();
                     FileOutputStream out = new FileOutputStream(tmp);
                     byte[] b = new byte[65536];
@@ -66,7 +82,7 @@ public final class MusicCache {
                     }
                     out.close();
                     in.close();
-                    if (overflow || tot == 0) { tmp.delete(); return; }
+                    if (overflow || tot < 10 * 1024) { tmp.delete(); if (tot > 0) Diag.put("musica.cache.file", "risposta troppo piccola (" + tot + " byte) → non è un brano"); return; }
                     File dst = fileFor(id);
                     if (tmp.renameTo(dst)) {
                         evict();

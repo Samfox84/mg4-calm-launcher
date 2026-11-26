@@ -310,6 +310,15 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.121
+- **Streaming musica riparato**: lo streaming aggiungeva `&f=json` all'URL del brano, così il server rispondeva con un piccolo JSON d'errore invece dell'audio ("salvato 0 KB", errore what=1) → suonavano solo i brani già in cache. Tolto da stream e copertina. Ora: se un brano è in cache lo suona offline, altrimenti lo streamma e lo scarica mentre suona (cache fino a 500 MB, scarta i più vecchi). I file rotti vecchi (0 KB) vengono ignorati e riscaricati.
+- **Pallino stato brano**: nella libreria, pallino verde = in cache offline, spento = si streamma.
+- **Menu libreria**: si chiude da solo quando scegli un brano o un album.
+- **Nome via**: tolto dalla schermata principale e dalle app (si sovrapponeva a clima/app); resta sul quadro, sulla mappa a tutto schermo (scheda Mappa) e come testo nativo sotto l'auto sulla home.
+- **Niente salvaschermo** mentre la mappa è a tutto schermo.
+- **Log automatico quando parcheggi**: mette in P o fermo 30s → salva e invia il log da solo (max una volta ogni 3 min). Il pulsante "Send log" ora è anche accanto a "Check" negli aggiornamenti.
+- **DiPlay**: riga di aggiornamento tolta dal menu.
+
 #### 1.0.6-calm.120
 - **Nav feed: corretto il modo di collegarsi (ora dovrebbe arrivare)**: calm.118 si legava a CarPlayService, ma quello richiede un permesso di sistema (Telecom) → SecurityException nei log, niente dati. Ora ci leghiamo a **RemoteUIService** (com.allgo.rui), esportato senza permesso, che inoltra gli stessi eventi di navigazione (onExtrasChanged). Da qui arrivano distanza alla svolta, strada, icona ed ETA che guidano percorso e pill sul quadro.
 - **"Granville Road" sulla mappa a sfondo**: nascosta (si sovrapponeva a clima e schermata app). Resta sul quadro.
@@ -354,6 +363,15 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.121
+- **Music streaming fixed**: streaming was adding `&f=json` to the track URL, so the server replied with a small JSON error instead of audio ("saved 0 KB", error what=1) — only already-cached tracks played. Removed from the stream and cover URLs. Now: if a track is cached it plays offline, otherwise it streams and downloads while playing (cache up to 500 MB, oldest evicted). Old broken 0 KB files are ignored and re-fetched.
+- **Track status dot**: in the library, green dot = cached offline, dim = will stream.
+- **Library menu** now closes itself when you pick a track or album.
+- **Street name**: removed from the main and apps screens (it overlapped climate/apps); it stays on the cluster, on the full-screen map (Map tab), and as a native label under the car on home.
+- **No screensaver** while the full-screen map is showing.
+- **Auto log on parking**: shift to P or stopped 30s → saves and sends the log by itself (at most once every 3 min). The "Send log" button is now also next to "Check" in updates.
+- **DiPlay**: update row removed from the menu.
 
 #### 1.0.6-calm.120
 - **Nav feed: fixed how we connect (data should arrive now)**: calm.118 bound CarPlayService, which needs a system Telecom permission → SecurityException in the logs, no data. We now bind **RemoteUIService** (com.allgo.rui), which is exported without a permission and forwards the same navigation events (onExtrasChanged). That's where distance-to-turn, road, icon and ETA come from to drive the cluster route and pill.

@@ -86,6 +86,10 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         }
         catalog = new AppCatalog(this);
         vehicle = new VehicleClient(this);
+        // calm.121: quando parcheggi (P) o resti fermo 30s, salva e invia il log da solo (così non lo dimentichi)
+        VehicleClient.setLogTrigger(() -> new Thread(() -> {
+            try { com.mg4.launcher.svc.Diag.saveLog(getApplicationContext()); com.mg4.launcher.svc.LogUploader.requestNow(); } catch (Throwable ignored) {}
+        }, "mg4-log-park").start());
         conn = new com.mg4.launcher.svc.ConnClient(this);
         conn.setListener(st -> {
             if (home != null) home.onConn(st);
@@ -717,8 +721,11 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         // La mappa e il velo vivono nella root, dietro il Pager; le pagine sono trasparenti e scorrono sopra.
         if (bg) {
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(this).isDay();
-            // calm.120: mappa a sfondo = niente scritta via (si sovrappone a clima/app). Via nativa sotto l'auto se serve.
+            // calm.120/121: mappa a sfondo = niente scritta via nella webview (si sovrapponeva a clima/app); il nome
+            // via va come testo nativo centrato sotto l'auto sulla home.
             bgLiveMap = new com.mg4.launcher.ui.LiveMap(this, mapNight, 0.5f, 0.5f, false, false, true);
+            bgLiveMap.setStreetSink(name -> { if (home != null) home.showHomeStreet(name); });
+            bgLiveMap.setKeepScreenOn(true);   // calm.121: niente salvaschermo mentre la mappa è a tutto schermo
             root.addView(bgLiveMap, new FrameLayout.LayoutParams(-1, -1));
             android.view.View scrim = new android.view.View(this);
             scrim.setBackground(new android.graphics.drawable.GradientDrawable(
