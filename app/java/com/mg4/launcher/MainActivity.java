@@ -45,6 +45,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     private AppCatalog catalog;
     private VehicleClient vehicle;
     private MediaClient media;
+    private com.mg4.launcher.svc.CarPlayNavClient carplayNav;   // calm.118
     private NavClient nav;
     private Updater updater;
     private com.mg4.launcher.svc.LogUploader logs;
@@ -90,6 +91,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             if (home != null) home.onConn(st);
         });
         media = new MediaClient(this);
+        carplayNav = new com.mg4.launcher.svc.CarPlayNavClient(this);   // calm.118: feed navigazione CarPlay (Apple/Google)
         nav = new NavClient(this);
         updater = new Updater(this);
         logs = new com.mg4.launcher.svc.LogUploader(this);
@@ -155,6 +157,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             vehicle.start();
             conn.start();
             media.start();
+            carplayNav.start();   // calm.118
             nav.start();
             logs.start();
             com.mg4.launcher.svc.FirmwareExport.schedule(this);
@@ -825,6 +828,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         }
         com.mg4.launcher.svc.DayNight.get(this).stop();
         media.stop();
+        if (carplayNav != null) carplayNav.stop();   // calm.118
         nav.stop();
         try {
             unregisterReceiver(packages);

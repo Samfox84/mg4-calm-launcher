@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.118
+- **Finalmente riceviamo la navigazione CarPlay (la svolta sul tutto il quadro)**: i log hanno mostrato che il feed di guida (`onNavRouteGuidanceUpdate`) scattava ~1 volta al secondo con Apple Maps, ma il servizio Allgo lo manda solo a chi si REGISTRA come suo callback — e noi ascoltavamo il canale sbagliato (la sessione media). Ora l'app si lega al servizio Allgo (`ICarPlayService.register`) e riceve direttamente distanza alla svolta, strada dopo, icona e orario d'arrivo. Questi dati guidano il percorso evidenziato e la fascia manovra sul quadro. Funziona con Apple e Google Maps; Waze non manda questi dati. Microfono intatto. Tutto il bundle viene registrato nel log per verifica/taratura.
+
 #### 1.0.6-calm.117
 - **Zoom della mappa rivisto + regolazione**: nuova curva di zoom per velocità (in mph) tarata con Sam, con la fascia 20–35 mph unica così alla tua andatura la mappa non "respira" più, e in generale un po' più larga. Nuovo cursore in Impostazioni → Cluster display → "Map zoom" per spostare tutta la curva più larga o più stretta (vale per mappa quadro e head-unit). Abilitati i mezzi livelli di zoom per passaggi più morbidi.
 
@@ -343,6 +346,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.118
+- **We finally receive the CarPlay navigation feed (the turn on the cluster)**: the logs showed the guidance feed (`onNavRouteGuidanceUpdate`) firing about once a second with Apple Maps, but the Allgo service only sends it to apps that REGISTER as its callback — and we were listening on the wrong channel (the media session). The app now binds the Allgo service (`ICarPlayService.register`) and receives distance-to-turn, road-after, icon and ETA directly. That data drives the highlighted route and the turn banner on the cluster. Works with Apple and Google Maps; Waze doesn't send this. Microphone untouched. The whole feed bundle is logged for verification/tuning.
 
 #### 1.0.6-calm.117
 - **Reworked map zoom + an adjuster**: a new speed-based zoom curve (in mph) tuned with Sam, with 20–35 mph as a single band so the map stops "breathing" at your cruising speed, and a bit wider overall. New slider in Settings → Cluster display → "Map zoom" shifts the whole curve wider or closer (applies to both the cluster and head-unit maps). Half-level zoom enabled for smoother steps.
