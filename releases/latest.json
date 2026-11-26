@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.128",
-  "apk": "releases/MG4Launcher-1.0.6-calm.128.apk",
+  "version": "1.0.6-calm.129",
+  "apk": "releases/MG4Launcher-1.0.6-calm.129.apk",
   "size": 9103050,
-  "notes": "calm.128: bandierina destinazione + linea sticky"
+  "notes": "calm.129: specchio CarPlay sul quadro (sperimentale)"
 }
