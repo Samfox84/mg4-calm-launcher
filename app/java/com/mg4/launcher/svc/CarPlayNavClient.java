@@ -98,7 +98,6 @@ public final class CarPlayNavClient {
 
     // ---- callback che RICEVE la navigazione (ISessionStatusCallback) ----
     private final Binder sessionCb = new Binder() {
-        { attachInterface(this, SESSION_DESC); }
         @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             if (code >= 1 && code <= 16) {
                 data.enforceInterface(SESSION_DESC);
@@ -119,14 +118,12 @@ public final class CarPlayNavClient {
     };
     // callback richiesti da register() ma che non ci servono: rispondiamo e basta
     private final Binder controlCb = new Binder() {
-        { attachInterface(this, CONTROL_DESC); }
         @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             if (code >= 1 && code <= 3) { data.enforceInterface(CONTROL_DESC); if (reply != null) reply.writeNoException(); return true; }
             return super.onTransact(code, data, reply, flags);
         }
     };
     private final Binder errorCb = new Binder() {
-        { attachInterface(this, ERROR_DESC); }
         @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             if (code == 1) { data.enforceInterface(ERROR_DESC); if (reply != null) reply.writeNoException(); return true; }
             return super.onTransact(code, data, reply, flags);
