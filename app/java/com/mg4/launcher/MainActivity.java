@@ -717,7 +717,8 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         // La mappa e il velo vivono nella root, dietro il Pager; le pagine sono trasparenti e scorrono sopra.
         if (bg) {
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(this).isDay();
-            bgLiveMap = new com.mg4.launcher.ui.LiveMap(this, mapNight);
+            // calm.120: mappa a sfondo = niente scritta via (si sovrappone a clima/app). Via nativa sotto l'auto se serve.
+            bgLiveMap = new com.mg4.launcher.ui.LiveMap(this, mapNight, 0.5f, 0.5f, false, false, true);
             root.addView(bgLiveMap, new FrameLayout.LayoutParams(-1, -1));
             android.view.View scrim = new android.view.View(this);
             scrim.setBackground(new android.graphics.drawable.GradientDrawable(

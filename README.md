@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.120
+- **Nav feed: corretto il modo di collegarsi (ora dovrebbe arrivare)**: calm.118 si legava a CarPlayService, ma quello richiede un permesso di sistema (Telecom) → SecurityException nei log, niente dati. Ora ci leghiamo a **RemoteUIService** (com.allgo.rui), esportato senza permesso, che inoltra gli stessi eventi di navigazione (onExtrasChanged). Da qui arrivano distanza alla svolta, strada, icona ed ETA che guidano percorso e pill sul quadro.
+- **"Granville Road" sulla mappa a sfondo**: nascosta (si sovrapponeva a clima e schermata app). Resta sul quadro.
+
 #### 1.0.6-calm.119
 - **Pill manovra + ETA vicino al pallino sul quadro**: la fascia "prossima svolta / ETA" ora è una pill compatta posizionata accanto al pallino, dentro la finestra visibile del quadro (prima stava in cima alla mappa, fuori dal buco). Si popola dal feed CarPlay (calm.118).
 - **"Granville Road" sulla home spostata**: sulla pagina principale il nome della via non è più in basso a sinistra (dietro il clima), ma è un testo nativo centrato sotto l'auto / le pressioni. Sul quadro resta dov'era (dove ti piaceva). 
@@ -350,6 +354,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.120
+- **Nav feed: fixed how we connect (data should arrive now)**: calm.118 bound CarPlayService, which needs a system Telecom permission → SecurityException in the logs, no data. We now bind **RemoteUIService** (com.allgo.rui), which is exported without a permission and forwards the same navigation events (onExtrasChanged). That's where distance-to-turn, road, icon and ETA come from to drive the cluster route and pill.
+- **"Granville Road" on the background map**: hidden (it overlapped the climate and apps screens). It stays on the cluster.
 
 #### 1.0.6-calm.119
 - **Turn + ETA pill next to the dot on the cluster**: the "next turn / ETA" banner is now a compact pill placed beside the dot, inside the cluster's visible window (it used to sit at the top of the map, outside the hole). It's fed by the CarPlay feed (calm.118).

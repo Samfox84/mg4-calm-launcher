@@ -26,12 +26,15 @@ import android.os.RemoteException;
  */
 public final class CarPlayNavClient {
 
-    private static final String ICARPLAY_DESC = "com.allgo.carplay.service.ICarPlayService";
-    private static final String SESSION_DESC  = "com.allgo.carplay.service.ISessionStatusCallback";
-    private static final String CONTROL_DESC  = "com.allgo.carplay.service.IControlClientCallback";
-    private static final String ERROR_DESC    = "com.allgo.rui.IErrorCallback";
-    private static final int TRANSACTION_register = 1;      // ICarPlayService.register
-    private static final int TRANSACTION_onExtrasChanged = 15; // ISessionStatusCallback.onExtrasChanged
+    // calm.120: ci leghiamo a RemoteUIService (com.allgo.rui), NON a CarPlayService: quest'ultimo richiede il
+    // permesso BIND_TELECOM_CONNECTION_SERVICE (solo il sistema può legarlo → SecurityException nei log).
+    // RemoteUIService è esportato senza permesso e inoltra gli stessi eventi (onExtrasChanged) ai client.
+    private static final String RUI_DESC     = "com.allgo.rui.IRemoteUIService";
+    private static final String SESSION_DESC = "com.allgo.rui.IRemoteSessionCallback";
+    private static final String DEVICE_DESC  = "com.allgo.rui.IRemoteDeviceCallback";
+    private static final String ERROR_DESC   = "com.allgo.rui.IErrorCallback";
+    private static final int TRANSACTION_register = 1;        // IRemoteUIService.register
+    private static final int TRANSACTION_onExtrasChanged = 9; // IRemoteSessionCallback.onExtrasChanged
 
     private final Context ctx;
     private boolean bound;
@@ -50,9 +53,9 @@ public final class CarPlayNavClient {
     public void start() {
         try {
             Intent it = new Intent();
-            it.setComponent(new ComponentName("com.allgo.carplay.service", "com.allgo.carplay.service.CarPlayService"));
+            it.setComponent(new ComponentName("com.allgo.rui", "com.allgo.rui.RemoteUIService"));
             boolean ok = ctx.bindService(it, conn, Context.BIND_AUTO_CREATE);
-            Diag.put("carplay.navbind", ok ? "richiesto bind al servizio Allgo" : "bindService ha risposto false (servizio non trovato?)");
+            Diag.put("carplay.navbind", ok ? "richiesto bind a RemoteUIService" : "bindService ha risposto false (servizio non trovato?)");
             if (!ok) { try { ctx.unbindService(conn); } catch (Throwable ignored) {} }
         } catch (Throwable t) {
             Diag.error("carplay.navbind", "bind fallito: " + t);
@@ -78,12 +81,12 @@ public final class CarPlayNavClient {
         }
     };
 
-    /** Chiama ICarPlayService.register(controlCb, sessionCb, errorCb) via transazione 1. */
+    /** Chiama IRemoteUIService.register(deviceCb, sessionCb, errorCb) via transazione 1. */
     private void registerCallback(IBinder svc) {
         Parcel data = Parcel.obtain(), reply = Parcel.obtain();
         try {
-            data.writeInterfaceToken(ICARPLAY_DESC);
-            data.writeStrongBinder(controlCb);
+            data.writeInterfaceToken(RUI_DESC);
+            data.writeStrongBinder(deviceCb);
             data.writeStrongBinder(sessionCb);
             data.writeStrongBinder(errorCb);
             svc.transact(TRANSACTION_register, data, reply, 0);
@@ -99,7 +102,7 @@ public final class CarPlayNavClient {
     // ---- callback che RICEVE la navigazione (ISessionStatusCallback) ----
     private final Binder sessionCb = new Binder() {
         @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-            if (code >= 1 && code <= 16) {
+            if (code >= 1 && code <= 9) {
                 data.enforceInterface(SESSION_DESC);
                 if (code == TRANSACTION_onExtrasChanged) {
                     String action = data.readString();
@@ -117,9 +120,9 @@ public final class CarPlayNavClient {
         }
     };
     // callback richiesti da register() ma che non ci servono: rispondiamo e basta
-    private final Binder controlCb = new Binder() {
+    private final Binder deviceCb = new Binder() {
         @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-            if (code >= 1 && code <= 3) { data.enforceInterface(CONTROL_DESC); if (reply != null) reply.writeNoException(); return true; }
+            if (code >= 1 && code <= 4) { data.enforceInterface(DEVICE_DESC); if (reply != null) reply.writeNoException(); return true; }
             return super.onTransact(code, data, reply, flags);
         }
     };
