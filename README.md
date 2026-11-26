@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.123
+- **"Send log" ora risponde sempre**: quando la rete era appena caduta partiva una pausa "riprova più tardi" (1, 2, 4… minuti) e, durante quella pausa, premere "Send log" accodava il log in silenzio senza provare — sembrava rotto anche premendolo tante volte. Ora l'invio manuale e quello al parcheggio **forzano** il tentativo subito, saltando la pausa, e se riesce svuotano anche la coda. L'invio automatico ogni 30 min continua a rispettare la pausa per non martellare se davvero non c'è rete.
+
 #### 1.0.6-calm.122
 - **ETA leggibile**: l'orario d'arrivo arrivava come numerone (secondi dal 1970) → ora mostrato come ora, es. `ETA 08:42`.
 - **Pill del quadro sistemata**: due righe compatte (via sopra, `▸ distanza · ETA` sotto), posizionata **sotto** il pallino (dietro l'auto) così non copre il percorso evidenziato davanti, e con larghezza limitata al buco visibile così non esce più dal bordo.
@@ -369,6 +372,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.123
+- **"Send log" now always responds**: when the connection had just dropped, a "retry later" pause (1, 2, 4… minutes) kicked in, and during that pause pressing "Send log" quietly queued the log without trying — so it looked broken even after many presses. Now a manual send and the park auto-send **force** an attempt immediately, skipping the pause, and flush the queue on success. The automatic 30-min send still respects the pause so it doesn't hammer when there's genuinely no network.
 
 #### 1.0.6-calm.122
 - **Readable ETA**: arrival time arrived as a big number (seconds since 1970) → now shown as a clock time, e.g. `ETA 08:42`.

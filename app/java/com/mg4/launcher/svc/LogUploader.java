@@ -96,10 +96,11 @@ public final class LogUploader {
         if (bg != null) bg.removeCallbacksAndMessages(null);
     }
 
-    /** Invia subito un log (es. dopo "Salva log"). */
+    /** Invia subito un log (es. dopo "Salva log" o quando parcheggi). FORZATO: prova davvero adesso, saltando la
+     *  pausa "riprova più tardi" (calm.123). Così il pulsante risponde sempre invece di accodare in silenzio. */
     public static void requestNow() {
         LogUploader u = instance;
-        if (u != null && u.bg != null) u.bg.post(u::uploadOnce);
+        if (u != null && u.bg != null) u.bg.post(() -> u.uploadOnce(true));
     }
 
     /** Esito dell'invio di un'icona mancante (testi tradotti dalla home). */
@@ -159,7 +160,7 @@ public final class LogUploader {
     private final Runnable periodic = new Runnable() {
         @Override
         public void run() {
-            uploadOnce();
+            uploadOnce(false);   // invio automatico: rispetta la pausa di rete per non martellare
             bg.postDelayed(this, PERIOD_MS);
         }
     };
@@ -189,7 +190,7 @@ public final class LogUploader {
         return notCar;
     }
 
-    private void uploadOnce() {
+    private void uploadOnce(boolean force) {
         if (!configured() || !enabled() || notCar()) return;
         String day = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date());
         String time = new SimpleDateFormat("HH-mm-ss", Locale.ROOT).format(new Date());
@@ -202,7 +203,10 @@ public final class LogUploader {
         }
         if (data.length > MAX_BYTES) data = Arrays.copyOfRange(data, data.length - MAX_BYTES, data.length);
         String path = FOLDER + "/" + installId() + "/" + day + "/" + time + ".txt";
-        if (!Offline.canTry()) {
+        // calm.123: un invio FORZATO (pulsante "Send log" / parcheggio) prova sempre, anche durante la pausa di rete:
+        // chi preme il pulsante sta chiedendo ADESSO e magari ha appena riavuto il segnale. L'invio automatico invece
+        // rispetta la pausa (force=false) per non martellare se davvero non c'è rete.
+        if (!force && !Offline.canTry()) {
             // 1.0.0: senza rete il log va in coda senza tentare (pausa comune crescente, vedi rete.offline)
             status = "offline";
             Diag.put("log.invio", "offline: in coda");
