@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.117",
-  "apk": "releases/MG4Launcher-1.0.6-calm.117.apk",
+  "version": "1.0.6-calm.118",
+  "apk": "releases/MG4Launcher-1.0.6-calm.118.apk",
   "size": 9094858,
-  "notes": "New map zoom: tuned speed-based curve so 20-35 mph is one steady band (no more breathing), a bit wider overall, plus a Map zoom slider in Settings > Cluster display to shift it wider or closer. Works with the route fix from the last build - use Apple or Google Maps and send the log after your drive."
+  "notes": "CarPlay navigation feed: the app now registers with the Allgo service and receives distance-to-turn, road and ETA, which drive the highlighted route and turn banner on the cluster. Apple or Google Maps. Parked, the log will say registrato if the connection worked; the route needs a short drive. Send the log."
 }
