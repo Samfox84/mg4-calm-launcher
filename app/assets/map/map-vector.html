@@ -33,6 +33,7 @@
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 14px rgba(0,0,0,.65);}
   #turn .d{color:#4F9BF0;}
   #turn .e{color:#AEB6BF;font-weight:600;font-size:17px;}
+  #turn .r{display:block;font-weight:700;margin-bottom:1px;}   /* calm.122: riga della via (quadro, due righe) */
 </style>
 </head>
 <body>
@@ -96,18 +97,38 @@
 
     // calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google Maps). Solo testo del feed.
     var turnEl=document.getElementById('turn');
-    // calm.119: sul quadro la pill va vicino al pallino (buco visibile), non in cima alla mappa
-    if(CL && turnEl){ turnEl.style.left=(AX*100)+'%'; turnEl.style.top='calc('+(AY*100)+'% - 64px)';
-      turnEl.style.transform='translateX(-50%)'; turnEl.style.maxWidth='64%'; }
+    // calm.122: sul quadro la pill sta SOPRA il pallino (parte alta del buco visibile, mai in fondo), compatta su due
+    // righe, e con una larghezza limitata al buco così non esce mai dal bordo destro.
+    if(CL && turnEl){
+      var half=Math.min(AX,1-AX);                               // metà più stretta: tiene la pill dentro lo schermo
+      turnEl.style.left=(AX*100)+'%';
+      turnEl.style.top='calc('+(AY*100)+'% + 42px)';            // ancora 42px SOTTO il pallino (dietro l'auto)…
+      turnEl.style.transform='translate(-50%,0)';               // …così non copre il percorso evidenziato davanti
+      turnEl.style.maxWidth='calc('+(2*half*100).toFixed(1)+'% - 16px)';
+      turnEl.style.whiteSpace='normal';                         // due righe se serve
+      turnEl.style.textAlign='center';
+      turnEl.style.lineHeight='1.25';
+      turnEl.style.font='700 18px sans-serif';
+      turnEl.style.borderRadius='16px';
+    }
     window.setTurn=function(active, dist, road, eta){
       if(!turnEl) return;
       if(!active){ turnEl.style.display='none'; return; }
       var d=(dist||'').trim(), r=(road||'').trim(), e=(eta||'').trim();
       if(!d && !r){ turnEl.style.display='none'; return; }
       var html='';
-      if(d) html+='<span class="d">▸ '+d+'</span>';
-      if(r) html+=(d?'&nbsp;&nbsp;':'')+r;
-      if(e) html+='&nbsp;&nbsp;<span class="e">'+e+'</span>';
+      if(CL){
+        // quadro: via sopra, "▸ distanza · ETA" sotto
+        if(r) html+='<span class="r">'+r+'</span>';
+        var l2='';
+        if(d) l2+='<span class="d">▸ '+d+'</span>';
+        if(e) l2+=(d?' · ':'')+'<span class="e">'+e+'</span>';
+        if(l2) html+='<span>'+l2+'</span>';
+      } else {
+        if(d) html+='<span class="d">▸ '+d+'</span>';
+        if(r) html+=(d?'&nbsp;&nbsp;':'')+r;
+        if(e) html+='&nbsp;&nbsp;<span class="e">'+e+'</span>';
+      }
       turnEl.innerHTML=html; turnEl.style.display='block';
     };
 
@@ -299,6 +320,10 @@
       try{
         if(!vLogged){ vLogged=true; var vi0=viewInfo(); try{AndroidMap.status('route: view ts='+(vi0?vi0.ts:'?')+' ld='+(vi0?vi0.ld:'?')+' md='+(vi0?vi0.md:'?')+' z='+map.getZoom().toFixed(1));}catch(x){} }
         if(!navActive || navDistM<=0){ clearRoute(); return; }
+        // calm.122: senza una direzione di marcia valida (fermi, nessun GPS heading) il verso del percorso è ambiguo e
+        // la linea rischia di partire all'indietro. Niente linea finché non c'è un heading: appena ci si muove si
+        // aggancia alla strada giusta in avanti. lastBrg resta valido anche fermi a un semaforo (si azzera solo da fermo-freddo).
+        if(brg<0){ clearRoute(); logRoute('attendo direzione (fermo) — la linea parte appena ti muovi'); return; }
         var dist=Math.min(navDistM, 5000);
         var pool=collectRoads(lat,lon,brg,dist);
         var res=traceGraph(pool, lat,lon,brg, dist);

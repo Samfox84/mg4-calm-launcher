@@ -147,7 +147,14 @@ public final class CarPlayNavClient {
         if (b.containsKey("EST_TIME_ARRIVAL")) {
             try {
                 java.util.ArrayList<Integer> a = b.getIntegerArrayList("EST_TIME_ARRIVAL");
-                if (a != null && a.size() >= 2) { navEta = String.format(java.util.Locale.UK, "%02d:%02d", a.get(0), a.get(1)); changed = true; }
+                // calm.122: EST_TIME_ARRIVAL[0] è l'orario d'arrivo in SECONDI dal 1970 (epoch), non ore:minuti.
+                if (a != null && !a.isEmpty() && a.get(0) != null && a.get(0) > 1000000) {
+                    long ms = (long) a.get(0).intValue() * 1000L;
+                    navEta = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK).format(new java.util.Date(ms));
+                    changed = true;
+                } else if (a != null && a.size() >= 2) {   // fallback: [ore, minuti]
+                    navEta = String.format(java.util.Locale.UK, "%02d:%02d", a.get(0), a.get(1)); changed = true;
+                }
             } catch (Throwable ignored) {}
         }
         if (!changed) return;

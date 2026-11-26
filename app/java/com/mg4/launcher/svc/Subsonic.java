@@ -107,9 +107,10 @@ public final class Subsonic {
         return base + "/rest/" + method + ".view?" + auth() + (extra == null || extra.isEmpty() ? "" : "&" + extra);
     }
 
-    /** URL diretto per lo streaming di un brano (usato dal player). Senza f=json (endpoint binario). */
+    /** URL diretto per lo streaming di un brano (usato dal player). Senza f=json; forza mp3 (MediaPlayer lo riproduce
+     * sempre, anche se la libreria è FLAC/ogg che a volte MediaPlayer non streamma). calm.122. */
     public String streamUrl(String id) {
-        return base + "/rest/stream.view?" + auth(false) + "&id=" + Uri.encode(id) + "&maxBitRate=0";
+        return base + "/rest/stream.view?" + auth(false) + "&id=" + Uri.encode(id) + "&format=mp3&maxBitRate=256";
     }
 
     /** URL della copertina. Senza f=json (endpoint binario). */

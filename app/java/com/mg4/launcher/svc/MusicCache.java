@@ -99,6 +99,47 @@ public final class MusicCache {
         }, "music-cache").start();
     }
 
+    /** calm.122: scarica SUBITO (bloccante, da chiamare in un thread) e restituisce il file locale, o null se fallisce.
+     *  Ripiego per quando MediaPlayer non riesce a fare streaming diretto ma la cache (HttpURLConnection) sì. */
+    public File fetchBlocking(final String id, final String url) {
+        if (id == null || url == null) return null;
+        File have = cached(id);
+        if (have != null) return have;
+        File tmp = new File(dir, "." + System.nanoTime() + ".part");
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(url).openConnection();
+            c.setConnectTimeout(12000);
+            c.setReadTimeout(30000);
+            c.setInstanceFollowRedirects(true);
+            int code = c.getResponseCode();
+            String ct = c.getContentType();
+            if (code != 200) { Diag.put("musica.cache.file", "ripiego HTTP " + code + " ct=" + ct); return null; }
+            if (ct != null && (ct.contains("json") || ct.contains("xml") || ct.startsWith("text"))) {
+                Diag.put("musica.cache.file", "ripiego NON audio (ct=" + ct + ")"); return null;
+            }
+            InputStream in = c.getInputStream();
+            FileOutputStream out = new FileOutputStream(tmp);
+            byte[] b = new byte[65536];
+            int r;
+            long tot = 0;
+            boolean overflow = false;
+            while ((r = in.read(b)) > 0) { out.write(b, 0, r); tot += r; if (tot > MAX_SONG) { overflow = true; break; } }
+            out.close();
+            in.close();
+            if (overflow || tot < 10 * 1024) { tmp.delete(); return null; }
+            File dst = fileFor(id);
+            if (tmp.renameTo(dst)) { evict(); Diag.put("musica.cache.file", "ripiego salvato " + (dst.length() / 1024) + " KB"); return dst; }
+            tmp.delete();
+        } catch (Exception e) {
+            try { tmp.delete(); } catch (Exception ignored) {}
+            Diag.put("musica.cache.file", "ripiego errore: " + e.getMessage());
+        } finally {
+            if (c != null) try { c.disconnect(); } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
     /** Se si supera il tetto, cancella i file meno usati di recente (LRU). */
     private synchronized void evict() {
         File[] fs = dir.listFiles();

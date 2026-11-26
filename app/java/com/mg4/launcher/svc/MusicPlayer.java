@@ -37,6 +37,8 @@ public final class MusicPlayer {
     private int index = -1;
     private int errorStreak = 0;   // errori di riproduzione consecutivi (azzerato al primo brano che parte)
     private boolean playing, prepared;
+    private boolean currentIsStream;        // calm.122: il brano in corso è in streaming diretto (non da file locale)?
+    private String fallbackTriedId;         // calm.122: id del brano per cui ho già provato il ripiego scarica-e-riproduci
     private Listener listener;
 
     private final AudioManager.OnAudioFocusChangeListener focus = new AudioManager.OnAudioFocusChangeListener() {
@@ -92,22 +94,31 @@ public final class MusicPlayer {
                 am.requestAudioFocus(focus, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
             } catch (Exception ignored) {}
         }
+        java.io.File local = cache.cached(s.id);
+        if (local != null) {
+            buildPlayer(local.getAbsolutePath(), false, s);
+            Diag.put("musica.player", "da cache: " + s.title);
+        } else {
+            String streamUrl = server.streamUrl(s.id);
+            buildPlayer(streamUrl, true, s);
+            // calm.122: log dell'URL (solo host+path, senza credenziali) per capire se lo stream fallisce
+            String safe = streamUrl.replaceAll("[?&](t|s|p|u)=[^&]*", "&·");
+            Diag.put("musica.player", "streaming: " + s.title + " · " + safe);
+            cache.fetch(s.id, streamUrl);   // scarica in background per la prossima volta
+        }
+    }
+
+    /** Crea il MediaPlayer sulla sorgente indicata (file locale o URL) e avvia la preparazione asincrona. */
+    private void buildPlayer(String dataSource, boolean isStream, Subsonic.Song s) {
         releasePlayer();
+        currentIsStream = isStream;
         try {
             mp = new MediaPlayer();
             mp.setAudioAttributes(new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
             prepared = false;
-            java.io.File local = cache.cached(s.id);
-            String streamUrl = server.streamUrl(s.id);
-            if (local != null) {
-                mp.setDataSource(local.getAbsolutePath());
-                Diag.put("musica.player", "da cache: " + s.title);
-            } else {
-                mp.setDataSource(streamUrl);
-                cache.fetch(s.id, streamUrl);   // scarica in background per la prossima volta
-            }
+            mp.setDataSource(dataSource);
             mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override public void onPrepared(MediaPlayer m) { prepared = true; errorStreak = 0; m.start(); setPlaying(true); }
             });
@@ -115,23 +126,55 @@ public final class MusicPlayer {
                 @Override public void onCompletion(MediaPlayer m) { ui.post(() -> next()); }   // fuori dal callback: evita il reset del player dentro il suo stesso onCompletion
             });
             mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                @Override public boolean onError(MediaPlayer m, int what, int extra) {
-                    Diag.put("musica.player", "errore riproduzione what=" + what + " extra=" + extra);
-                    // Un brano che non parte non deve fermare l'album: salta al successivo, ma con un tetto per non
-                    // ciclare all'infinito se la rete e' giu' (si riprende al primo brano che parte).
-                    if (!queue.isEmpty() && ++errorStreak <= Math.min(queue.size(), 5)) {
-                        ui.postDelayed(() -> next(), 1200);
-                    } else {
-                        Diag.put("musica.player", "troppi errori di fila (" + errorStreak + "): fermo");
-                    }
-                    return true;
-                }
+                @Override public boolean onError(MediaPlayer m, int what, int extra) { onPlayError(what, extra); return true; }
             });
             mp.prepareAsync();
             pushMetadata(s);
             Diag.put("musica.player", "avvio: " + s.title + " - " + s.artist);
         } catch (Exception e) {
             Diag.put("musica.player", "setDataSource fallito: " + e.getMessage());
+            onPlayError(-1, 0);
+        }
+    }
+
+    /** calm.122: gestione errori di riproduzione. Se lo streaming DIRETTO fallisce, prima di arrendersi scarico il
+     *  brano con la via della cache (HttpURLConnection, che funziona) e lo riproduco dal file locale. Solo se anche
+     *  questo non va, salto al brano successivo. */
+    private void onPlayError(int what, int extra) {
+        Diag.put("musica.player", "errore riproduzione what=" + what + " extra=" + extra);
+        final Subsonic.Song s = current();
+        if (s != null && currentIsStream && !s.id.equals(fallbackTriedId)) {
+            fallbackTriedId = s.id;
+            Diag.put("musica.player", "streaming fallito → scarico e riproduco dal file…");
+            final String id = s.id;
+            final String url = server.streamUrl(id);
+            new Thread(new Runnable() {
+                @Override public void run() {
+                    final java.io.File f = cache.fetchBlocking(id, url);
+                    ui.post(new Runnable() {
+                        @Override public void run() {
+                            Subsonic.Song now = current();
+                            if (f != null && now != null && id.equals(now.id)) {
+                                buildPlayer(f.getAbsolutePath(), false, now);
+                                Diag.put("musica.player", "ripiego: riproduco dal file scaricato");
+                            } else {
+                                skipOnError();
+                            }
+                        }
+                    });
+                }
+            }, "music-fallback").start();
+            return;
+        }
+        skipOnError();
+    }
+
+    /** Salta al brano successivo dopo un errore, con un tetto per non ciclare se la rete è giù. */
+    private void skipOnError() {
+        if (!queue.isEmpty() && ++errorStreak <= Math.min(queue.size(), 5)) {
+            ui.postDelayed(() -> next(), 1200);
+        } else {
+            Diag.put("musica.player", "troppi errori di fila (" + errorStreak + "): fermo");
         }
     }
 

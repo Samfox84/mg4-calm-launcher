@@ -310,6 +310,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.122
+- **ETA leggibile**: l'orario d'arrivo arrivava come numerone (secondi dal 1970) → ora mostrato come ora, es. `ETA 08:42`.
+- **Pill del quadro sistemata**: due righe compatte (via sopra, `▸ distanza · ETA` sotto), posizionata **sotto** il pallino (dietro l'auto) così non copre il percorso evidenziato davanti, e con larghezza limitata al buco visibile così non esce più dal bordo.
+- **Percorso evidenziato**: da fermo (senza una direzione di marcia valida) il verso era ambiguo e la linea poteva partire all'indietro o corta → ora, finché non c'è una direzione, la linea non viene disegnata e si aggancia alla strada giusta in avanti appena ti muovi. Fermandoti a un semaforo resta corretta.
+- **Streaming musica (ripiego)**: se il lettore non riesce a fare streaming diretto (errore `what=1`), ora scarica il brano con la via che funziona (quella della cache) e lo riproduce dal file — così la musica parte comunque. Forzato anche l'`mp3` nello streaming.
+
 #### 1.0.6-calm.121
 - **Streaming musica riparato**: lo streaming aggiungeva `&f=json` all'URL del brano, così il server rispondeva con un piccolo JSON d'errore invece dell'audio ("salvato 0 KB", errore what=1) → suonavano solo i brani già in cache. Tolto da stream e copertina. Ora: se un brano è in cache lo suona offline, altrimenti lo streamma e lo scarica mentre suona (cache fino a 500 MB, scarta i più vecchi). I file rotti vecchi (0 KB) vengono ignorati e riscaricati.
 - **Pallino stato brano**: nella libreria, pallino verde = in cache offline, spento = si streamma.
@@ -363,6 +369,12 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.122
+- **Readable ETA**: arrival time arrived as a big number (seconds since 1970) → now shown as a clock time, e.g. `ETA 08:42`.
+- **Cluster pill fixed**: compact two lines (street on top, `▸ distance · ETA` below), placed **below** the dot (behind the car) so it no longer covers the highlighted route ahead, and width-limited to the visible hole so it can't fall off the edge.
+- **Highlighted route**: when stationary (no valid heading) the direction was ambiguous and the line could start backwards or short → now the line isn't drawn until there's a heading, and locks onto the correct road ahead as soon as you move. Stopping at lights keeps it correct.
+- **Music streaming (fallback)**: if the player can't stream directly (error `what=1`), it now downloads the track via the path that works (the cache one) and plays it from file — so music plays regardless. Also forces `mp3` on the stream.
 
 #### 1.0.6-calm.121
 - **Music streaming fixed**: streaming was adding `&f=json` to the track URL, so the server replied with a small JSON error instead of audio ("saved 0 KB", error what=1) — only already-cached tracks played. Removed from the stream and cover URLs. Now: if a track is cached it plays offline, otherwise it streams and downloads while playing (cache up to 500 MB, oldest evicted). Old broken 0 KB files are ignored and re-fetched.
