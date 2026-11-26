@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.123",
-  "apk": "releases/MG4Launcher-1.0.6-calm.123.apk",
+  "version": "1.0.6-calm.124",
+  "apk": "releases/MG4Launcher-1.0.6-calm.124.apk",
   "size": 9098954,
-  "notes": "calm.123: Send log forza l'invio subito (fix log che non partivano durante la pausa di rete)"
+  "notes": "calm.124: percorso evidenziato visibile anche da fermo (verso dal feed CarPlay)"
 }
