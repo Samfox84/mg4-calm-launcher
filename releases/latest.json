@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.126",
-  "apk": "releases/MG4Launcher-1.0.6-calm.126.apk",
+  "version": "1.0.6-calm.127",
+  "apk": "releases/MG4Launcher-1.0.6-calm.127.apk",
   "size": 9098954,
-  "notes": "calm.126: log al server proprio + dump feed CarPlay + diagnostica display"
+  "notes": "calm.127: linea percorso sticky (non sparisce più)"
 }
