@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.127
+- **La linea del percorso non sparisce più**: prima si cancellava e ridisegnava a ogni istante (il lampeggio). Ora è "sticky": si cancella SOLO quando la navigazione finisce. In ogni momento incerto (fermo, strada non chiara, un attimo fuori strada) tiene l'ultima linea buona invece di sparire. Dal codice del feed CarPlay confermato che non arriva la rotta completa né le coordinate della destinazione: solo la prossima svolta, la strada, il nome destinazione e quante svolte mancano — quindi la linea resta il tratto ricostruito davanti, ma ora stabile.
+
 #### 1.0.6-calm.126
 - **Invio log al tuo server** (per il 4G che instrada via Cina e blocca GitHub): in Impostazioni c'è "Log server (optional)" dove metti l'URL dell'endpoint e una chiave segreta. Se impostato, i log vanno lì (POST, header `X-Log-Key` e `X-Log-Path`); GitHub resta come ripiego sul Wi-Fi. La coda si svuota sul server quando torna la rete.
 - **Dump completo del feed CarPlay**: il log ora elenca TUTTI i campi che mandano Apple/Google (prima vedevamo solo "376 byte"), per capire se c'è la destinazione o la rotta, non solo la prossima svolta.
@@ -384,6 +387,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.127
+- **Route line no longer disappears**: it used to clear and redraw every instant (the flashing). It's now sticky: it clears ONLY when navigation ends. On any uncertain moment (stopped, road unclear, a brief off-road blip) it holds the last good line instead of vanishing. Confirmed from the CarPlay feed's own code that the full route and destination coordinates are never sent — only the next turn, road name, destination name and remaining turn count — so the line is the reconstructed stretch ahead, but now steady.
 
 #### 1.0.6-calm.126
 - **Upload logs to your own server** (for a 4G SIM that routes via China and blocks GitHub): Settings now has "Log server (optional)" — enter the endpoint URL and a secret key. If set, logs POST there (`X-Log-Key`, `X-Log-Path` headers); GitHub stays as the Wi-Fi fallback. The queue flushes to the server when the network returns.

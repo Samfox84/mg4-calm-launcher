@@ -334,7 +334,11 @@
     function retrace(lat,lon,brg){
       try{
         if(!vLogged){ vLogged=true; var vi0=viewInfo(); try{AndroidMap.status('route: view ts='+(vi0?vi0.ts:'?')+' ld='+(vi0?vi0.ld:'?')+' md='+(vi0?vi0.md:'?')+' z='+map.getZoom().toFixed(1));}catch(x){} }
-        if(!navActive || navDistM<=0){ clearRoute(); return; }
+        // calm.126: STICKY. La linea sparisce SOLO quando la navigazione finisce. In tutti gli altri casi incerti
+        // (fermo, strada non chiara, fuori strada un attimo) si TIENE l'ultima linea buona invece di cancellarla,
+        // così non lampeggia e non sparisce mentre guidi.
+        if(!navActive){ clearRoute(); return; }
+        if(navDistM<=0){ return; }                 // distanza 0 momentanea (sei sulla svolta): tieni la linea
         var dist=Math.min(navDistM, 5000);
         var haveHeading = brg>=0;
         var forceDir=null, effBrg=brg;
@@ -346,7 +350,7 @@
           var tB=traceGraph(near, lat,lon, -1, dist, true);   // verso seg.b
           var tA=traceGraph(near, lat,lon, -1, dist, false);  // verso seg.a
           var sB=endScore(tB), sA=endScore(tA);
-          if(sB<0 && sA<0){ clearRoute(); logRoute('fermo: strada non chiara (nessun verso valido)'); return; }
+          if(sB<0 && sA<0){ logRoute('fermo: verso non chiaro — tengo la linea'); return; }   // calm.126: non cancellare
           forceDir=(sB>=sA);                                  // true→seg.b, false→seg.a
           var pick=forceDir?tB:tA;
           effBrg=(pick&&pick.end)?bearingOf([lat,lon],pick.end):-1;
@@ -355,8 +359,8 @@
         if(effBrg>=0) prefetch(lat,lon,effBrg,dist);          // precarica i tile davanti anche da fermo, nel verso dedotto
         var pool=collectRoads(lat,lon,effBrg,dist);
         var res=traceGraph(pool, lat,lon, brg, dist, forceDir);
-        if(!res){ clearRoute(); logRoute('no-roads'); if(effBrg>=0) prefetch(lat,lon,effBrg,dist); return; }
-        if(res.offRoad){ clearRoute(); logRoute('off-road d='+res.d.toFixed(0)+'m'); return; }   // sicurezza: non sulla strada
+        if(!res){ logRoute('no-roads — tengo la linea'); if(effBrg>=0) prefetch(lat,lon,effBrg,dist); return; }   // calm.126: non cancellare
+        if(res.offRoad){ logRoute('off-road d='+res.d.toFixed(0)+'m — tengo la linea'); return; }   // calm.126: blip fuori strada → tieni l'ultima linea buona
         var turn=[];
         if(res.reached && navRoad){
           var jr=roadsNear(res.end[0],res.end[1],15); if(!jr.length) jr=roadsNear(res.end[0],res.end[1],14);
@@ -368,7 +372,7 @@
         drawRoute(res.line, turn);
         logRoute('ok pts='+res.line.length+' reach='+res.acc.toFixed(0)+'/'+dist.toFixed(0)+(res.reached?'':' SHORT')+' after="'+navRoad+'"'+(haveHeading?'':' [fermo]')+' t='+turn.length);
         if(!res.reached && effBrg>=0) prefetch(lat,lon,effBrg,dist);   // precarica i tile davanti (verso vero o dedotto): la prossima passata arriva più lontano
-      }catch(e){ clearRoute(); try{AndroidMap.status('route: err '+e);}catch(x){} }
+      }catch(e){ try{AndroidMap.status('route: err '+e+' — tengo la linea');}catch(x){} }   // calm.126: errore → tieni l'ultima linea
     }
     // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione
     window.setRoute=function(active, distM, road, turnHint){
