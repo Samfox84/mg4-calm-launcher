@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.125
+- **Musica: niente più transcodifica forzata**. Il server (Navidrome) rifiutava lo stream con un errore XML perché l'app chiedeva `format=mp3` (una transcodifica che il server potrebbe non saper fare). Ora l'URL è passthrough nativo (niente `format`/`maxBitRate`): si chiede il file così com'è. Se fallisce ancora, ora l'app **scrive nel log il testo esatto dell'errore del server** (es. `<error code="…">`) così si capisce subito il perché.
+- **Diagnostica percorso**: i messaggi del tracciato (`route: …`) venivano scartati dal ponte Java→log; ora finiscono nel log (`map.route`) così si vede se e perché la linea evidenziata non viene disegnata.
+
 #### 1.0.6-calm.124
 - **Percorso evidenziato anche DA FERMO**: non serve più guidare per vederlo. Quando una navigazione è attiva, Apple/Google inviano subito la distanza alla svolta e la **strada dopo la svolta** anche da fermi; così, senza direzione dal GPS, la strada sotto l'auto viene tracciata nei due sensi e si sceglie il verso che finisce su quella strada. In più i tile davanti vengono precaricati nel verso dedotto, così la linea arriva lontano anche parcheggiati. Appena ci si muove si torna a usare la direzione reale del GPS. (La traccia già guidata e la pill/ETA funzionavano già da fermi.)
 
@@ -375,6 +379,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.125
+- **Music: no more forced transcoding**. The server (Navidrome) was rejecting the stream with an XML error because the app asked for `format=mp3` (a transcode the server may not be able to do). The URL is now native passthrough (no `format`/`maxBitRate`): it asks for the file as-is. If it still fails, the app now **logs the server's exact error text** (e.g. `<error code="…">`) so the cause is clear.
+- **Route diagnostics**: the tracer's `route: …` messages were dropped by the Java→log bridge; they now reach the log (`map.route`) so we can see if and why the highlighted line isn't drawn.
 
 #### 1.0.6-calm.124
 - **Highlighted route now shows while PARKED**: no need to drive to see it. When a route is active, Apple/Google push the distance-to-turn and the **road after the turn** immediately, even stationary; so with no GPS heading the road under the car is traced both ways and the direction that ends on that road is chosen. Tiles ahead are also prefetched in the deduced direction so the line reaches far even parked. The moment you move, it switches back to the real GPS heading. (The driven trail and the pill/ETA already worked while parked.)

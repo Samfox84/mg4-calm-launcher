@@ -107,10 +107,11 @@ public final class Subsonic {
         return base + "/rest/" + method + ".view?" + auth() + (extra == null || extra.isEmpty() ? "" : "&" + extra);
     }
 
-    /** URL diretto per lo streaming di un brano (usato dal player). Senza f=json; forza mp3 (MediaPlayer lo riproduce
-     * sempre, anche se la libreria è FLAC/ogg che a volte MediaPlayer non streamma). calm.122. */
+    /** URL diretto per lo streaming di un brano (usato dal player). Passthrough nativo: niente f=json, niente
+     * format/maxBitRate (calm.125: forzare mp3 non aiutava — il server rifiuta con un errore XML; togliamo la
+     * transcodifica per non chiedere al server qualcosa che potrebbe non saper fare). */
     public String streamUrl(String id) {
-        return base + "/rest/stream.view?" + auth(false) + "&id=" + Uri.encode(id) + "&format=mp3&maxBitRate=256";
+        return base + "/rest/stream.view?" + auth(false) + "&id=" + Uri.encode(id);
     }
 
     /** URL della copertina. Senza f=json (endpoint binario). */

@@ -67,7 +67,7 @@ public final class MusicCache {
                     if (code != 200) { Diag.put("musica.cache.file", "stream HTTP " + code + " ct=" + ct); return; }
                     // calm.121: se il server risponde JSON/testo (errore) invece di audio, NON salvare un file rotto
                     if (ct != null && (ct.contains("json") || ct.contains("xml") || ct.startsWith("text"))) {
-                        Diag.put("musica.cache.file", "stream NON audio (ct=" + ct + ") → errore server, non salvo"); return;
+                        Diag.put("musica.cache.file", "stream NON audio (ct=" + ct + ") → " + errBody(c)); return;   // calm.125: logga il testo dell'errore del server
                     }
                     InputStream in = c.getInputStream();
                     FileOutputStream out = new FileOutputStream(tmp);
@@ -116,7 +116,7 @@ public final class MusicCache {
             String ct = c.getContentType();
             if (code != 200) { Diag.put("musica.cache.file", "ripiego HTTP " + code + " ct=" + ct); return null; }
             if (ct != null && (ct.contains("json") || ct.contains("xml") || ct.startsWith("text"))) {
-                Diag.put("musica.cache.file", "ripiego NON audio (ct=" + ct + ")"); return null;
+                Diag.put("musica.cache.file", "ripiego NON audio (ct=" + ct + ") → " + errBody(c)); return null;   // calm.125: testo errore server
             }
             InputStream in = c.getInputStream();
             FileOutputStream out = new FileOutputStream(tmp);
@@ -138,6 +138,23 @@ public final class MusicCache {
             if (c != null) try { c.disconnect(); } catch (Exception ignored) {}
         }
         return null;
+    }
+
+    /** calm.125: legge i primi ~300 byte della risposta del server (il testo dell'errore Subsonic, es.
+     *  &lt;error code="70"…&gt;) così la diagnostica dice ESATTAMENTE perché lo stream fallisce. */
+    private static String errBody(HttpURLConnection c) {
+        InputStream in = null;
+        try {
+            try { in = c.getInputStream(); } catch (Exception e) { in = c.getErrorStream(); }
+            if (in == null) return "(nessun corpo)";
+            byte[] b = new byte[300];
+            int n = in.read(b);
+            return n > 0 ? new String(b, 0, n, "UTF-8").replaceAll("\\s+", " ").trim() : "(vuoto)";
+        } catch (Exception e) {
+            return "(corpo illeggibile: " + e.getClass().getSimpleName() + ")";
+        } finally {
+            if (in != null) try { in.close(); } catch (Exception ignored) {}
+        }
     }
 
     /** Se si supera il tetto, cancella i file meno usati di recente (LRU). */

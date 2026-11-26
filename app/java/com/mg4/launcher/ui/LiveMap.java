@@ -260,6 +260,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             else if ("tiles-ok".equals(s)) { mapReady = true; Diag.put("map.stato", "riquadri ok (internet auto)"); post(() -> status.setVisibility(GONE)); }
             else if ("tiles-error".equals(s)) { Diag.put("map.stato", "riquadri OFFLINE (niente internet)"); post(() -> { status.setText(offline ? "" : "Map offline – no data signal"); status.setVisibility(offline ? GONE : VISIBLE); }); }
             else if (s != null && s.startsWith("size:")) { Diag.put("map.size", s.substring(5)); }
+            else if (s != null && s.startsWith("route:")) { Diag.put("map.route", s.substring(6)); }   // calm.125: diagnostica tracciato percorso (prima veniva scartata)
             else if (s != null && s.startsWith("query:")) { Diag.put("map.query", s.substring(6)); }
             else if (s != null && s.startsWith("calib:")) { Diag.calib(s.substring(6)); }   // calm.113: taratura percorso
             else if (s != null && s.startsWith("st:")) {   // calm.119: nome della via → testo nativo sulla home
