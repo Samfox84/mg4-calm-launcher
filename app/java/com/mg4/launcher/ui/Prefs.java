@@ -36,6 +36,13 @@ public final class Prefs {
     public void setMusicPass(String v) { sp.edit().putString("msPass", v == null ? "" : v).apply(); }
     public boolean musicDirect() { return !musicUrl().isEmpty() && !musicUser().isEmpty(); }
 
+    // calm.126: invio log al server di Sam (funziona sul 4G instradato via Cina, dove GitHub è bloccato).
+    // L'URL è l'endpoint che riceve i log; la chiave è un segreto condiviso col ricevitore.
+    public String logServerUrl() { return sp.getString("logSrvUrl", ""); }
+    public void setLogServerUrl(String v) { sp.edit().putString("logSrvUrl", v == null ? "" : v.trim()).apply(); }
+    public String logServerKey() { return sp.getString("logSrvKey", ""); }
+    public void setLogServerKey(String v) { sp.edit().putString("logSrvKey", v == null ? "" : v.trim()).apply(); }
+
     // Calm Launcher: riprendi lo schermo se DiPlay lo occupa nei primi 30s dall'avvio
     public boolean reclaimScreen() { return sp.getBoolean("reclaimScreen", true); }
 

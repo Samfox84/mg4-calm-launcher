@@ -816,6 +816,7 @@ public final class SettingsView extends FrameLayout {
         card.addView(row(c, L.s(R.string.set_top_button), L.s(R.string.set_top_button_sub), topRow, true));
         col.addView(card, topFull(14));
         musicServerCard(c, col);
+        logServerCard(c, col);
     }
 
     /** Calm Launcher: configurazione del server musica diretto (Navidrome/Subsonic) + sincronizzazione completa. */
@@ -853,6 +854,31 @@ public final class SettingsView extends FrameLayout {
                             : ("Couldn't connect: " + error)));
                 }
             });
+        });
+        go.setLayoutParams(topFull(18));
+        card.addView(go);
+        card.addView(status);
+        col.addView(card, topFull(0));
+    }
+
+    /** calm.126: server dei log di Sam. Serve perché il 4G instrada via Cina, che blocca GitHub: il server di Sam
+     *  (dietro Cloudflare) invece si raggiunge. Se impostato, i log vanno lì (e GitHub resta come ripiego sul WiFi). */
+    private void logServerCard(Context c, LinearLayout col) {
+        col.addView(label(c, "Log server (optional)"), topFull(18));
+        LinearLayout card = card(c);
+        card.setPadding(dp(24), dp(20), dp(24), dp(20));
+        card.addView(Ui.text(c, "If your car's 4G can't reach GitHub (e.g. a China-routed SIM), send logs to your own server instead. Enter the endpoint URL and a secret key that matches your receiver. Leave blank to use GitHub.", 17, t.sub, Ui.REGULAR));
+        final android.widget.EditText url = field(c, "Log endpoint  e.g. https://logs.simonmarriott.co.uk/up", prefs.logServerUrl(), 0);
+        final android.widget.EditText key = field(c, "Secret key", prefs.logServerKey(), 1);
+        card.addView(url, topFull(16));
+        card.addView(key, topFull(12));
+        final TextView status = Ui.text(c, prefs.logServerUrl().isEmpty() ? "Using GitHub." : "Saved: sending logs to your server.", 17, t.sub, Ui.REGULAR);
+        status.setPadding(dp(4), dp(16), dp(4), dp(2));
+        TextView go = button(c, "Save log server", v -> {
+            prefs.setLogServerUrl(url.getText().toString());
+            prefs.setLogServerKey(key.getText().toString());
+            status.setText(prefs.logServerUrl().isEmpty() ? "Cleared: using GitHub." : "Saved: logs will go to your server (GitHub is the Wi-Fi fallback).");
+            com.mg4.launcher.svc.LogUploader.requestNow();
         });
         go.setLayoutParams(topFull(18));
         card.addView(go);

@@ -133,12 +133,35 @@ public final class CarPlayNavClient {
         }
     };
 
+    /** calm.126: elenca TUTTI i campi del Bundle del feed CarPlay con tipo e valore, così si vede esattamente cosa
+     *  mandano Apple/Google (per capire se c'è la destinazione o la rotta completa, non solo la prossima svolta). */
+    private static String dumpBundle(Bundle b) {
+        try {
+            java.util.Set<String> keys = b.keySet();
+            StringBuilder sb = new StringBuilder("{");
+            boolean first = true;
+            for (String k : keys) {
+                Object v = b.get(k);
+                String vs;
+                if (v == null) vs = "null";
+                else if (v instanceof byte[]) vs = "byte[" + ((byte[]) v).length + "]";
+                else { vs = String.valueOf(v); if (vs.length() > 80) vs = vs.substring(0, 80) + "…"; }
+                if (!first) sb.append(", ");
+                first = false;
+                sb.append(k).append("=").append(vs);
+            }
+            return sb.append("}").toString();
+        } catch (Throwable t) {
+            return b.toString() + " (dump fallito: " + t.getClass().getSimpleName() + ")";
+        }
+    }
+
     /** Un aggiornamento del feed: unisce i campi presenti e spinge manovra + percorso sul quadro. */
     private void onExtras(String action, Bundle b) {
         if (b == null || !"ACTION_CARPLAY_NAVI_METADATA".equals(action)) return;
         extrasCount++;
-        if (extrasCount <= 3 || extrasCount % 20 == 0)
-            Diag.put("carplay.navfeed", "#" + extrasCount + " " + b.toString());   // bundle completo (taratura)
+        if (extrasCount <= 5 || extrasCount % 20 == 0)
+            Diag.put("carplay.navfeed", "#" + extrasCount + " " + dumpBundle(b));   // calm.126: TUTTI i campi (per capire se c'è destinazione/rotta nascoste)
 
         boolean changed = false;
         if (b.containsKey("DIST_TO_NEXT_JUNCTION")) { navMeters = b.getInt("DIST_TO_NEXT_JUNCTION", navMeters); changed = true; }

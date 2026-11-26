@@ -213,6 +213,16 @@ public final class LogUploader {
             enqueue(path, data);
             return;
         }
+        // calm.126: prima prova il server di Sam (raggiungibile sul 4G via Cloudflare, dove GitHub è bloccato).
+        // Se va, bene; se no o se non è configurato, si prova GitHub come prima.
+        if (putServerIfConfigured(path, data)) {
+            Offline.ok();
+            String hhmm0 = new SimpleDateFormat("HH:mm", Locale.ROOT).format(new Date());
+            status = "ok(server) " + hhmm0;
+            Diag.put("log.invio", "inviato al server alle " + hhmm0 + " → " + path);
+            flushQueue();
+            return;
+        }
         try {
             put(path, data);
             Offline.ok();
@@ -252,13 +262,48 @@ public final class LogUploader {
         for (File f : files) {
             try {
                 byte[] data = readAll(new FileInputStream(f));
-                put(f.getName().replace('~', '/'), data);
+                String path = f.getName().replace('~', '/');
+                if (!putServerIfConfigured(path, data)) put(path, data);   // calm.126: server di Sam, poi GitHub
                 //noinspection ResultOfMethodCallIgnored
                 f.delete();
             } catch (Exception e) {
                 Diag.error("log.coda", e.getMessage());
                 return;   // riprova al prossimo invio
             }
+        }
+    }
+
+    /** calm.126: invia il log al server di Sam (POST col corpo = testo del log). Ritorna true se riuscito.
+     *  Contratto semplice per un ricevitore minimale: header X-Log-Key (segreto) e X-Log-Path (dove salvarlo). */
+    private boolean putServerIfConfigured(String path, byte[] data) {
+        String url, key;
+        try {
+            com.mg4.launcher.ui.Prefs p = com.mg4.launcher.ui.Prefs.get(ctx);
+            url = p.logServerUrl(); key = p.logServerKey();
+        } catch (Throwable t) { return false; }
+        if (url == null || url.isEmpty()) return false;
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(url).openConnection();
+            c.setRequestMethod("POST");
+            c.setConnectTimeout(15000);
+            c.setReadTimeout(30000);
+            c.setDoOutput(true);
+            c.setRequestProperty("X-Log-Key", key == null ? "" : key);
+            c.setRequestProperty("X-Log-Path", path);
+            c.setRequestProperty("User-Agent", "MG4Launcher");
+            c.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+            try (OutputStream o = c.getOutputStream()) { o.write(data); }
+            int code = c.getResponseCode();
+            if (code == 200 || code == 201 || code == 204) return true;
+            Diag.put("log.server", "HTTP " + code);
+            return false;
+        } catch (Exception e) {
+            Offline.failed("log-server", e);   // rete giù: condivide la pausa comune
+            Diag.put("log.server", "non riuscito: " + Diag.netError(e));
+            return false;
+        } finally {
+            if (c != null) try { c.disconnect(); } catch (Exception ignored) {}
         }
     }
 

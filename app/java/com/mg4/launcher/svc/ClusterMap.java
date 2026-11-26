@@ -232,10 +232,17 @@ public final class ClusterMap {
             for (Display d : all) {
                 DisplayMetrics m = new DisplayMetrics();
                 try { d.getRealMetrics(m); } catch (Throwable ignored) {}
+                int fl = 0; try { fl = d.getFlags(); } catch (Throwable ignored) {}
+                StringBuilder f = new StringBuilder();   // calm.126: FLAG utili per trovare il display del quadro (CarPlay cluster)
+                if ((fl & Display.FLAG_PRESENTATION) != 0) f.append("PRES,");
+                if ((fl & Display.FLAG_PRIVATE) != 0) f.append("PRIV,");
+                if ((fl & Display.FLAG_SECURE) != 0) f.append("SECURE,");
+                if ((fl & Display.FLAG_ROUND) != 0) f.append("ROUND,");
                 sb.append(" | id=").append(d.getDisplayId())
                   .append(" '").append(d.getName()).append("'")
                   .append(" ").append(m.widthPixels).append("x").append(m.heightPixels)
-                  .append(" state=").append(d.getState());
+                  .append(" state=").append(d.getState())
+                  .append(" flags=").append(f.length() > 0 ? f.substring(0, f.length() - 1) : "-");
             }
             Diag.put("cluster.map.displays", sb.toString());
         } catch (Throwable t) {

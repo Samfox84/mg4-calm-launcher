@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.126
+- **Invio log al tuo server** (per il 4G che instrada via Cina e blocca GitHub): in Impostazioni c'è "Log server (optional)" dove metti l'URL dell'endpoint e una chiave segreta. Se impostato, i log vanno lì (POST, header `X-Log-Key` e `X-Log-Path`); GitHub resta come ripiego sul Wi-Fi. La coda si svuota sul server quando torna la rete.
+- **Dump completo del feed CarPlay**: il log ora elenca TUTTI i campi che mandano Apple/Google (prima vedevamo solo "376 byte"), per capire se c'è la destinazione o la rotta, non solo la prossima svolta.
+- **Diagnostica display**: il log elenca ogni display con i suoi FLAG (presentation/privato/sicuro), per trovare il display del quadro usato dal flusso video CarPlay.
+
 #### 1.0.6-calm.125
 - **Musica: niente più transcodifica forzata**. Il server (Navidrome) rifiutava lo stream con un errore XML perché l'app chiedeva `format=mp3` (una transcodifica che il server potrebbe non saper fare). Ora l'URL è passthrough nativo (niente `format`/`maxBitRate`): si chiede il file così com'è. Se fallisce ancora, ora l'app **scrive nel log il testo esatto dell'errore del server** (es. `<error code="…">`) così si capisce subito il perché.
 - **Diagnostica percorso**: i messaggi del tracciato (`route: …`) venivano scartati dal ponte Java→log; ora finiscono nel log (`map.route`) così si vede se e perché la linea evidenziata non viene disegnata.
@@ -379,6 +384,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.126
+- **Upload logs to your own server** (for a 4G SIM that routes via China and blocks GitHub): Settings now has "Log server (optional)" — enter the endpoint URL and a secret key. If set, logs POST there (`X-Log-Key`, `X-Log-Path` headers); GitHub stays as the Wi-Fi fallback. The queue flushes to the server when the network returns.
+- **Full CarPlay feed dump**: the log now lists every field Apple/Google send (we only ever saw "376 bytes" before), so we can tell whether the destination or full route is in there, not just the next turn.
+- **Display diagnostics**: the log lists every display with its FLAGS (presentation/private/secure), to find the cluster display used by the CarPlay video stream.
 
 #### 1.0.6-calm.125
 - **Music: no more forced transcoding**. The server (Navidrome) was rejecting the stream with an XML error because the app asked for `format=mp3` (a transcode the server may not be able to do). The URL is now native passthrough (no `format`/`maxBitRate`): it asks for the file as-is. If it still fails, the app now **logs the server's exact error text** (e.g. `<error code="…">`) so the cause is clear.
