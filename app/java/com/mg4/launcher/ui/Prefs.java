@@ -160,8 +160,8 @@ public final class Prefs {
     public void setClusterMap(boolean b) { sp.edit().putBoolean("clusterMap", b).apply(); }
     // calm.113: posizione del PALLINO nel buco visibile del quadro (il quadro disegna i suoi strumenti sopra la
     // mappa e ne rivela solo un riquadro, a destra). 0..100 (X: 64 = verso destra, Y: 48). Si tara una volta da fermi.
-    public int clusterPosX() { return Math.max(0, Math.min(100, sp.getInt("clusterPosX", 64))); }
-    public int clusterPosY() { return Math.max(0, Math.min(100, sp.getInt("clusterPosY", 48))); }
+    public int clusterPosX() { return Math.max(0, Math.min(100, sp.getInt("clusterPosX", 76))); }   // calm.116: default tarato da Sam (buco visibile del quadro)
+    public int clusterPosY() { return Math.max(0, Math.min(100, sp.getInt("clusterPosY", 55))); }
     public void setClusterPosX(int v) { sp.edit().putInt("clusterPosX", Math.max(0, Math.min(100, v))).apply(); }
     public void setClusterPosY(int v) { sp.edit().putInt("clusterPosY", Math.max(0, Math.min(100, v))).apply(); }
     // calm.113: mappa del quadro orientata verso la direzione di marcia (heading-up). Accesa di default.

@@ -310,6 +310,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.116
+- **Il percorso ora può funzionare: corretta la ricerca strade**: la query sulla mappa offline passava le coordinate invertite (lat,lon invece di lon,lat), quindi cercava le strade in mezzo all'oceano e non trovava mai nulla (`map.query = vuoto`, `road=none` nei log). Questo bloccava sia il nome della via sia il tracciamento del percorso sul quadro. Ora passa (lon,lat) come vuole la libreria: nome via e percorso in avanti hanno finalmente i dati per funzionare.
+- **Radio all'avvio**: il riquadro della radio non compare più da solo all'apertura dell'app — appare solo quando qualcosa suona davvero o quando premi una sorgente.
+- **Posizione mappa quadro**: il valore predefinito è ora 76% / 55% (tarato in auto), così il pallino casca nel riquadro visibile senza doverlo regolare.
+
 #### 1.0.6-calm.115
 - **Percorso più lungo: precarica la strada davanti**: la mappa del quadro ora **precarica dal file offline i tile lungo il corridoio davanti** e unisce la geometria delle strade anche tra tile diversi, così la linea del percorso arriva fino alla prossima svolta invece di fermarsi al bordo visibile. Un piccolo "router" segue la strada più dritta (preferendo lo stesso nome) stiktando i segmenti connessi. L'intero bundle del feed CarPlay continua a essere registrato per intero nel log: se Apple o Google inviano un riassunto del percorso o più svolte in anticipo, si vedrà lì.
 - **Scritta "Amazon Music"**: non viene più spinta sulla mappa come se fosse un brano (era quella che spuntava in basso a sinistra sopra le altre schermate).
@@ -335,6 +340,11 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.116
+- **The route can finally work: fixed the road lookup**: the offline-map query was passing coordinates the wrong way round (lat,lon instead of lon,lat), so it searched for roads out in the ocean and never found any (`map.query = vuoto`, `road=none` in the logs). That silently broke both the street name and the route tracing on the cluster. It now passes (lon,lat) as the library expects, so the street label and the forward route finally have data to work with.
+- **Radio at launch**: the radio panel no longer opens by itself when the app starts — it appears only when something is actually playing, or when you press a source.
+- **Cluster map position**: the default is now 76% / 55% (calibrated in the car), so the dot lands in the visible window without needing adjustment.
 
 #### 1.0.6-calm.115
 - **Longer route: preloads the road ahead**: the cluster map now **preloads the offline map tiles along the corridor ahead** and stitches road geometry across tiles, so the route line reaches all the way to your next turn instead of stopping at the visible edge. A small "router" follows the straightest road (preferring the same name), joining connected segments. The full CarPlay feed bundle is still logged verbatim — so if Apple or Google ever send a route summary or several upcoming turns, it'll show there.

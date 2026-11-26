@@ -1888,6 +1888,7 @@ public final class HomeView extends LinearLayout {
                     if (musicCtl != null) musicCtl.getTransportControls().pause();   // ferma la libreria: torna alla sorgente auto
                     pendingSource = src;
                     pendingSourceUntil = SystemClock.uptimeMillis() + 3000;
+                    mediaEngaged = true;   // calm.116: l'utente ha scelto una sorgente → ora il riquadro può comparire (anche radio)
                     styleSources(src);
                     media.selectSource(src);
                 });
@@ -2213,7 +2214,9 @@ public final class HomeView extends LinearLayout {
         // "Amazon Music" sia all'avvio sia dopo aver aperto e chiuso la Libreria senza scegliere nulla.
         if (m.playing) mediaEngaged = true;
         else if (idleNP) mediaEngaged = false;
-        boolean showNP = mediaEngaged || m.playing || radio || libShowing || direct;
+        // calm.116: la radio NON apre più il riquadro all'avvio da sola — solo se qualcosa suona o l'utente
+        // ha scelto una sorgente (mediaEngaged). Prima "radio" forzava sempre la comparsa all'avvio.
+        boolean showNP = mediaEngaged || m.playing || libShowing || direct;
         if (mediaBody != null) mediaBody.setVisibility(showNP ? VISIBLE : GONE);
         // 1.0.5: spinge il brano sulla mappa a sfondo: in basso a sinistra compare "Via | Brano · Artista".
         // Senza mappa a sfondo l'host ignora la chiamata (nessun effetto).

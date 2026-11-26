@@ -347,7 +347,7 @@
       try{
         if(layer.views && layer.views.forEach){
           layer.views.forEach(function(view){
-            try{ var r=view.queryFeatures(lat,lon,z,z); if(r && r.length){ for(var i=0;i<r.length;i++) out.push(r[i]); } }catch(e){}
+            try{ var r=view.queryFeatures(lon,lat,z,z); if(r && r.length){ for(var i=0;i<r.length;i++) out.push(r[i]); } }catch(e){}   // calm.116: protomaps vuole (lon,lat) — prima erano invertiti → query nell'oceano, road=none
           });
         }
       }catch(e){}
