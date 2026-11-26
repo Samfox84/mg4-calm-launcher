@@ -175,6 +175,10 @@ public final class Prefs {
     // calm.115: nascondi i pulsanti Mappa/Media/CarPlay in basso (il CarPlay via cavo ha la sua icona nella barra)
     public boolean hideSwitchTabs() { return sp.getBoolean("hideSwitchTabs", false); }
     public void setHideSwitchTabs(boolean b) { sp.edit().putBoolean("hideSwitchTabs", b).apply(); }
+
+    // calm.117: regolazione dello zoom smart della mappa (-2 = più lontano … 0 = tarato … +2 = più vicino)
+    public int mapZoomBias() { return Math.max(-2, Math.min(2, sp.getInt("mapZoomBias", 0))); }
+    public void setMapZoomBias(int v) { sp.edit().putInt("mapZoomBias", Math.max(-2, Math.min(2, v))).apply(); }
     public void setNightDim(boolean b) { sp.edit().putBoolean("nightDim", b).apply(); }
 
     public int glowIntensity() { return Math.max(0, Math.min(2, sp.getInt("glowIntensity", 1))); }      // 0 soft, 1 medio, 2 brillante

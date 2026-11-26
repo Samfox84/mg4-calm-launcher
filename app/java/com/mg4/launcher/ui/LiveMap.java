@@ -42,6 +42,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final boolean nightDim;
     private final float anchorX, anchorY;   // calm.110: dove tenere il pallino sullo schermo (0..1), 0.5 = centro
     private final boolean headingUp;         // calm.113: mappa orientata verso la marcia (solo quadro)
+    private final int zoomBias;              // calm.117: regolazione zoom smart (-2 = più lontano, +2 = più vicino)
 
     public LiveMap(Context c) { this(c, false); }
     public LiveMap(Context c, boolean nightDim) { this(c, nightDim, 0.5f, 0.5f); }
@@ -52,6 +53,8 @@ public final class LiveMap extends FrameLayout implements LocationListener {
         this.anchorX = ax;
         this.anchorY = ay;
         this.headingUp = headingUp;
+        int zb = 0; try { zb = Prefs.get(c).mapZoomBias(); } catch (Throwable ignored) {}
+        this.zoomBias = zb;
         setBackgroundColor(0xFF0E1114);
         web = new WebView(c);
         web.setBackgroundColor(0xFF0E1114);
@@ -88,7 +91,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try {
                 int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : "") + (headingUp ? "&rot=1" : ""));
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : "") + (headingUp ? "&rot=1" : "") + (zoomBias != 0 ? "&zb=" + zoomBias : ""));
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());

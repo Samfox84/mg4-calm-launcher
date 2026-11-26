@@ -51,10 +51,11 @@
   var AX=parseFloat(q('ax')); if(isNaN(AX)||AX<0||AX>1) AX=0.5;
   var AY=parseFloat(q('ay')); if(isNaN(AY)||AY<0||AY>1) AY=0.5;
   var ROT=q('rot')==='1';   // calm.113: heading-up (mappa ruota verso la marcia) — solo quadro
+  var ZB=parseFloat(q('zb')); if(isNaN(ZB)) ZB=0; ZB=Math.max(-2,Math.min(2,ZB));   // calm.117: regolazione zoom (+vicino / -lontano)
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
-        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:1}).setView([52.5,-2.5],17);
+        dragging:true,touchZoom:true,doubleClickZoom:true,scrollWheelZoom:false,inertia:true,zoomSnap:0.5}).setView([52.5,-2.5],16);
     L.control.zoom({position:'bottomright'}).addTo(map);
     var layer=protomapsL.leafletLayer({url:purl,flavor:'dark',lang:'en',pane:'tilePane',keepBuffer:12});
     var tileN=0, reported=false;
@@ -320,7 +321,14 @@
 
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
-    function zoomForSpeed(ms){ var k=ms*3.6; if(k<25)return 18; if(k<50)return 17; if(k<80)return 16; return 15; }
+    // calm.117: zoom per velocità in mph, curva tarata con Sam (20–35 mph in una sola fascia = niente "respiro").
+    // ZB sposta tutta la curva: +1 = un livello più vicino, −1 = più lontano.
+    function zoomForSpeed(ms){
+      var mph=ms*2.23694, z;
+      if(mph<5) z=17; else if(mph<10) z=16.5; else if(mph<20) z=16; else if(mph<35) z=15.5;
+      else if(mph<45) z=15; else if(mph<60) z=14.5; else if(mph<70) z=14; else z=13.5;
+      z+=ZB; if(z>18)z=18; if(z<11)z=11; return z;
+    }
     var rebtn=document.getElementById('recenter'), streetEl=document.getElementById('street');
     var lastTrack='';
     // "Via | Brano · Artista": la via a sinistra, il brano a destra, separati da una barra. Se manca uno, niente barra.

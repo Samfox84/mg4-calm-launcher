@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.117
+- **Zoom della mappa rivisto + regolazione**: nuova curva di zoom per velocità (in mph) tarata con Sam, con la fascia 20–35 mph unica così alla tua andatura la mappa non "respira" più, e in generale un po' più larga. Nuovo cursore in Impostazioni → Cluster display → "Map zoom" per spostare tutta la curva più larga o più stretta (vale per mappa quadro e head-unit). Abilitati i mezzi livelli di zoom per passaggi più morbidi.
+
 #### 1.0.6-calm.116
 - **Il percorso ora può funzionare: corretta la ricerca strade**: la query sulla mappa offline passava le coordinate invertite (lat,lon invece di lon,lat), quindi cercava le strade in mezzo all'oceano e non trovava mai nulla (`map.query = vuoto`, `road=none` nei log). Questo bloccava sia il nome della via sia il tracciamento del percorso sul quadro. Ora passa (lon,lat) come vuole la libreria: nome via e percorso in avanti hanno finalmente i dati per funzionare.
 - **Radio all'avvio**: il riquadro della radio non compare più da solo all'apertura dell'app — appare solo quando qualcosa suona davvero o quando premi una sorgente.
@@ -340,6 +343,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.117
+- **Reworked map zoom + an adjuster**: a new speed-based zoom curve (in mph) tuned with Sam, with 20–35 mph as a single band so the map stops "breathing" at your cruising speed, and a bit wider overall. New slider in Settings → Cluster display → "Map zoom" shifts the whole curve wider or closer (applies to both the cluster and head-unit maps). Half-level zoom enabled for smoother steps.
 
 #### 1.0.6-calm.116
 - **The route can finally work: fixed the road lookup**: the offline-map query was passing coordinates the wrong way round (lat,lon instead of lon,lat), so it searched for roads out in the ocean and never found any (`map.query = vuoto`, `road=none` in the logs). That silently broke both the street name and the route tracing on the cluster. It now passes (lon,lat) as the library expects, so the street label and the forward route finally have data to work with.

@@ -1767,6 +1767,28 @@ public final class SettingsView extends FrameLayout {
         pos.addView(yBox, top(4));
         col.addView(pos, topFull(14));
 
+        // calm.117: regolazione dello zoom smart (la mappa si allarga/stringe con la velocità) — vale per entrambe le mappe
+        LinearLayout zc = card(c);
+        zc.addView(Ui.text(c, "Map zoom", Ui.ts(18), t.text, Ui.MEDIUM), top(4));
+        zc.addView(Ui.text(c, "How close the map sits while driving. The map zooms out as you speed up; this shifts the whole range. Middle is the tuned default; left = more zoomed out, right = more zoomed in.", Ui.ts(14), t.sub, Ui.REGULAR), top(4));
+        final String[] zlab = {"Much further out", "Further out", "Default", "Closer in", "Much closer in"};
+        final android.widget.SeekBar sz = new android.widget.SeekBar(c);
+        sz.setMax(4); sz.setProgress(prefs.mapZoomBias() + 2);
+        sz.setLayoutParams(new LinearLayout.LayoutParams(dp(320), -2));
+        final TextView szVal = Ui.text(c, zlab[prefs.mapZoomBias() + 2], Ui.ts(16), t.sub, Ui.REGULAR);
+        sz.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar sb, int p, boolean u) { szVal.setText(zlab[p]); }
+            public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            public void onStopTrackingTouch(android.widget.SeekBar sb) {
+                prefs.setMapZoomBias(sb.getProgress() - 2);
+                com.mg4.launcher.svc.ClusterMap.restart(getContext());
+                host.settingsChanged(true);   // ricarica anche la mappa dell'head-unit
+            }
+        });
+        zc.addView(szVal, top(12));
+        zc.addView(sz, top(4));
+        col.addView(zc, topFull(14));
+
         // aspetto del cluster DiPlay (colore tenuto / luminosità / preset)
         LinearLayout look = card(c);
         look.addView(Ui.text(c, "DiPlay cluster look", Ui.ts(18), t.text, Ui.MEDIUM), top(4));
