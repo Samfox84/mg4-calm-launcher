@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.124
+- **Percorso evidenziato anche DA FERMO**: non serve più guidare per vederlo. Quando una navigazione è attiva, Apple/Google inviano subito la distanza alla svolta e la **strada dopo la svolta** anche da fermi; così, senza direzione dal GPS, la strada sotto l'auto viene tracciata nei due sensi e si sceglie il verso che finisce su quella strada. In più i tile davanti vengono precaricati nel verso dedotto, così la linea arriva lontano anche parcheggiati. Appena ci si muove si torna a usare la direzione reale del GPS. (La traccia già guidata e la pill/ETA funzionavano già da fermi.)
+
 #### 1.0.6-calm.123
 - **"Send log" ora risponde sempre**: quando la rete era appena caduta partiva una pausa "riprova più tardi" (1, 2, 4… minuti) e, durante quella pausa, premere "Send log" accodava il log in silenzio senza provare — sembrava rotto anche premendolo tante volte. Ora l'invio manuale e quello al parcheggio **forzano** il tentativo subito, saltando la pausa, e se riesce svuotano anche la coda. L'invio automatico ogni 30 min continua a rispettare la pausa per non martellare se davvero non c'è rete.
 
@@ -372,6 +375,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.124
+- **Highlighted route now shows while PARKED**: no need to drive to see it. When a route is active, Apple/Google push the distance-to-turn and the **road after the turn** immediately, even stationary; so with no GPS heading the road under the car is traced both ways and the direction that ends on that road is chosen. Tiles ahead are also prefetched in the deduced direction so the line reaches far even parked. The moment you move, it switches back to the real GPS heading. (The driven trail and the pill/ETA already worked while parked.)
 
 #### 1.0.6-calm.123
 - **"Send log" now always responds**: when the connection had just dropped, a "retry later" pause (1, 2, 4… minutes) kicked in, and during that pause pressing "Send log" quietly queued the log without trying — so it looked broken even after many presses. Now a manual send and the park auto-send **force** an attempt immediately, skipping the pause, and flush the queue on success. The automatic 30-min send still respects the pause so it doesn't hammer when there's genuinely no network.

@@ -287,7 +287,7 @@
     }
     // Router greedy sulla rete di segmenti: parte dall'auto, segue la strada più dritta (preferendo lo
     // stesso nome), unendo i segmenti connessi anche tra tile diversi, fino a distM metri.
-    function traceGraph(pool, carLat, carLon, brg, distM){
+    function traceGraph(pool, carLat, carLon, brg, distM, forceToB){
       var segs=[];
       for(var i=0;i<pool.length;i++){ var pts=pool[i].pts; for(var j=0;j<pts.length-1;j++) segs.push({a:pts[j], b:pts[j+1], name:pool[i].name||''}); }
       if(!segs.length) return null;
@@ -296,7 +296,9 @@
       if(!best) return null;
       if(best.pr.d>35) return {offRoad:true, d:best.pr.d};
       var seg=segs[best.s], start=best.pr.pt;
-      var fb=bearingOf(seg.a,seg.b), toB=(brg<0)?true:angDiff(brg,fb)<=90;
+      // calm.123: verso forzato (true→seg.b, false→seg.a) quando lo decide il chiamante (es. da fermo, dal feed);
+      // altrimenti dal GPS heading come prima.
+      var fb=bearingOf(seg.a,seg.b), toB=(forceToB===true||forceToB===false)?forceToB:((brg<0)?true:angDiff(brg,fb)<=90);
       var line=[start], acc=0, cur=start, node=(toB?seg.b:seg.a), curName=seg.name, guard=0;
       while(acc<distM && guard++<600){
         var step=md(cur,node);
@@ -316,18 +318,44 @@
     }
     var lastRouteLog=0;
     function logRoute(s){ var n=Date.now(); if(n-lastRouteLog<2500) return; lastRouteLog=n; try{AndroidMap.status('route: '+s);}catch(e){} }
+    // calm.123: quanto "vale" un tracciato. Se la sua fine arriva sulla strada DOPO la svolta indicata dal feed
+    // (navRoad), vale moltissimo: è così che, da fermo, distinguiamo il verso giusto senza GPS heading. In mancanza,
+    // vale la distanza raggiunta (il verso che va più lontano sulla strada).
+    function endScore(r){
+      if(!r || r.offRoad || !r.end) return -1;
+      var sc=r.acc||0;
+      if(navRoad){
+        var jr=roadsNear(r.end[0],r.end[1],15); if(!jr.length) jr=roadsNear(r.end[0],r.end[1],14);
+        var want=navRoad.toLowerCase();
+        for(var i=0;i<jr.length;i++){ var nm=(jr[i].name||'').toLowerCase(); if(nm&&(nm.indexOf(want)>=0||want.indexOf(nm)>=0)){ sc+=1e6; break; } }
+      }
+      return sc;
+    }
     function retrace(lat,lon,brg){
       try{
         if(!vLogged){ vLogged=true; var vi0=viewInfo(); try{AndroidMap.status('route: view ts='+(vi0?vi0.ts:'?')+' ld='+(vi0?vi0.ld:'?')+' md='+(vi0?vi0.md:'?')+' z='+map.getZoom().toFixed(1));}catch(x){} }
         if(!navActive || navDistM<=0){ clearRoute(); return; }
-        // calm.122: senza una direzione di marcia valida (fermi, nessun GPS heading) il verso del percorso è ambiguo e
-        // la linea rischia di partire all'indietro. Niente linea finché non c'è un heading: appena ci si muove si
-        // aggancia alla strada giusta in avanti. lastBrg resta valido anche fermi a un semaforo (si azzera solo da fermo-freddo).
-        if(brg<0){ clearRoute(); logRoute('attendo direzione (fermo) — la linea parte appena ti muovi'); return; }
         var dist=Math.min(navDistM, 5000);
-        var pool=collectRoads(lat,lon,brg,dist);
-        var res=traceGraph(pool, lat,lon,brg, dist);
-        if(!res){ clearRoute(); logRoute('no-roads'); prefetch(lat,lon,brg,dist); return; }
+        var haveHeading = brg>=0;
+        var forceDir=null, effBrg=brg;
+        if(!haveHeading){
+          // calm.123: FERMO, nessun heading dal GPS. Decido il verso dal feed CarPlay: traccio la strada sotto l'auto
+          // nei due sensi e scelgo quello che finisce sulla strada "dopo la svolta" (navRoad). Così il percorso si
+          // vede anche da fermo, senza dover guidare. Appena ci si muove, si usa il GPS heading come sempre.
+          var near=collectRoads(lat,lon,-1,0);
+          var tB=traceGraph(near, lat,lon, -1, dist, true);   // verso seg.b
+          var tA=traceGraph(near, lat,lon, -1, dist, false);  // verso seg.a
+          var sB=endScore(tB), sA=endScore(tA);
+          if(sB<0 && sA<0){ clearRoute(); logRoute('fermo: strada non chiara (nessun verso valido)'); return; }
+          forceDir=(sB>=sA);                                  // true→seg.b, false→seg.a
+          var pick=forceDir?tB:tA;
+          effBrg=(pick&&pick.end)?bearingOf([lat,lon],pick.end):-1;
+          logRoute('fermo: verso dedotto dal feed (navRoad="'+navRoad+'") sB='+sB.toFixed(0)+' sA='+sA.toFixed(0));
+        }
+        if(effBrg>=0) prefetch(lat,lon,effBrg,dist);          // precarica i tile davanti anche da fermo, nel verso dedotto
+        var pool=collectRoads(lat,lon,effBrg,dist);
+        var res=traceGraph(pool, lat,lon, brg, dist, forceDir);
+        if(!res){ clearRoute(); logRoute('no-roads'); if(effBrg>=0) prefetch(lat,lon,effBrg,dist); return; }
         if(res.offRoad){ clearRoute(); logRoute('off-road d='+res.d.toFixed(0)+'m'); return; }   // sicurezza: non sulla strada
         var turn=[];
         if(res.reached && navRoad){
@@ -338,8 +366,8 @@
           if(cand&&cd<40){ var tw=walkForward(cand.r,cand.s,-1,80); turn=tw.pts; }
         }
         drawRoute(res.line, turn);
-        logRoute('ok pts='+res.line.length+' reach='+res.acc.toFixed(0)+'/'+dist.toFixed(0)+(res.reached?'':' SHORT')+' after="'+navRoad+'" t='+turn.length);
-        if(!res.reached) prefetch(lat,lon,brg,dist);   // precarica i tile davanti: la prossima passata arriva più lontano
+        logRoute('ok pts='+res.line.length+' reach='+res.acc.toFixed(0)+'/'+dist.toFixed(0)+(res.reached?'':' SHORT')+' after="'+navRoad+'"'+(haveHeading?'':' [fermo]')+' t='+turn.length);
+        if(!res.reached && effBrg>=0) prefetch(lat,lon,effBrg,dist);   // precarica i tile davanti (verso vero o dedotto): la prossima passata arriva più lontano
       }catch(e){ clearRoute(); try{AndroidMap.status('route: err '+e);}catch(x){} }
     }
     // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione
