@@ -114,6 +114,7 @@ public final class HomeView extends LinearLayout {
     // 1.0.5 (PR #31 di sommistica): icona della manovra, via, segnalazione di un'icona mancante
     private ImageView navManeuverIcon;
     private TextView navRoad, missingIconButton, missingIconStatus;
+    private TextView streetLabel;   // calm.119: nome della via sotto l'auto (home), al posto della scritta nella mappa
     private boolean missingIconSending;
     private View navHomeBtn, navOfficeBtn;
     private LinearLayout navWith, navWithBox, navPlaces;
@@ -487,6 +488,14 @@ public final class HomeView extends LinearLayout {
         // lo spazio della pressione è sempre riservato (anche prima che arrivi il dato): l'auto non cambia dimensione
         tpmsRow.setVisibility(prefs.showTpms() && carShown ? INVISIBLE : GONE);
         p.addView(tpmsRow, Ui.margins(new LayoutParams(-1, -2), 0, 0, 0, dp(10)));
+
+        // calm.119: nome della via, centrato sotto l'auto/pressioni (al posto della scritta in basso a sinistra sulla mappa)
+        streetLabel = Ui.text(c, "", ts(18), t.sub, Ui.MEDIUM);
+        streetLabel.setGravity(Gravity.CENTER_HORIZONTAL);
+        streetLabel.setMaxLines(1);
+        streetLabel.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        streetLabel.setVisibility(GONE);
+        p.addView(streetLabel, Ui.margins(new LayoutParams(-1, -2), 0, 0, 0, dp(8)));
 
         // pulsanti di ricarica (opzione): limite, corrente AC, avvia/ferma; spenti = più spazio all'auto
         if (prefs.chargeButtons()) {
@@ -1297,7 +1306,9 @@ public final class HomeView extends LinearLayout {
         if (prefs.liveMap()) {
             // Calm Launcher: mappa reale dal vivo "dove siamo" (AuDHD), si ricentra mentre si guida
             boolean mapNight = prefs.nightDim() && !com.mg4.launcher.svc.DayNight.get(c).isDay();
-            f.addView(new LiveMap(c, mapNight), new FrameLayout.LayoutParams(-1, -1));
+            LiveMap homeMap = new LiveMap(c, mapNight, 0.5f, 0.5f, false, false, true);   // calm.119: hideStreet=true (via nativa sotto l'auto)
+            homeMap.setStreetSink(this::showHomeStreet);
+            f.addView(homeMap, new FrameLayout.LayoutParams(-1, -1));
         } else {
             Bars.MapDecor decor = new Bars.MapDecor(c);
             decor.setColors(t.map, t.road, t.roadMinor);
@@ -2174,6 +2185,15 @@ public final class HomeView extends LinearLayout {
             case MediaClient.SRC_AAUTO: return R.drawable.ic_smartphone;
             default: return R.drawable.ic_radio;
         }
+    }
+
+    /** calm.119: mostra il nome della via come testo nativo, centrato sotto l'auto (solo se l'auto è mostrata). */
+    private void showHomeStreet(String name) {
+        if (streetLabel == null) return;
+        String n = name == null ? "" : name.trim();
+        boolean show = !n.isEmpty() && carShown;
+        streetLabel.setText(n);
+        streetLabel.setVisibility(show ? VISIBLE : GONE);
     }
 
     /** calm.115: true se il testo è solo il nome dell'app musicale online (segnaposto), non un brano reale. */

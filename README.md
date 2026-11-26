@@ -310,6 +310,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.119
+- **Pill manovra + ETA vicino al pallino sul quadro**: la fascia "prossima svolta / ETA" ora è una pill compatta posizionata accanto al pallino, dentro la finestra visibile del quadro (prima stava in cima alla mappa, fuori dal buco). Si popola dal feed CarPlay (calm.118).
+- **"Granville Road" sulla home spostata**: sulla pagina principale il nome della via non è più in basso a sinistra (dietro il clima), ma è un testo nativo centrato sotto l'auto / le pressioni. Sul quadro resta dov'era (dove ti piaceva). 
+
 #### 1.0.6-calm.118
 - **Finalmente riceviamo la navigazione CarPlay (la svolta sul tutto il quadro)**: i log hanno mostrato che il feed di guida (`onNavRouteGuidanceUpdate`) scattava ~1 volta al secondo con Apple Maps, ma il servizio Allgo lo manda solo a chi si REGISTRA come suo callback — e noi ascoltavamo il canale sbagliato (la sessione media). Ora l'app si lega al servizio Allgo (`ICarPlayService.register`) e riceve direttamente distanza alla svolta, strada dopo, icona e orario d'arrivo. Questi dati guidano il percorso evidenziato e la fascia manovra sul quadro. Funziona con Apple e Google Maps; Waze non manda questi dati. Microfono intatto. Tutto il bundle viene registrato nel log per verifica/taratura.
 
@@ -346,6 +350,10 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.119
+- **Turn + ETA pill next to the dot on the cluster**: the "next turn / ETA" banner is now a compact pill placed beside the dot, inside the cluster's visible window (it used to sit at the top of the map, outside the hole). It's fed by the CarPlay feed (calm.118).
+- **"Granville Road" moved on the home page**: on the main screen the street name is no longer bottom-left (behind the climate control) — it's now a native label centered under the car / tyre pressures. On the cluster it stays where you liked it.
 
 #### 1.0.6-calm.118
 - **We finally receive the CarPlay navigation feed (the turn on the cluster)**: the logs showed the guidance feed (`onNavRouteGuidanceUpdate`) firing about once a second with Apple Maps, but the Allgo service only sends it to apps that REGISTER as its callback — and we were listening on the wrong channel (the media session). The app now binds the Allgo service (`ICarPlayService.register`) and receives distance-to-turn, road-after, icon and ETA directly. That data drives the highlighted route and the turn banner on the cluster. Works with Apple and Google Maps; Waze doesn't send this. Microphone untouched. The whole feed bundle is logged for verification/tuning.

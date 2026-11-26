@@ -43,16 +43,26 @@ public final class LiveMap extends FrameLayout implements LocationListener {
     private final float anchorX, anchorY;   // calm.110: dove tenere il pallino sullo schermo (0..1), 0.5 = centro
     private final boolean headingUp;         // calm.113: mappa orientata verso la marcia (solo quadro)
     private final int zoomBias;              // calm.117: regolazione zoom smart (-2 = più lontano, +2 = più vicino)
+    private final boolean clusterMode;       // calm.119: quadro → pill manovra vicino al pallino
+    private final boolean hideStreet;        // calm.119: home → nasconde la via nella webview (la mostra la home come testo nativo)
+
+    /** calm.119: la home riceve il nome della via per mostrarlo come testo nativo sotto l'auto. */
+    public interface StreetSink { void onStreet(String name); }
+    private StreetSink streetSink;
+    public void setStreetSink(StreetSink s) { this.streetSink = s; }
 
     public LiveMap(Context c) { this(c, false); }
     public LiveMap(Context c, boolean nightDim) { this(c, nightDim, 0.5f, 0.5f); }
     public LiveMap(Context c, boolean nightDim, float ax, float ay) { this(c, nightDim, ax, ay, false); }
-    public LiveMap(Context c, boolean nightDim, float ax, float ay, boolean headingUp) {
+    public LiveMap(Context c, boolean nightDim, float ax, float ay, boolean headingUp) { this(c, nightDim, ax, ay, headingUp, false, false); }
+    public LiveMap(Context c, boolean nightDim, float ax, float ay, boolean headingUp, boolean clusterMode, boolean hideStreet) {
         super(c);
         this.nightDim = nightDim;
         this.anchorX = ax;
         this.anchorY = ay;
         this.headingUp = headingUp;
+        this.clusterMode = clusterMode;
+        this.hideStreet = hideStreet;
         int zb = 0; try { zb = Prefs.get(c).mapZoomBias(); } catch (Throwable ignored) {}
         this.zoomBias = zb;
         setBackgroundColor(0xFF0E1114);
@@ -91,7 +101,7 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             try {
                 int port = (server = new TileServer(map, getContext().getAssets())).start();
                 Diag.put("map.file", "offline: " + map.getName() + " (" + (map.length() / (1024 * 1024)) + " MB)");
-                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : "") + (headingUp ? "&rot=1" : "") + (zoomBias != 0 ? "&zb=" + zoomBias : ""));
+                web.loadUrl("http://127.0.0.1:" + port + "/map-vector.html?ax=" + anchorX + "&ay=" + anchorY + (nightDim ? "&dim=1" : "") + (headingUp ? "&rot=1" : "") + (zoomBias != 0 ? "&zb=" + zoomBias : "") + (clusterMode ? "&cl=1" : "") + (hideStreet ? "&hs=1" : ""));
             } catch (Throwable e) {
                 offline = false;
                 Diag.put("map.file", "file trovato ma server KO: " + e.getClass().getSimpleName());
@@ -252,6 +262,11 @@ public final class LiveMap extends FrameLayout implements LocationListener {
             else if (s != null && s.startsWith("size:")) { Diag.put("map.size", s.substring(5)); }
             else if (s != null && s.startsWith("query:")) { Diag.put("map.query", s.substring(6)); }
             else if (s != null && s.startsWith("calib:")) { Diag.calib(s.substring(6)); }   // calm.113: taratura percorso
+            else if (s != null && s.startsWith("st:")) {   // calm.119: nome della via → testo nativo sulla home
+                final String nm = s.substring(3);
+                final StreetSink sink = streetSink;
+                if (sink != null) post(() -> { try { sink.onStreet(nm); } catch (Throwable ignored) {} });
+            }
             else if ("fix".equals(s)) { post(() -> { if (mapReady) status.setVisibility(GONE); }); }
         }
     }

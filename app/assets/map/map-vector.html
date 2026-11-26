@@ -26,12 +26,13 @@
             background:#1B2024;color:#E7ECF0;border:1px solid #2A3036;border-radius:28px;
             padding:15px 26px;font:600 22px sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.4);}
   /* calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google). In alto, sopra il velo. */
+  /* calm.119: pill "prossima manovra + ETA". Su CLUSTER (cl=1) viene posizionata vicino al pallino. */
   #turn{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:620;display:none;
-        max-width:88%;background:rgba(16,19,22,.82);color:#EEF2F6;border:1px solid #2A3036;
-        border-radius:16px;padding:10px 18px;font:700 26px sans-serif;letter-spacing:.2px;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 14px rgba(0,0,0,.6);}
+        max-width:86%;background:rgba(16,19,22,.88);color:#EEF2F6;border:1px solid #2A3036;
+        border-radius:999px;padding:7px 15px;font:700 21px sans-serif;letter-spacing:.2px;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 14px rgba(0,0,0,.65);}
   #turn .d{color:#4F9BF0;}
-  #turn .e{color:#AEB6BF;font-weight:600;font-size:20px;}
+  #turn .e{color:#AEB6BF;font-weight:600;font-size:17px;}
 </style>
 </head>
 <body>
@@ -52,6 +53,8 @@
   var AY=parseFloat(q('ay')); if(isNaN(AY)||AY<0||AY>1) AY=0.5;
   var ROT=q('rot')==='1';   // calm.113: heading-up (mappa ruota verso la marcia) — solo quadro
   var ZB=parseFloat(q('zb')); if(isNaN(ZB)) ZB=0; ZB=Math.max(-2,Math.min(2,ZB));   // calm.117: regolazione zoom (+vicino / -lontano)
+  var CL=q('cl')==='1';   // calm.119: mappa del quadro (pill manovra vicino al pallino)
+  var HS=q('hs')==='1';   // calm.119: nascondi la scritta via nella webview (la mostra la home come testo nativo)
   var purl=location.origin+'/map.pmtiles';
   try{
     var map=L.map('map',{zoomControl:false,attributionControl:false,
@@ -93,6 +96,9 @@
 
     // calm.113: fascia "prossima manovra" dal feed CarPlay (Apple/Google Maps). Solo testo del feed.
     var turnEl=document.getElementById('turn');
+    // calm.119: sul quadro la pill va vicino al pallino (buco visibile), non in cima alla mappa
+    if(CL && turnEl){ turnEl.style.left=(AX*100)+'%'; turnEl.style.top='calc('+(AY*100)+'% - 64px)';
+      turnEl.style.transform='translateX(-50%)'; turnEl.style.maxWidth='64%'; }
     window.setTurn=function(active, dist, road, eta){
       if(!turnEl) return;
       if(!active){ turnEl.style.display='none'; return; }
@@ -333,6 +339,7 @@
     var lastTrack='';
     // "Via | Brano · Artista": la via a sinistra, il brano a destra, separati da una barra. Se manca uno, niente barra.
     function renderStreet(){
+      if(HS){ streetEl.style.display='none'; return; }   // calm.119: sulla home la via è un testo nativo sotto l'auto
       var s=lastStreet||'', tk=lastTrack||'';
       streetEl.textContent=(s&&tk)?(s+'   |   '+tk):(s||tk);
     }
@@ -374,7 +381,7 @@
       }
       if(!loggedQ || (!lastStreet && nm)){ loggedQ=true;
         try{AndroidMap.status('query:'+(cnt?('z'+usedZ+' n='+cnt+' '+Object.keys(lset).slice(0,8).join('+')):'vuoto')+' road='+nm);}catch(e){} }
-      if(nm!==lastStreet){ lastStreet=nm; renderStreet(); }
+      if(nm!==lastStreet){ lastStreet=nm; renderStreet(); try{AndroidMap.status('st:'+nm);}catch(e){} }   // calm.119: riporta la via alla home
     }
 
     function lerpStep(){

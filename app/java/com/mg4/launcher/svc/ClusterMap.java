@@ -129,7 +129,7 @@ public final class ClusterMap {
             float ax = p.clusterPosX() / 100f, ay = p.clusterPosY() / 100f;
             boolean headingUp = p.clusterHeading();
             Diag.put("cluster.map.pos", "ancora " + p.clusterPosX() + "%," + p.clusterPosY() + "% · heading-up " + headingUp);
-            map = new LiveMap(app, true, ax, ay, headingUp);   // nightDim=true: variante calma/scura
+            map = new LiveMap(app, true, ax, ay, headingUp, true, false);   // calm.119: clusterMode=true (pill vicino al pallino)
         } catch (Throwable t) {
             Diag.error("cluster.map", "LiveMap non creata: " + t);
             return;
