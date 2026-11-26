@@ -43,6 +43,16 @@ public final class Prefs {
     public String logServerKey() { return sp.getString("logSrvKey", ""); }
     public void setLogServerKey(String v) { sp.edit().putString("logSrvKey", v == null ? "" : v.trim()).apply(); }
 
+    // calm.129: SPECCHIO del video CarPlay reale sul quadro (sperimentale). Se ON, il quadro mostra la cattura
+    // dello schermo principale (mappa CarPlay) invece della mappa ricostruita. Ritaglio in percentuali.
+    public boolean clusterMirror() { return sp.getBoolean("clusterMirror", false); }
+    public void setClusterMirror(boolean v) { sp.edit().putBoolean("clusterMirror", v).apply(); }
+    public int mirrorL() { return sp.getInt("mirrorL", 0); }
+    public int mirrorT() { return sp.getInt("mirrorT", 0); }
+    public int mirrorR() { return sp.getInt("mirrorR", 100); }
+    public int mirrorB() { return sp.getInt("mirrorB", 100); }
+    public void setMirrorCrop(int l, int t, int r, int b) { sp.edit().putInt("mirrorL", l).putInt("mirrorT", t).putInt("mirrorR", r).putInt("mirrorB", b).apply(); }
+
     // Calm Launcher: riprendi lo schermo se DiPlay lo occupa nei primi 30s dall'avvio
     public boolean reclaimScreen() { return sp.getBoolean("reclaimScreen", true); }
 

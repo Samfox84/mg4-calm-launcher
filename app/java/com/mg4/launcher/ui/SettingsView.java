@@ -1759,6 +1759,12 @@ public final class SettingsView extends FrameLayout {
                     prefs.setClusterTurn(on);
                     if (!on) com.mg4.launcher.svc.ClusterMap.pushTurn(false, "", "", "");
                 }), false));
+        card.addView(row(c, "Mirror real CarPlay map to cluster (experimental)",
+                "Instead of the reconstructed line, this shows the REAL CarPlay map by capturing the main screen and drawing it on the cluster. Use with native wired CarPlay (so the mic works). If the cluster goes black, CarPlay's video is a protected surface and capture is blocked — the log will say so. Turn the main 'Map on the cluster' on too.",
+                toggle(c, prefs.clusterMirror(), on -> {
+                    prefs.setClusterMirror(on);
+                    com.mg4.launcher.svc.ClusterMap.restart(getContext());
+                }), false));
         col.addView(card, topFull(14));
 
         // posizione del pallino nel "buco" visibile del quadro — da regolare da FERMI

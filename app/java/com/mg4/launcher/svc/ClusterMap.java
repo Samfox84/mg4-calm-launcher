@@ -125,6 +125,19 @@ public final class ClusterMap {
             hide("nessun display");
             return;
         }
+        // calm.129: modalità SPECCHIO — mostra il video CarPlay reale catturato dallo schermo principale,
+        // invece della mappa ricostruita. Per CarPlay nativo cablato (mic ok) + mappa vera sul quadro.
+        boolean mirror = false;
+        try { mirror = Prefs.get(app).clusterMirror(); } catch (Throwable ignored) {}
+        if (mirror) {
+            hide("passo a specchio");
+            ClusterMirror.start(app, cluster);
+            shownOn = cluster.getDisplayId();
+            Diag.put("cluster.map", "modalità SPECCHIO CarPlay sul display " + shownOn);
+            return;
+        }
+        ClusterMirror.stop();
+
         if (presentation != null && presentation.isShowing() && shownOn == cluster.getDisplayId()) {
             Diag.put("cluster.map", "gia' attiva sul display " + shownOn);
             return;
@@ -199,6 +212,7 @@ public final class ClusterMap {
     }
 
     private static void hide(String why) {
+        ClusterMirror.stop();   // calm.129: ferma anche lo specchio se attivo
         liveMap = null;
         if (presentation != null) {
             try { presentation.dismiss(); Diag.put("cluster.map", "chiusa (" + why + ")"); }

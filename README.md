@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.129
+- **Specchio CarPlay sul quadro (sperimentale)**: nuova modalità in Impostazioni → quadro. Invece della linea ricostruita (che da fermo/alle rotonde non funzionava), cattura lo schermo principale e disegna la mappa VERA di CarPlay sul quadro. Da usare con CarPlay nativo CABLATO (così il microfono funziona). Incognita: se il video CarPlay è una superficie protetta, il quadro resta nero e il log lo dice (cluster.mirror). Serve la chiave di piattaforma (ce l'abbiamo).
+
 #### 1.0.6-calm.128
 - **Bandierina destinazione**: dal feed CarPlay prendiamo il NOME destinazione e la distanza totale, e cerchiamo nel map offline un luogo/strada con quel nome in un ANELLO a circa quella distanza dall'auto (la distanza fa da filtro: di solito ce n'è uno solo). Mettiamo una bandierina là, così vedi DOVE stai andando anche prima che la linea sia completa. Funziona con nomi reali di strade/luoghi, non con soprannomi salvati ("Casa") né numeri civici. Primo tentativo: il log dice se la trova.
 
@@ -390,6 +393,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.129
+- **Mirror CarPlay to cluster (experimental)**: new mode in Settings → cluster. Instead of the reconstructed line (which failed when parked and at roundabouts), it captures the main screen and draws the REAL CarPlay map on the cluster. Use with native WIRED CarPlay (so the mic works). Unknown: if CarPlay's video is a protected surface, the cluster stays black and the log says so (cluster.mirror). Needs the platform key (we have it).
 
 #### 1.0.6-calm.128
 - **Destination flag**: from the CarPlay feed we take the destination NAME and total distance, and search the offline map for a place/road with that name in a RING at roughly that distance from the car (the distance filters it — usually only one). We drop a flag there, so you can see WHERE you're heading before the line is complete. Works for real road/place names, not saved nicknames ("Home") or house numbers. First attempt: the log says whether it found it.
