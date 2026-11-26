@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.122",
-  "apk": "releases/MG4Launcher-1.0.6-calm.122.apk",
+  "version": "1.0.6-calm.123",
+  "apk": "releases/MG4Launcher-1.0.6-calm.123.apk",
   "size": 9098954,
-  "notes": "calm.122: ETA ora leggibile, pill quadro due righe sotto il pallino, percorso evidenziato stabile, ripiego streaming musica"
+  "notes": "calm.123: Send log forza l'invio subito (fix log che non partivano durante la pausa di rete)"
 }
