@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.125",
-  "apk": "releases/MG4Launcher-1.0.6-calm.125.apk",
+  "version": "1.0.6-calm.126",
+  "apk": "releases/MG4Launcher-1.0.6-calm.126.apk",
   "size": 9098954,
-  "notes": "calm.125: musica passthrough nativo + log errore server + diagnostica percorso"
+  "notes": "calm.126: log al server proprio + dump feed CarPlay + diagnostica display"
 }
