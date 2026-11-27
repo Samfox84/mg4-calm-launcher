@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.133
+- **Percorso lungo fino alla destinazione (offline)**: oltre alla linea netta della prossima svolta, il quadro disegna ora una linea tenue che segue le strade fino alla DESTINAZIONE (presa dal nome CarPlay e geocodificata nel map offline, come la bandierina). Ai bivi il tracciato preferisce il ramo che punta verso la destinazione, non solo il più dritto, e arriva fino a 20 km. Tutto offline, dai dati già sul dispositivo: niente rete, niente scheda 4G, nessun dato esce dall'auto. Si ricalcola ogni ~4s senza appesantire la mappa; se la destinazione non è nota si comporta esattamente come calm.132 (nessuna regressione). Microfono e CarPlay cablato invariati.
+
 #### 1.0.6-calm.132
 - **Radio/Library sempre visibili a pulsanti nascosti**: quando l'opzione "nascondi i pulsanti Mappa/Media/CarPlay" è attiva, la riga Radio/Library (in alto, vicino alla spia Wi-Fi/4G) resta sempre accessibile invece di sparire con le schede.
 
@@ -402,6 +405,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.133
+- **Long route to the destination (offline)**: on top of the crisp next-turn line, the cluster now draws a faint line that follows the roads all the way to the DESTINATION (taken from the CarPlay name and geocoded in the offline map, like the flag). At junctions it prefers the branch pointing toward the destination, not just the straightest one, reaching up to 20 km. Fully offline from data already on the unit: no network, no 4G card, nothing leaves the car. Recomputed every ~4s without slowing the map; if the destination isn't known it behaves exactly like calm.132 (no regression). Microphone and wired CarPlay unchanged.
 
 #### 1.0.6-calm.132
 - **Radio/Library stay visible when tabs are hidden**: with the "hide Map/Media/CarPlay buttons" option on, the Radio/Library row (top, by the Wi-Fi/4G pill) now stays accessible instead of disappearing with the tabs.

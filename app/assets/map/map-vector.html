@@ -176,7 +176,7 @@
     // strada trovata (controllo di sicurezza): così non può mai disegnare una linea sbagliata.
     var routeGlow=null, routeLine=null, routeTurn=null, lastBrg=-1, vLogged=false;
     var navActive=false, navDistM=-1, navRoad='', navTurn='';
-    var navDest='', navTotalM=-1, destMarker=null, destDone='';   // calm.128: bandierina destinazione (nome + distanza totale)
+    var navDest='', navTotalM=-1, destMarker=null, destDone='', destLL=null;   // calm.128: bandierina destinazione (nome + distanza totale). calm.133: destLL = coordinate destinazione (per il percorso lungo)
     function normName(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
     function lonNx(lon){ return (lon+180)/360; }
     function latNy(lat){ var r=lat*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2; }
@@ -254,6 +254,20 @@
         routeGlow.setLatLngs(pts); routeLine.setLatLngs(pts); routeTurn.setLatLngs(turnPts||[]);
       }catch(e){ try{AndroidMap.status('route: draw err '+e);}catch(x){} }
     }
+    // calm.133: PERCORSO LUNGO verso la destinazione — linea tenue SOTTO quella netta della svolta (pane a parte,
+    // z sotto l'overlay). È la "direzione generale" fino alla destinazione; la linea netta resta la guida immediata.
+    var farGlow=null, farLine=null;
+    function clearFar(){ try{ if(farLine){ farLine.setLatLngs([]); farGlow.setLatLngs([]); } }catch(e){} }
+    function drawFar(pts){
+      try{
+        if(!farLine){
+          try{ if(!map.getPane('farRoute')){ map.createPane('farRoute'); map.getPane('farRoute').style.zIndex=398; } }catch(e){}
+          farGlow=L.polyline([],{pane:'farRoute',color:'#17487F',weight:12,opacity:.28,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+          farLine=L.polyline([],{pane:'farRoute',color:'#3C7BC4',weight:5,opacity:.55,lineJoin:'round',lineCap:'round',interactive:false}).addTo(map);
+        }
+        farGlow.setLatLngs(pts); farLine.setLatLngs(pts);
+      }catch(e){ try{AndroidMap.status('route: far draw err '+e);}catch(x){} }
+    }
     function getView(){ var V=null; try{ if(layer.views&&layer.views.forEach) layer.views.forEach(function(v){ if(!V)V=v; }); }catch(e){} return V; }
     // punto a `m` metri da (lat,lon) lungo la rotta `brg`
     function dest(lat,lon,brg,m){ var R=6378137, d=m/R, b=brg*Math.PI/180, la=lat*Math.PI/180, lo=lon*Math.PI/180;
@@ -290,7 +304,10 @@
     }
     // Router greedy sulla rete di segmenti: parte dall'auto, segue la strada più dritta (preferendo lo
     // stesso nome), unendo i segmenti connessi anche tra tile diversi, fino a distM metri.
-    function traceGraph(pool, carLat, carLon, brg, distM, forceToB){
+    // calm.133: biasDest = [lat,lon] destinazione (opzionale) → ai bivi preferisce il ramo che punta verso la
+    // destinazione, non solo il più dritto. maxGuard = passi massimi (i percorsi lunghi ne servono di più).
+    // Senza questi due parametri la funzione si comporta ESATTAMENTE come prima (percorso corto alla svolta).
+    function traceGraph(pool, carLat, carLon, brg, distM, forceToB, biasDest, maxGuard){
       var segs=[];
       for(var i=0;i<pool.length;i++){ var pts=pool[i].pts; for(var j=0;j<pts.length-1;j++) segs.push({a:pts[j], b:pts[j+1], name:pool[i].name||''}); }
       if(!segs.length) return null;
@@ -302,17 +319,20 @@
       // calm.123: verso forzato (true→seg.b, false→seg.a) quando lo decide il chiamante (es. da fermo, dal feed);
       // altrimenti dal GPS heading come prima.
       var fb=bearingOf(seg.a,seg.b), toB=(forceToB===true||forceToB===false)?forceToB:((brg<0)?true:angDiff(brg,fb)<=90);
+      var GUARD=(typeof maxGuard==='number'&&maxGuard>0)?maxGuard:600;   // calm.133: più passi per i percorsi lunghi
       var line=[start], acc=0, cur=start, node=(toB?seg.b:seg.a), curName=seg.name, guard=0;
-      while(acc<distM && guard++<600){
+      while(acc<distM && guard++<GUARD){
         var step=md(cur,node);
         if(step>0 && acc+step>=distM){ var r=(distM-acc)/step; line.push([cur[0]+(node[0]-cur[0])*r, cur[1]+(node[1]-cur[1])*r]); acc=distM; break; }
         acc+=step; line.push(node);
+        if(biasDest && md(node,biasDest)<160){ acc=distM; break; }   // calm.133: arrivati vicino alla destinazione → stop
         var inBrg=bearingOf(cur,node), bestNext=null, bestScore=1e9;
         for(var s2=0;s2<segs.length;s2++){ var sg=segs[s2];
           var ea=md(node,sg.a)<9, eb=md(node,sg.b)<9; if(!ea&&!eb) continue;
           var other=ea?sg.b:sg.a; if(md(other,cur)<3) continue;   // non tornare indietro
           var ob=bearingOf(node,other), turn=angDiff(inBrg,ob); if(turn>=100) continue;
           var score=turn + ((sg.name&&sg.name===curName)?0:22);
+          if(biasDest){ score += angDiff(ob, bearingOf(node,biasDest))*0.6; }   // calm.133: preferisci chi punta alla destinazione
           if(score<bestScore){ bestScore=score; bestNext={other:other,name:sg.name}; } }
         if(!bestNext) break;
         cur=node; node=bestNext.other; curName=bestNext.name;
@@ -377,6 +397,29 @@
         if(!res.reached && effBrg>=0) prefetch(lat,lon,effBrg,dist);   // precarica i tile davanti (verso vero o dedotto): la prossima passata arriva più lontano
       }catch(e){ try{AndroidMap.status('route: err '+e+' — tengo la linea');}catch(x){} }   // calm.126: errore → tieni l'ultima linea
     }
+    // calm.133: PERCORSO LUNGO fino alla destinazione geocodificata (destLL). Si ricalcola ogni ~4s (il resto
+    // della mappa resta fluido), cap a 20 km, segue il corridoio verso la destinazione con bias di direzione.
+    // Tutto offline (dati già sul dispositivo): niente rete, niente scheda 4G. STICKY: in caso di dubbio tiene
+    // l'ultima linea buona e non lampeggia mai. Se la destinazione non è nota, non fa nulla (= identico a calm.132).
+    var lastFar=0, farLogged=0;
+    function retraceFar(lat,lon,brg){
+      try{
+        if(!navActive || !destLL){ clearFar(); return; }
+        var now=Date.now(); if(now-lastFar<4000) return; lastFar=now;
+        var dToDest=md([lat,lon],destLL);
+        if(dToDest<220){ clearFar(); return; }                 // praticamente arrivato
+        var dist=Math.min(dToDest, 20000);                     // cap 20 km (non appesantire la WebView)
+        var destBrg=bearingOf([lat,lon],destLL);
+        prefetch(lat,lon,destBrg,Math.min(dist,6000));         // precarica i tile nel corridoio verso la destinazione
+        var pool=collectRoads(lat,lon,destBrg,dist);
+        if(pool.length>9000) return;                           // troppi segmenti: salta un giro (tiene la linea)
+        var mg=Math.min(4000, Math.max(600, Math.round(dist/8)));
+        var res=traceGraph(pool, lat,lon, brg, dist, null, destLL, mg);
+        if(!res || res.offRoad || !res.line || res.line.length<2) return;   // sticky
+        drawFar(res.line);
+        if(now-farLogged>8000){ farLogged=now; try{AndroidMap.status('route: FAR pts='+res.line.length+' reach='+(res.acc||0).toFixed(0)+'/'+dist.toFixed(0)+' dest='+(dToDest/1609).toFixed(1)+'mi');}catch(x){} }
+      }catch(e){ try{AndroidMap.status('route: far err '+e);}catch(x){} }
+    }
     // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione
     window.setRoute=function(active, distM, road, turnHint){
       navActive=!!active;
@@ -390,7 +433,7 @@
     // Cerchiamo nel map OFFLINE un luogo/strada con quel nome in un ANELLO a circa quella distanza dall'auto: la
     // distanza fa da filtro (di solito c'è un solo "Palmers Hill" a ~N miglia). Mettiamo una bandierina là.
     function flagIcon(){ return L.divIcon({className:'',html:'<div class="destflag">⚑</div>',iconSize:[26,26],iconAnchor:[4,24]}); }
-    function clearDest(){ if(destMarker){ try{map.removeLayer(destMarker);}catch(e){} destMarker=null; } destDone=''; }
+    function clearDest(){ if(destMarker){ try{map.removeLayer(destMarker);}catch(e){} destMarker=null; } destDone=''; destLL=null; clearFar(); }   // calm.133: via la destinazione → via il percorso lungo
     window.setDest=function(name,totalM){
       var n=(name||'').trim();
       if(n) navDest=n;
@@ -429,7 +472,10 @@
         else logRoute('destinazione "'+name+'" non trovata nell\'anello');
       }catch(e){ logRoute('dest err '+e); }
     }
-    function placeDestFlag(lat,lon){ try{ if(destMarker) map.removeLayer(destMarker); destMarker=L.marker([lat,lon],{icon:flagIcon(),interactive:false,keyboard:false}); destMarker.addTo(map); }catch(e){} }
+    function placeDestFlag(lat,lon){ try{ if(destMarker) map.removeLayer(destMarker); destMarker=L.marker([lat,lon],{icon:flagIcon(),interactive:false,keyboard:false}); destMarker.addTo(map);
+      destLL=[lat,lon];                                            // calm.133: coordinate destinazione per il percorso lungo
+      if(curLL){ lastFar=0; retraceFar(curLL[0],curLL[1],lastBrg); }   // mostra subito il percorso lungo, anche da fermo
+    }catch(e){} }
 
     var follow=true, haveFix=false, lastStreet='', loggedQ=false, lastBucket=-1;
     var animFrom=null, animTo=null, animStart=0, animReq=false, curLL=null; var ANIM_MS=1000;
@@ -511,8 +557,9 @@
         if(b!==lastBucket){ lastBucket=b; map.setView(anchorCenter(ll,tz), tz, {animate:true}); }
       }
       streetAt(lat,lon);
-      retrace(lat,lon,lastBrg); // calm.114: percorso IN AVANTI fino alla prossima svolta
-      calibDump(lat,lon);       // calm.113: geometria strada (diagnostica)
+      retrace(lat,lon,lastBrg);    // calm.114: percorso IN AVANTI fino alla prossima svolta
+      retraceFar(lat,lon,lastBrg); // calm.133: percorso LUNGO verso la destinazione (throttle interno ~4s)
+      calibDump(lat,lon);          // calm.113: geometria strada (diagnostica)
     };
     setTimeout(function(){ var el=document.getElementById('map'); try{AndroidMap.status('size:'+(el?el.clientWidth:'?')+'x'+(el?el.clientHeight:'?')+' tiles='+tileN);}catch(e){} }, 2800);
     try{AndroidMap.status('page-ready');}catch(e){}
