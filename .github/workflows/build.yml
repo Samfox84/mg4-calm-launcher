@@ -28,3 +28,21 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with: { files: build/*.apk, generate_release_notes: true }
+
+      # Avvio manuale (workflow_dispatch): pubblica/aggiorna la release vVERSION_NAME con l'APK allegato,
+      # così è scaricabile con un tocco dal telefono. Idempotente: se la release esiste, ricarica l'APK.
+      - name: Pubblica release (avvio manuale)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          source version.properties
+          TAG="v${VERSION_NAME}"
+          APK=$(ls build/*.apk | head -1)
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" -R "$GITHUB_REPOSITORY" -t "$TAG" \
+              -n "Calm Launcher ${VERSION_NAME} — build automatica CI (percorso lungo verso la destinazione, offline)."
+          fi
+          echo "Release $TAG pronta con $(basename "$APK")"
