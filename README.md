@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.134
+- **Aggiornamento automatico all'avvio**: 60 secondi dopo l'accensione (poi ogni minuto nei primi 5 minuti), SOLO su Wi-Fi, il launcher controlla se c'è una versione nuova. Se c'è, compare in basso a destra un avviso professionale con conto alla rovescia di 60 secondi e barra di avanzamento: allo zero si installa da solo (firma platform → silenzioso, nessuna conferma) a meno che si prema **Ignora**. C'è anche **Installa ora** per non aspettare. Rispetta l'interruttore degli aggiornamenti e la modalità officina; "Ignora" mette a tacere quella versione per la sessione.
+
 #### 1.0.6-calm.133
 - **Percorso lungo fino alla destinazione (offline)**: oltre alla linea netta della prossima svolta, il quadro disegna ora una linea tenue che segue le strade fino alla DESTINAZIONE (presa dal nome CarPlay e geocodificata nel map offline, come la bandierina). Ai bivi il tracciato preferisce il ramo che punta verso la destinazione, non solo il più dritto, e arriva fino a 20 km. Tutto offline, dai dati già sul dispositivo: niente rete, niente scheda 4G, nessun dato esce dall'auto. Si ricalcola ogni ~4s senza appesantire la mappa; se la destinazione non è nota si comporta esattamente come calm.132 (nessuna regressione). Microfono e CarPlay cablato invariati.
 
@@ -405,6 +408,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.134
+- **Automatic update on boot**: 60 seconds after power-on (then every minute for the first 5 minutes), on Wi-Fi only, the launcher checks for a newer version. If there is one, a professional notice slides in bottom-right with a 60-second countdown and progress bar: at zero it installs itself (platform-signed → silent, no confirmation) unless you press **Ignore**. There's also **Install now** to skip the wait. Respects the update switch and workshop mode; "Ignore" silences that version for the session.
 
 #### 1.0.6-calm.133
 - **Long route to the destination (offline)**: on top of the crisp next-turn line, the cluster now draws a faint line that follows the roads all the way to the DESTINATION (taken from the CarPlay name and geocoded in the offline map, like the flag). At junctions it prefers the branch pointing toward the destination, not just the straightest one, reaching up to 20 km. Fully offline from data already on the unit: no network, no 4G card, nothing leaves the car. Recomputed every ~4s without slowing the map; if the destination isn't known it behaves exactly like calm.132 (no regression). Microphone and wired CarPlay unchanged.

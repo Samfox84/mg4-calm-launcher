@@ -214,6 +214,11 @@
     <string name="upd_popup_text">MG4 Launcher %s is ready to install</string>
     <string name="upd_later" formatted="false">Later</string>
     <string name="upd_now" formatted="false">Update</string>
+    <string name="auto_upd_title" formatted="false">Calm Launcher update</string>
+    <string name="auto_upd_text">Version %1$s ready. Installing automatically in %2$d s.</string>
+    <string name="auto_upd_installing">Installing %s…</string>
+    <string name="auto_upd_ignore" formatted="false">Ignore</string>
+    <string name="auto_upd_now" formatted="false">Install now</string>
     <string name="upd_error_code">error %d</string>
     <string name="btn_ok" formatted="false">OK</string>
     <string name="time_h_min">%1$d h %2$d min</string>

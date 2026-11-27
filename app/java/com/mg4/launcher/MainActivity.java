@@ -202,6 +202,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         root.postDelayed(saveDiag, 15000);
         // 1.0.2 (punto 10): primo controllo aggiornamenti e avvisi 2 minuti dopo l'avvio (sistema stabile), poi ogni 6 ore
         root.postDelayed(autoCheck, FIRST_CHECK_MS);
+        root.postDelayed(autoBootCheck, AUTO_FIRST_MS);   // calm.134: auto-aggiornamento nei primi 5 min (Wi-Fi)
         root.postDelayed(this::logoPacksTick, 20_000);
         // 1.0.2: accensione = avvio del launcher o risveglio dello schermo (l'auto si sospende e riprende, MtkPowerManager)
         IntentFilter sf = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -285,6 +286,120 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         }
     };
 
+    // ---- calm.134: aggiornamento automatico dopo l'avvio ----------------------------------------
+    // Primo controllo 60 s dopo l'accensione, poi ogni minuto per i primi 5 minuti, SOLO su Wi-Fi.
+    // Se c'è una versione nuova compare un avviso in basso a destra con conto alla rovescia di 60 s:
+    // allo zero si installa da sola (chiave platform → silenziosa), a meno che l'utente prema "Ignora".
+    private static final long AUTO_FIRST_MS    = 60_000L;        // primo controllo 60 s dopo l'avvio
+    private static final long AUTO_EVERY_MS    = 60_000L;        // poi ogni minuto
+    private static final long AUTO_UNTIL_MS    = 5 * 60_000L;    // per i primi 5 minuti dall'avvio
+    private static final long AUTO_COUNTDOWN_MS = 60_000L;       // installazione automatica dopo 60 s
+    private View autoToast;
+    private android.os.CountDownTimer autoTimer;
+
+    private final Runnable autoBootCheck = new Runnable() {
+        @Override
+        public void run() {
+            root.removeCallbacks(this);
+            if (isFinishing() || root == null) return;
+            long since = android.os.SystemClock.elapsedRealtime() - bootAt;
+            if (since > AUTO_UNTIL_MS + 5_000L) return;                       // finestra dei primi 5 minuti esaurita
+            boolean ok = prefs.updatePopup()                                 // rispetta l'interruttore dell'utente
+                    && !com.mg4.launcher.svc.HomeMode.officina(getApplicationContext())
+                    && autoToast == null && updPopup == null && !updater.isBusy() && isWifi();
+            if (ok) updater.checkQuiet(com.mg4.launcher.ui.Prefs.DEFAULT_REPO, "", MainActivity.this::showAutoInstallToast);
+            if (since < AUTO_UNTIL_MS) root.postDelayed(this, AUTO_EVERY_MS);  // riprova ogni minuto nei primi 5
+        }
+    };
+
+    private boolean isWifi() {
+        try {
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            android.net.NetworkInfo ni = cm.getActiveNetworkInfo();
+            return ni != null && ni.isConnected() && ni.getType() == android.net.ConnectivityManager.TYPE_WIFI;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Avviso in basso a destra: installa da sé tra 60 s se l'utente non preme "Ignora". */
+    private void showAutoInstallToast(final Updater.Release r) {
+        if (r == null || autoToast != null || updPopup != null || isFinishing() || root == null) return;
+        if (r.tag.equals(prefs.dismissedUpdate())) return;                    // versione già ignorata in questa sessione
+        if (updater.isBusy()) return;
+        final Theme t = theme;
+
+        LinearLayout card = Ui.column(this);
+        card.setPadding(dp(22), dp(16), dp(22), dp(14));
+        android.graphics.drawable.GradientDrawable bgd = Ui.round(t.panel, dp(20));
+        bgd.setStroke(dp(1), t.track);
+        card.setBackground(bgd);
+        card.setElevation(dp(16));
+        card.setClickable(true);                                              // i tocchi non passano alla home sotto
+
+        card.addView(Ui.text(this, L.s(R.string.auto_upd_title), 17, t.text, Ui.MEDIUM));
+        final TextView sub = Ui.text(this, L.f(R.string.auto_upd_text, r.tag, 60), 14, t.sub, Ui.REGULAR);
+        card.addView(sub, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, dp(4), 0, 0));
+
+        // barra di avanzamento che si svuota con il conto alla rovescia
+        final View bar = new View(this);
+        bar.setBackground(Ui.round(t.accent, dp(3)));
+        final FrameLayout barWrap = new FrameLayout(this);
+        barWrap.setBackground(Ui.round(t.track, dp(3)));
+        barWrap.addView(bar, new FrameLayout.LayoutParams(-1, dp(6)));
+        card.addView(barWrap, Ui.margins(new LinearLayout.LayoutParams(-1, dp(6)), 0, dp(12), 0, 0));
+
+        LinearLayout rowb = Ui.row(this);
+        rowb.setGravity(Gravity.END);
+        rowb.addView(popupButton(L.s(R.string.auto_upd_ignore), t.chip, t.text, v -> {
+            prefs.setDismissedUpdate(r.tag);
+            hideAutoToast();
+        }), Ui.margins(Ui.lp(-2, dp(44)), 0, 0, dp(10), 0));
+        rowb.addView(popupButton(L.s(R.string.auto_upd_now), t.accent, t.onAccent, v -> {
+            hideAutoToast();
+            startRemoteInstall(r);
+        }), Ui.lp(-2, dp(44)));
+        card.addView(rowb, Ui.margins(new LinearLayout.LayoutParams(-1, -2), 0, dp(14), 0, 0));
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(dp(400), -2, Gravity.BOTTOM | Gravity.END);
+        lp.rightMargin = dp(22);
+        lp.bottomMargin = dp(22);
+        root.addView(card, lp);
+        autoToast = card;
+        card.setAlpha(0f);
+        card.setTranslationY(dp(30));
+        card.animate().alpha(1f).translationY(0).setDuration(280).start();
+
+        final long total = AUTO_COUNTDOWN_MS;
+        autoTimer = new android.os.CountDownTimer(total, 1000) {
+            @Override public void onTick(long ms) {
+                int secs = (int) Math.ceil(ms / 1000.0);
+                sub.setText(L.f(R.string.auto_upd_text, r.tag, secs));
+                int w = barWrap.getWidth();
+                if (w > 0) {
+                    android.view.ViewGroup.LayoutParams blp = bar.getLayoutParams();
+                    blp.width = (int) (w * ms / (float) total);
+                    bar.setLayoutParams(blp);
+                }
+            }
+            @Override public void onFinish() {
+                sub.setText(L.f(R.string.auto_upd_installing, r.tag));
+                View v = autoToast; autoToast = null; autoTimer = null;
+                if (v != null) root.removeView(v);
+                startRemoteInstall(r);                                        // scarica + installa (silenzioso)
+            }
+        }.start();
+        Diag.put("aggiornamenti.auto", "avviso 60 s per " + r.tag);
+    }
+
+    private void hideAutoToast() {
+        if (autoTimer != null) { autoTimer.cancel(); autoTimer = null; }
+        View v = autoToast;
+        autoToast = null;
+        if (v == null) return;
+        v.animate().alpha(0f).translationY(dp(30)).setDuration(220).withEndAction(() -> root.removeView(v)).start();
+    }
+
     private void onRemote(Updater.Remote r) {
         if (isFinishing() || root == null) return;
         // avvisi da remoto (uno alla volta)
@@ -359,7 +474,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
     private final Runnable hidePopup = () -> hideUpdatePopup();
 
     private void showUpdatePopup(Updater.Release r, boolean important) {
-        if (r == null || updPopup != null) return;
+        if (r == null || updPopup != null || autoToast != null) return;   // calm.134: non sovrapporre l'avviso automatico
         if (!important && (!prefs.updatePopup() || r.tag.equals(prefs.dismissedUpdate()))) return;
         if (updater.isBusy()) return;
         Theme t = theme;
