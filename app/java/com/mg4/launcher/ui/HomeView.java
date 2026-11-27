@@ -1283,8 +1283,11 @@ public final class HomeView extends LinearLayout {
         tab = which;
         if (byUser) userPickedTab = true;
         // La mappa resta visibile anche sotto il Media (fa da sfondo vivo); sotto CarPlay invece si spegne.
+        // calm.132: se i pulsanti Mappa/Media/CarPlay sono nascosti, la riga sorgenti (Radio/Library) deve restare
+        // sempre accessibile — quindi teniamo il pannello Media (dov'è) anche fuori dalla scheda Media (mai sotto CarPlay).
+        boolean keepMediaForSources = prefs.hideSwitchTabs() && which != TAB_PHONE;
         showPanel(mapPanel, !bgMap && (which == TAB_MAP || which == TAB_MEDIA));
-        showPanel(mediaPanel, which == TAB_MEDIA);
+        showPanel(mediaPanel, which == TAB_MEDIA || keepMediaForSources);
         showPanel(phonePanel, which == TAB_PHONE);
         styleTab(tabMap, which == TAB_MAP);
         styleTab(tabMedia, which == TAB_MEDIA);

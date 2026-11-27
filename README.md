@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.132
+- **Radio/Library sempre visibili a pulsanti nascosti**: quando l'opzione "nascondi i pulsanti Mappa/Media/CarPlay" è attiva, la riga Radio/Library (in alto, vicino alla spia Wi-Fi/4G) resta sempre accessibile invece di sparire con le schede.
+
 #### 1.0.6-calm.131
 - **Correzioni feed cruscotto nativo**: la freccia di manovra e il nome strada ora arrivano affidabili al cruscotto (prima si perdevano tra i thread e arrivavano vuoti/-1, mostrando solo una mappa spoglia). Campi di navigazione resi thread-safe (volatile + onExtras sincronizzato) e ClusterFeed tiene l'ultima manovra/strada buona, cosi' la card non si svuota a meta' svolta. Dalla prova su strada: il cruscotto accetta il feed (paginaNavi=true), nessun errore, e requestProjection non ruba il focus (CarPlay tiene microfono e navigazione).
 
@@ -399,6 +402,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.132
+- **Radio/Library stay visible when tabs are hidden**: with the "hide Map/Media/CarPlay buttons" option on, the Radio/Library row (top, by the Wi-Fi/4G pill) now stays accessible instead of disappearing with the tabs.
 
 #### 1.0.6-calm.131
 - **Native-cluster feed fixes**: the turn arrow and road name now reach the cluster reliably (before they were lost across threads and arrived blank/-1, so you only saw a bare map). The nav fields are thread-safe now (volatile + synchronized onExtras) and ClusterFeed holds the last good turn/road so the card never blanks mid-turn. From the road test: the cluster accepts the feed (paginaNavi=true), zero errors, and requestProjection doesn't steal focus (CarPlay keeps mic + navigation).

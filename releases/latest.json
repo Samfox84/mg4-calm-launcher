@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.131",
-  "apk": "releases/MG4Launcher-1.0.6-calm.131.apk",
+  "version": "1.0.6-calm.132",
+  "apk": "releases/MG4Launcher-1.0.6-calm.132.apk",
   "size": 9107146,
-  "notes": "calm.131: fix feed cruscotto nativo (freccia + strada affidabili, niente card vuota a meta' svolta)"
+  "notes": "calm.132: Radio/Library sempre visibili quando i pulsanti Mappa/Media/CarPlay sono nascosti"
 }
