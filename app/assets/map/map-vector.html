@@ -404,20 +404,24 @@
     var lastFar=0, farLogged=0;
     function retraceFar(lat,lon,brg){
       try{
-        if(!navActive || !destLL){ clearFar(); return; }
+        if(!navActive){ clearFar(); return; }
         var now=Date.now(); if(now-lastFar<4000) return; lastFar=now;
-        var dToDest=md([lat,lon],destLL);
-        if(dToDest<220){ clearFar(); return; }                 // praticamente arrivato
-        var dist=Math.min(dToDest, 20000);                     // cap 20 km (non appesantire la WebView)
-        var destBrg=bearingOf([lat,lon],destLL);
-        prefetch(lat,lon,destBrg,Math.min(dist,6000));         // precarica i tile nel corridoio verso la destinazione
-        var pool=collectRoads(lat,lon,destBrg,dist);
+        // Bersaglio del PERCORSO LUNGO: se la destinazione è stata geocodificata puntiamo lì (con bias di direzione);
+        // altrimenti usiamo la distanza totale rimanente dal feed CarPlay (navTotalM) e seguiamo la strada in avanti.
+        // Così la linea lunga cresce e si aggiorna dal vivo anche quando CarPlay non manda il nome destinazione.
+        var toDest = destLL ? md([lat,lon],destLL) : -1;
+        var dist = destLL ? Math.min(toDest, 20000) : (navTotalM>0 ? Math.min(navTotalM, 20000) : 0);
+        if(dist < 300){ clearFar(); return; }                  // arrivati, o nessuna distanza totale
+        if(!destLL && brg<0){ return; }                        // senza destinazione e da fermo: tieni l'ultima linea
+        var corridorBrg = destLL ? bearingOf([lat,lon],destLL) : brg;
+        prefetch(lat,lon,corridorBrg,Math.min(dist,6000));     // precarica i tile nel corridoio in avanti
+        var pool=collectRoads(lat,lon,corridorBrg,dist);
         if(pool.length>9000) return;                           // troppi segmenti: salta un giro (tiene la linea)
         var mg=Math.min(4000, Math.max(600, Math.round(dist/8)));
-        var res=traceGraph(pool, lat,lon, brg, dist, null, destLL, mg);
+        var res=traceGraph(pool, lat,lon, brg, dist, null, destLL, mg);   // destLL può essere null → segue la strada avanti
         if(!res || res.offRoad || !res.line || res.line.length<2) return;   // sticky
         drawFar(res.line);
-        if(now-farLogged>8000){ farLogged=now; try{AndroidMap.status('route: FAR pts='+res.line.length+' reach='+(res.acc||0).toFixed(0)+'/'+dist.toFixed(0)+' dest='+(dToDest/1609).toFixed(1)+'mi');}catch(x){} }
+        if(now-farLogged>8000){ farLogged=now; try{AndroidMap.status('route: FAR pts='+res.line.length+' reach='+(res.acc||0).toFixed(0)+'/'+dist.toFixed(0)+(destLL?(' dest='+(toDest/1609).toFixed(1)+'mi'):(' avanti '+(navTotalM/1000).toFixed(1)+'km')));}catch(x){} }
       }catch(e){ try{AndroidMap.status('route: far err '+e);}catch(x){} }
     }
     // dal feed CarPlay (via Java): distanza alla svolta (m), strada dopo, suggerimento direzione

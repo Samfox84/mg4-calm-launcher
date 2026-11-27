@@ -219,8 +219,10 @@ public final class CarPlayNavClient {
         // ClusterFeed ignora da solo se il toggle è spento; sorgente unica = questo feed (niente doppia cattura).
         ClusterFeed.push(active, navIcon, navMeters, navRoad);
 
-        // calm.128: spingi la destinazione (nome + distanza totale) per la bandierina, solo quando cambia
-        if (!navDest.isEmpty() && navTotalM > 0) {
+        // calm.128: spingi nome destinazione (se c'è) + distanza totale per la bandierina.
+        // calm.135: spingi SEMPRE la distanza totale, anche senza nome destinazione (Apple/Google spesso non lo
+        // mandano): serve al PERCORSO LUNGO, che ricostruisce la strada in avanti su navTotalM, non sul nome.
+        if (navTotalM > 0) {
             String key = navDest + "@" + (navTotalM / 200);
             if (!key.equals(lastDestKey)) { lastDestKey = key; ClusterMap.pushDest(navDest, navTotalM); }
         }

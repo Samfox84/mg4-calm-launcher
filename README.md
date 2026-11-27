@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.135
+- **Percorso lungo senza bisogno del nome destinazione**: Apple/Google via CarPlay non mandano quasi mai il NOME della destinazione al cruscotto (solo svolte, distanze, ETA e distanza totale). Prima il percorso lungo aspettava quel nome e quindi non compariva. Ora cresce dalla **distanza totale rimanente** del feed CarPlay (es. 18,6 km) seguendo la strada in avanti e aggiornandosi dal vivo a ogni svolta. Tutto offline. La linea netta della prossima svolta resta sopra; se per una volta arriva anche il nome, il percorso si àncora ancora meglio alla destinazione geocodificata. Correzione lato Java: la distanza totale ora viene passata alla mappa sempre, anche senza nome.
+
 #### 1.0.6-calm.134
 - **Aggiornamento automatico all'avvio**: 60 secondi dopo l'accensione (poi ogni minuto nei primi 5 minuti), SOLO su Wi-Fi, il launcher controlla se c'è una versione nuova. Se c'è, compare in basso a destra un avviso professionale con conto alla rovescia di 60 secondi e barra di avanzamento: allo zero si installa da solo (firma platform → silenzioso, nessuna conferma) a meno che si prema **Ignora**. C'è anche **Installa ora** per non aspettare. Rispetta l'interruttore degli aggiornamenti e la modalità officina; "Ignora" mette a tacere quella versione per la sessione.
 
@@ -408,6 +411,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.135
+- **Long route without needing the destination name**: Apple/Google over CarPlay almost never send the destination NAME to the cluster (only turns, distances, ETA and total distance). The long route used to wait for that name, so it never appeared. It now grows from the CarPlay feed's **total remaining distance** (e.g. 18.6 km), following the road ahead and updating live at every turn. Fully offline. The crisp next-turn line stays on top; if a name does arrive, the route anchors even better to the geocoded destination. Java fix: total distance is now always passed to the map, even with no name.
 
 #### 1.0.6-calm.134
 - **Automatic update on boot**: 60 seconds after power-on (then every minute for the first 5 minutes), on Wi-Fi only, the launcher checks for a newer version. If there is one, a professional notice slides in bottom-right with a 60-second countdown and progress bar: at zero it installs itself (platform-signed → silent, no confirmation) unless you press **Ignore**. There's also **Install now** to skip the wait. Respects the update switch and workshop mode; "Ignore" silences that version for the session.
