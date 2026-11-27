@@ -213,6 +213,10 @@ public final class CarPlayNavClient {
         if (banner) ClusterMap.pushTurn(active, distText, navRoad, eta);
         ClusterMap.pushRoute(active, navMeters, navRoad, "");
 
+        // calm.130: alimenta anche il cruscotto NATIVO (adattatore SAIC) con la stessa svolta già unita.
+        // ClusterFeed ignora da solo se il toggle è spento; sorgente unica = questo feed (niente doppia cattura).
+        ClusterFeed.push(active, navIcon, navMeters, navRoad);
+
         // calm.128: spingi la destinazione (nome + distanza totale) per la bandierina, solo quando cambia
         if (!navDest.isEmpty() && navTotalM > 0) {
             String key = navDest + "@" + (navTotalM / 200);

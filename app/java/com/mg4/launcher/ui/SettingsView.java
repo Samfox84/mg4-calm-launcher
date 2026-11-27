@@ -1741,10 +1741,30 @@ public final class SettingsView extends FrameLayout {
     /** calm.113: scheda dedicata al QUADRO (instrument cluster) — mappa, orientamento, manovra, posizione, aspetto DiPlay. */
     private void buildCluster(Context c, LinearLayout col) {
         LinearLayout card = card(c);
+        card.addView(row(c, "CarPlay turns on the native cluster (recommended)",
+                "Shows your CarPlay turn-by-turn on the car's OWN cluster display, using the car's native nav graphics - no DiPlay, no screen capture. The launcher just feeds the car's cluster service the turn data read from wired CarPlay, so you keep the microphone AND get real cluster directions. ON by default. This and 'Map on the cluster' below can't both run (they'd fight for the same screen), so turning this on turns that off. If the cluster misbehaves, turn this off and reconnect CarPlay.",
+                toggle(c, prefs.clusterFeed(), on -> {
+                    prefs.setClusterFeed(on);
+                    if (on) {
+                        // esclusivo: spegni la NOSTRA Presentation sul quadro, lascia libero il renderer nativo
+                        prefs.setClusterMap(false);
+                        prefs.setClusterMirror(false);
+                        com.mg4.launcher.svc.ClusterMap.apply(getContext(), false);
+                        com.mg4.launcher.svc.ClusterFeed.start(getContext());
+                        host.settingsChanged(true);
+                    } else {
+                        com.mg4.launcher.svc.ClusterFeed.stop();
+                    }
+                }), false));
         card.addView(row(c, "Map on the cluster",
                 "Draws the launcher's own live map on the instrument cluster (the screen behind the wheel): your position, and the road AHEAD to your next turn drawn as a highlighted line (read from Apple/Google Maps via wired CarPlay). Only draws the line when it can confirm you're on that road, so it never shows a wrong route. Independent of DiPlay — needs GPS + the offline map. OFF by default. If it misbehaves, turn it off; it can't stop the launcher. Everything goes to the diagnostic log.",
                 toggle(c, prefs.clusterMap(), on -> {
                     prefs.setClusterMap(on);
+                    if (on) {
+                        // esclusivo con il feed nativo: non possono tenere lo stesso display
+                        prefs.setClusterFeed(false);
+                        com.mg4.launcher.svc.ClusterFeed.stop();
+                    }
                     com.mg4.launcher.svc.ClusterMap.apply(getContext(), on);
                 }), false));
         card.addView(row(c, "Face the way I'm driving",

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.129",
-  "apk": "releases/MG4Launcher-1.0.6-calm.129.apk",
-  "size": 9103050,
-  "notes": "calm.129: specchio CarPlay sul quadro (sperimentale)"
+  "version": "1.0.6-calm.130",
+  "apk": "releases/MG4Launcher-1.0.6-calm.130.apk",
+  "size": 9107146,
+  "notes": "calm.130: svolte CarPlay sul cruscotto nativo (adattatore SAIC); no reflash/patch; esclusivo con Mappa sul quadro"
 }

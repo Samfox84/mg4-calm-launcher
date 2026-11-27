@@ -162,6 +162,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
             conn.start();
             media.start();
             carplayNav.start();   // calm.118
+            com.mg4.launcher.svc.ClusterFeed.start(this);   // calm.130: svolte CarPlay sul cruscotto nativo
             nav.start();
             logs.start();
             com.mg4.launcher.svc.FirmwareExport.schedule(this);
@@ -837,6 +838,7 @@ public final class MainActivity extends Activity implements HomeView.Host, AppsV
         com.mg4.launcher.svc.DayNight.get(this).stop();
         media.stop();
         if (carplayNav != null) carplayNav.stop();   // calm.118
+        com.mg4.launcher.svc.ClusterFeed.stop();   // calm.130
         nav.stop();
         try {
             unregisterReceiver(packages);

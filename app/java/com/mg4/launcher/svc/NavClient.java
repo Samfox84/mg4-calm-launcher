@@ -147,6 +147,8 @@ public final class NavClient {
         public void onReceive(Context c, Intent i) {
             String a = i.getAction();
             if (a == null) return;
+            // calm.130: ignora i broadcast generati da noi (ClusterFeed), o rileggeremmo CarPlay come navigatore MG
+            if (ClusterFeed.SRC_VALUE.equals(i.getStringExtra(ClusterFeed.SRC_EXTRA))) return;
             if (a.endsWith("GUIDE_STATUS")) {
                 bcStatus = i.getIntExtra("STATUS", 0);
                 Diag.put("nav.broadcastStato", bcStatus);

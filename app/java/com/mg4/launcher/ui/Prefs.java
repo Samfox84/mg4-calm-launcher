@@ -47,6 +47,10 @@ public final class Prefs {
     // dello schermo principale (mappa CarPlay) invece della mappa ricostruita. Ritaglio in percentuali.
     public boolean clusterMirror() { return sp.getBoolean("clusterMirror", false); }
     public void setClusterMirror(boolean v) { sp.edit().putBoolean("clusterMirror", v).apply(); }
+
+    /** calm.130: alimenta il cruscotto NATIVO con le svolte CarPlay (via adattatore SAIC), niente nostra Presentation. */
+    public boolean clusterFeed() { return sp.getBoolean("clusterFeed", true); }
+    public void setClusterFeed(boolean v) { sp.edit().putBoolean("clusterFeed", v).apply(); }
     public int mirrorL() { return sp.getInt("mirrorL", 0); }
     public int mirrorT() { return sp.getInt("mirrorT", 0); }
     public int mirrorR() { return sp.getInt("mirrorR", 100); }

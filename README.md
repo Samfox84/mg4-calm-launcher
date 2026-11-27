@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.130
+- **CarPlay sul quadro NATIVO (consigliato)**: invece di disegnare una nostra mappa sul quadro (ricostruita o specchio), ora il launcher ALIMENTA il renderer NATIVO del quadro con le svolte di CarPlay. Manda i dati-svolta al servizio adattatore SAIC (interfacce già esportate: niente reflash né patch), così il quadro mostra la SUA pagina navigazione vera mentre CarPlay cablato tiene schermo, navigazione e MICROFONO. Esclusivo con "Mappa sul quadro" (non possono usare lo stesso display): attivarlo spegne l'altra. Attivo di default. Dal codice del firmware verificato che `requestProjection` NON ruba il focus di navigazione, quindi CarPlay non si ferma. Sorgente unica dal feed già unito di CarPlayNavClient (niente doppia cattura). Log dettagliati `cluster.feed.*` per la prova su strada.
+
 #### 1.0.6-calm.129
 - **Specchio CarPlay sul quadro (sperimentale)**: nuova modalità in Impostazioni → quadro. Invece della linea ricostruita (che da fermo/alle rotonde non funzionava), cattura lo schermo principale e disegna la mappa VERA di CarPlay sul quadro. Da usare con CarPlay nativo CABLATO (così il microfono funziona). Incognita: se il video CarPlay è una superficie protetta, il quadro resta nero e il log lo dice (cluster.mirror). Serve la chiave di piattaforma (ce l'abbiamo).
 
@@ -393,6 +396,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.130
+- **CarPlay turns on the NATIVE cluster (recommended)**: instead of drawing our own map on the cluster (reconstructed or mirror), the launcher now FEEDS the car's native cluster renderer with CarPlay's turns. It sends the turn data to the SAIC adapter service (already-exported interfaces: no reflash, no patch), so the cluster shows its REAL native nav page while wired CarPlay keeps the screen, navigation and MICROPHONE. Mutually exclusive with "Map on the cluster" (can't share one display): turning this on turns that off. On by default. Verified from firmware that `requestProjection` does NOT steal navigation focus, so CarPlay doesn't stop. Single source from CarPlayNavClient's already-merged feed (no double capture). Detailed `cluster.feed.*` logs for the road test.
 
 #### 1.0.6-calm.129
 - **Mirror CarPlay to cluster (experimental)**: new mode in Settings → cluster. Instead of the reconstructed line (which failed when parked and at roundabouts), it captures the main screen and draws the REAL CarPlay map on the cluster. Use with native WIRED CarPlay (so the mic works). Unknown: if CarPlay's video is a protected surface, the cluster stays black and the log says so (cluster.mirror). Needs the platform key (we have it).
