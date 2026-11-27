@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6-calm.130",
-  "apk": "releases/MG4Launcher-1.0.6-calm.130.apk",
+  "version": "1.0.6-calm.131",
+  "apk": "releases/MG4Launcher-1.0.6-calm.131.apk",
   "size": 9107146,
-  "notes": "calm.130: svolte CarPlay sul cruscotto nativo (adattatore SAIC); no reflash/patch; esclusivo con Mappa sul quadro"
+  "notes": "calm.131: fix feed cruscotto nativo (freccia + strada affidabili, niente card vuota a meta' svolta)"
 }

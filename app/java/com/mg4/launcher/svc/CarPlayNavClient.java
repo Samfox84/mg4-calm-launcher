@@ -41,13 +41,15 @@ public final class CarPlayNavClient {
     private IBinder service;
     private int extrasCount;
 
-    // stato unito della navigazione (i campi arrivano su callback diverse)
-    private String navRoad = "";
-    private int navMeters = -1;
-    private String navEta = "";
-    private int navIcon = -1;
-    private String navDest = "";      // calm.128: nome destinazione (dal feed)
-    private int navTotalM = -1;       // calm.128: distanza totale rimanente (m)
+    // stato unito della navigazione (i campi arrivano su callback diverse).
+    // calm.131: volatile — onExtras può girare su più thread binder; senza questo i valori (icona, strada)
+    // si perdevano tra i thread e arrivavano -1/vuoti al cruscotto.
+    private volatile String navRoad = "";
+    private volatile int navMeters = -1;
+    private volatile String navEta = "";
+    private volatile int navIcon = -1;
+    private volatile String navDest = "";      // calm.128: nome destinazione (dal feed)
+    private volatile int navTotalM = -1;       // calm.128: distanza totale rimanente (m)
     private String lastDestKey = "";  // per non ri-spingere/ri-cercare uguale
     private long lastUpdate;
 
@@ -160,7 +162,7 @@ public final class CarPlayNavClient {
     }
 
     /** Un aggiornamento del feed: unisce i campi presenti e spinge manovra + percorso sul quadro. */
-    private void onExtras(String action, Bundle b) {
+    private synchronized void onExtras(String action, Bundle b) {
         if (b == null || !"ACTION_CARPLAY_NAVI_METADATA".equals(action)) return;
         extrasCount++;
         if (extrasCount <= 5 || extrasCount % 20 == 0)

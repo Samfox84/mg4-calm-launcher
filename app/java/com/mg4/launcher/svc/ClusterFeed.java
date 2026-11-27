@@ -119,11 +119,11 @@ public final class ClusterFeed {
         if (!running) return;
         if (!active) { curActive = false; return; }
         curActive = true;
-        curRawIcon = carplayIcon;
-        curMeters = meters;
-        curCode = mapManeuver(carplayIcon, -1);
-        curDist = toClusterDistance(meters);
-        curRoad = road == null ? "" : road.trim();
+        // calm.131: tieni l'ultima manovra/strada buona: un aggiornamento di sola distanza (icona -1 / strada vuota)
+        // NON deve cancellare la freccia e il nome strada già mostrati.
+        if (carplayIcon >= 0) { curRawIcon = carplayIcon; curCode = mapManeuver(carplayIcon, -1); }
+        if (road != null && !road.trim().isEmpty()) curRoad = road.trim();
+        if (meters >= 0) { curMeters = meters; curDist = toClusterDistance(meters); }
         lastPush = SystemClock.uptimeMillis();
     }
 

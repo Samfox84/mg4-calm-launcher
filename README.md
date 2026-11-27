@@ -310,6 +310,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 ### Versioni
 
+#### 1.0.6-calm.131
+- **Correzioni feed cruscotto nativo**: la freccia di manovra e il nome strada ora arrivano affidabili al cruscotto (prima si perdevano tra i thread e arrivavano vuoti/-1, mostrando solo una mappa spoglia). Campi di navigazione resi thread-safe (volatile + onExtras sincronizzato) e ClusterFeed tiene l'ultima manovra/strada buona, cosi' la card non si svuota a meta' svolta. Dalla prova su strada: il cruscotto accetta il feed (paginaNavi=true), nessun errore, e requestProjection non ruba il focus (CarPlay tiene microfono e navigazione).
+
 #### 1.0.6-calm.130
 - **CarPlay sul quadro NATIVO (consigliato)**: invece di disegnare una nostra mappa sul quadro (ricostruita o specchio), ora il launcher ALIMENTA il renderer NATIVO del quadro con le svolte di CarPlay. Manda i dati-svolta al servizio adattatore SAIC (interfacce già esportate: niente reflash né patch), così il quadro mostra la SUA pagina navigazione vera mentre CarPlay cablato tiene schermo, navigazione e MICROFONO. Esclusivo con "Mappa sul quadro" (non possono usare lo stesso display): attivarlo spegne l'altra. Attivo di default. Dal codice del firmware verificato che `requestProjection` NON ruba il focus di navigazione, quindi CarPlay non si ferma. Sorgente unica dal feed già unito di CarPlayNavClient (niente doppia cattura). Log dettagliati `cluster.feed.*` per la prova su strada.
 
@@ -396,6 +399,9 @@ Anche solo **2 €** sono un aiuto prezioso per continuare a sviluppare e provar
 
 #### 1.0.6-calm.108
 - **Siri via Bluetooth (test)**: nuovo pulsante in Impostazioni (Avvio e app) che avvia Siri sull'iPhone tramite il Bluetooth hands-free dell'auto, così Siri usa il microfono dell'AUTO invece di quello (muto) del CarPlay wireless.
+
+#### 1.0.6-calm.131
+- **Native-cluster feed fixes**: the turn arrow and road name now reach the cluster reliably (before they were lost across threads and arrived blank/-1, so you only saw a bare map). The nav fields are thread-safe now (volatile + synchronized onExtras) and ClusterFeed holds the last good turn/road so the card never blanks mid-turn. From the road test: the cluster accepts the feed (paginaNavi=true), zero errors, and requestProjection doesn't steal focus (CarPlay keeps mic + navigation).
 
 #### 1.0.6-calm.130
 - **CarPlay turns on the NATIVE cluster (recommended)**: instead of drawing our own map on the cluster (reconstructed or mirror), the launcher now FEEDS the car's native cluster renderer with CarPlay's turns. It sends the turn data to the SAIC adapter service (already-exported interfaces: no reflash, no patch), so the cluster shows its REAL native nav page while wired CarPlay keeps the screen, navigation and MICROPHONE. Mutually exclusive with "Map on the cluster" (can't share one display): turning this on turns that off. On by default. Verified from firmware that `requestProjection` does NOT steal navigation focus, so CarPlay doesn't stop. Single source from CarPlayNavClient's already-merged feed (no double capture). Detailed `cluster.feed.*` logs for the road test.
